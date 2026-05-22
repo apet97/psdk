@@ -1,0 +1,140 @@
+import { describe, expect, it } from "vitest";
+import { resolveChannel, resolveUser } from "../src/extensions/index.js";
+
+const users = [
+  {
+    id: "u1",
+    email: "alice@example.com",
+    name: "Alice Johnson",
+    role: "MEMBER",
+    status: "ACTIVATED",
+    workspaceId: "w1",
+    phone: "+1-555-0101",
+  },
+  {
+    id: "u2",
+    email: "alex@example.com",
+    name: "Alex Stone",
+    role: "MEMBER",
+    status: "ACTIVATED",
+    workspaceId: "w1",
+  },
+  {
+    id: "u3",
+    email: "alexis@example.com",
+    name: "Alexis Stone",
+    role: "MEMBER",
+    status: "ACTIVATED",
+    workspaceId: "w1",
+  },
+] as any;
+
+const channels = [
+  {
+    channel: {
+      id: "c1",
+      name: "general",
+      channelType: "PUBLIC",
+      workspaceId: "w1",
+      description: "Workspace talk",
+    },
+    users: ["u1"],
+  },
+  {
+    channel: {
+      id: "c2",
+      name: "engineering",
+      channelType: "PRIVATE",
+      workspaceId: "w1",
+    },
+  },
+  {
+    channel: {
+      id: "c3",
+      name: "engineering-support",
+      channelType: "PUBLIC",
+      workspaceId: "w1",
+    },
+  },
+] as any;
+
+const client = {
+  users: {
+    async listUsers() {
+      return users;
+    },
+  },
+  channels: {
+    async listChannels() {
+      return channels;
+    },
+  },
+};
+
+describe("resolveUser", () => {
+  it("resolves an exact user email", async () => {
+    await expect(resolveUser(client, "ALICE@example.com")).resolves.toEqual({
+      ok: true,
+      value: users[0],
+    });
+  });
+
+  it("resolves an exact user name before partial matches", async () => {
+    await expect(resolveUser(client, "Alex Stone")).resolves.toEqual({
+      ok: true,
+      value: users[1],
+    });
+  });
+
+  it("returns not_found without throwing when no user matches", async () => {
+    await expect(resolveUser(client, "nobody")).resolves.toEqual({
+      ok: false,
+      reason: "not_found",
+      candidates: [],
+    });
+  });
+
+  it("returns sanitized candidates when a user name is ambiguous", async () => {
+    await expect(resolveUser(client, "alex")).resolves.toEqual({
+      ok: false,
+      reason: "ambiguous",
+      candidates: [
+        { id: "u2", email: "alex@example.com", name: "Alex Stone" },
+        { id: "u3", email: "alexis@example.com", name: "Alexis Stone" },
+      ],
+    });
+  });
+});
+
+describe("resolveChannel", () => {
+  it("resolves an exact channel name with a leading #", async () => {
+    await expect(resolveChannel(client, " #general ")).resolves.toEqual({
+      ok: true,
+      value: channels[0].channel,
+    });
+  });
+
+  it("returns not_found without throwing when no channel matches", async () => {
+    await expect(resolveChannel(client, "sales")).resolves.toEqual({
+      ok: false,
+      reason: "not_found",
+      candidates: [],
+    });
+  });
+
+  it("returns sanitized candidates when a channel name is ambiguous", async () => {
+    await expect(resolveChannel(client, "engineering")).resolves.toEqual({
+      ok: true,
+      value: channels[1].channel,
+    });
+
+    await expect(resolveChannel(client, "engine")).resolves.toEqual({
+      ok: false,
+      reason: "ambiguous",
+      candidates: [
+        { id: "c2", name: "engineering", channelType: "PRIVATE" },
+        { id: "c3", name: "engineering-support", channelType: "PUBLIC" },
+      ],
+    });
+  });
+});

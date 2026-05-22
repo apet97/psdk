@@ -29,6 +29,20 @@ export {
 } from "./find.js";
 
 export {
+  resolveChannel,
+  resolveUser,
+  type ResolveChannelCandidate,
+  type ResolveChannelClient,
+  type ResolveChannelResult,
+  type ResolveFailureReason,
+  type ResolveOptions,
+  type ResolveResult,
+  type ResolveUserCandidate,
+  type ResolveUserClient,
+  type ResolveUserResult,
+} from "./resolve.js";
+
+export {
   withRetries,
   type RetryOptions,
 } from "./with-retries.js";

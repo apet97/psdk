@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const delegates = vi.hoisted(() => ({
   findChannelByName: vi.fn(),
   findUserByEmail: vi.fn(),
+  resolveChannel: vi.fn(),
+  resolveUser: vi.fn(),
 }));
 
 vi.mock("../src/extensions/find.js", async (importOriginal) => {
@@ -11,6 +13,15 @@ vi.mock("../src/extensions/find.js", async (importOriginal) => {
     ...actual,
     findChannelByName: delegates.findChannelByName,
     findUserByEmail: delegates.findUserByEmail,
+  };
+});
+
+vi.mock("../src/extensions/resolve.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/extensions/resolve.js")>();
+  return {
+    ...actual,
+    resolveChannel: delegates.resolveChannel,
+    resolveUser: delegates.resolveUser,
   };
 });
 
@@ -57,6 +68,32 @@ describe("createPumbleClient", () => {
 
     await expect(client.users.findByEmail("u@example.invalid")).resolves.toBe(user);
     expect(delegates.findUserByEmail).toHaveBeenCalledWith(
+      client.raw,
+      "u@example.invalid",
+      undefined,
+    );
+  });
+
+  it("delegates channels.resolve through resolveChannel", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const result = { ok: true, value: { id: "c1", name: "general" } };
+    delegates.resolveChannel.mockResolvedValue(result);
+
+    await expect(client.channels.resolve("#general")).resolves.toBe(result);
+    expect(delegates.resolveChannel).toHaveBeenCalledWith(
+      client.raw,
+      "#general",
+      undefined,
+    );
+  });
+
+  it("delegates users.resolve through resolveUser", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const result = { ok: true, value: { id: "u1", email: "u@example.invalid" } };
+    delegates.resolveUser.mockResolvedValue(result);
+
+    await expect(client.users.resolve("u@example.invalid")).resolves.toBe(result);
+    expect(delegates.resolveUser).toHaveBeenCalledWith(
       client.raw,
       "u@example.invalid",
       undefined,

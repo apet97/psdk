@@ -8,6 +8,11 @@ import {
   findUserByEmail,
   type FindOptions,
 } from "./find.js";
+import {
+  resolveChannel,
+  resolveUser,
+  type ResolveOptions,
+} from "./resolve.js";
 
 type MethodArgs<T, K extends keyof T> =
   T[K] extends (...args: infer Args) => unknown ? Args : never;
@@ -35,6 +40,8 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
         raw.channels.removeUserFromChannel(...args),
       findByName: (name: string, options?: FindOptions) =>
         findChannelByName(raw, name, options),
+      resolve: (input: string, options?: ResolveOptions) =>
+        resolveChannel(raw, input, options),
     },
     users: {
       list: (...args: MethodArgs<Users, "listUsers">) =>
@@ -43,6 +50,8 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
         raw.users.listUserGroups(...args),
       findByEmail: (email: string, options?: FindOptions) =>
         findUserByEmail(raw, email, options),
+      resolve: (input: string, options?: ResolveOptions) =>
+        resolveUser(raw, input, options),
       setCustomStatus: (...args: MethodArgs<Users, "customStatus">) =>
         raw.users.customStatus(...args),
     },
