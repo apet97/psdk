@@ -221,6 +221,40 @@ literally cannot call the mutating ones:
 }
 ```
 
+### Curated write confirmations
+
+For agents that may write but should preview first, run the curated MCP
+server instead of exposing the generated write surface:
+
+```json
+{
+  "mcpServers": {
+    "pumble-curated": {
+      "command": "npx",
+      "args": [
+        "-y", "--package", "pumble-sdk", "--", "pumble-mcp-curated",
+        "start", "--transport", "stdio"
+      ],
+      "env": {
+        "PUMBLE_API_KEY": "<pumble-api-key>"
+      }
+    }
+  }
+}
+```
+
+The curated write flow is two-step for messages:
+`preview_send_message` -> `send_message_confirmed`, and
+`preview_reply_to_thread` -> `reply_to_thread_confirmed`. Preview tools do
+not call Pumble; they return `{ request, preview, confirmationToken }`.
+Pass that same payload to the confirmed tool to perform exactly one SDK
+write. The token is a process-local integrity token, not a Pumble API
+credential or server-side approval record.
+
+Reaction tools (`add_reaction`, `remove_reaction`) skip confirmation, but
+they require exact `channelId`, `messageId`, and `reaction` values. The
+curated profile does not expose delete or edit tools.
+
 ### Dry-run profile
 
 When you *want* the model to practise calling write tools but don't want

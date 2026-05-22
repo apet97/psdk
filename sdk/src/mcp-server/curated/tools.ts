@@ -9,6 +9,11 @@ import * as z from "zod/v3";
 import { resolveChannel, resolveUser } from "../../extensions/index.js";
 import { registerCuratedReadTools } from "./read-tools.js";
 import type { CuratedClient } from "./types.js";
+import {
+  CURATED_WRITE_TOOL_NAMES,
+  registerCuratedWriteTools,
+  type CuratedWriteToolOptions,
+} from "./write-tools.js";
 
 export const CURATED_TOOL_NAMES = [
   "get_current_user",
@@ -19,7 +24,10 @@ export const CURATED_TOOL_NAMES = [
   "list_channel_messages",
   "list_thread_replies",
   "get_thread_context",
+  ...CURATED_WRITE_TOOL_NAMES,
 ] as const;
+
+export type CuratedToolOptions = CuratedWriteToolOptions;
 
 type ToolExtra = RequestHandlerExtra<ServerRequest, ServerNotification>;
 
@@ -50,6 +58,7 @@ async function jsonTool(
 export function registerCuratedTools(
   server: McpServer,
   client: CuratedClient,
+  options: CuratedToolOptions = {},
 ): void {
   server.tool(
     "get_current_user",
@@ -77,4 +86,5 @@ export function registerCuratedTools(
   );
 
   registerCuratedReadTools(server, client);
+  registerCuratedWriteTools(server, client, options);
 }
