@@ -7,12 +7,18 @@ import type {
 } from "@modelcontextprotocol/sdk/types.js";
 import * as z from "zod/v3";
 import { resolveChannel, resolveUser } from "../../extensions/index.js";
+import { registerCuratedReadTools } from "./read-tools.js";
 import type { CuratedClient } from "./types.js";
 
 export const CURATED_TOOL_NAMES = [
   "get_current_user",
   "resolve_user",
   "resolve_channel",
+  "search_messages",
+  "get_message",
+  "list_channel_messages",
+  "list_thread_replies",
+  "get_thread_context",
 ] as const;
 
 type ToolExtra = RequestHandlerExtra<ServerRequest, ServerNotification>;
@@ -69,4 +75,6 @@ export function registerCuratedTools(
     },
     async ({ query }) => jsonTool(() => resolveChannel(client, query)),
   );
+
+  registerCuratedReadTools(server, client);
 }

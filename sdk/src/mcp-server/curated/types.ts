@@ -15,4 +15,4 @@ export interface CuratedStartOptions extends CuratedServerOptions {
   readonly env?: readonly [string, string][] | undefined;
 }
 
-export type CuratedClient = Pick<PumbleSDK, "channels" | "users">;
+export type CuratedClient = Pick<PumbleSDK, "channels" | "messages" | "users">;
