@@ -116,6 +116,18 @@ export {
 } from "./telemetry.js";
 
 export {
+  createFixtureBodyHash,
+  createMockPumbleFetch,
+  sanitizePumbleFixtureValue,
+  type CreateMockPumbleFetchOptions,
+  type MockPumbleFetchFixture,
+  type MockPumbleFetchKey,
+  type MockPumbleFetchRequest,
+  type MockPumbleFetchResponse,
+  type MockPumbleFetch,
+} from "./testing/index.js";
+
+export {
   createWebhookHandler,
   PUMBLE_REQUEST_SIGNATURE_HEADER,
   PUMBLE_REQUEST_TIMESTAMP_HEADER,

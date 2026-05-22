@@ -288,6 +288,9 @@ export function bodyHash(body) {
   return createHash("sha256").update(serialised).digest("hex");
 }
 
+export const createFixtureBodyHash = bodyHash;
+export const sanitizePumbleFixtureValue = sanitizeFixtureValue;
+
 export function normalisePath(urlLike) {
   const url = new URL(urlLike);
   const params = [...url.searchParams.entries()]
