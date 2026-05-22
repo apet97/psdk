@@ -597,6 +597,55 @@ handler failures return 500 so Pumble can retry. Empty signing secrets are
 rejected at construction time. The SDK does not depend on Express at
 runtime — the helper accepts plain Node HTTP request/response objects.
 
+### App routing and OAuth install helpers
+
+`PumbleApp` and `createWebhookHandler` are available for signed webhook/app
+routing. OAuth install support is intentionally limited to the verified Pumble
+install flow primitives: build the consent URL, verify the redirect callback
+has a `code`, build the multipart access-token request, and store returned
+tokens through an app-provided `TokenStore`.
+
+The SDK does not start a redirect server, exchange tokens automatically, or
+persist tokens to disk by default:
+
+```typescript
+import {
+  InMemoryTokenStore,
+  createPumbleOAuthAccessTokenRequest,
+  createPumbleOAuthAuthorizationUrl,
+  verifyPumbleOAuthCallback,
+  type PumbleOAuthAccessTokenResponse,
+} from "pumble-sdk/extensions/app/index.js";
+
+const tokenStore = new InMemoryTokenStore(); // process-local; provide your own production store
+
+const installUrl = createPumbleOAuthAuthorizationUrl({
+  clientId: process.env["PUMBLE_APP_CLIENT_ID"]!,
+  redirectUrl: "https://example.com/pumble/oauth/callback",
+  userScopes: ["messages:read"],
+  botScopes: ["messages:write"],
+  defaultWorkspaceId: "workspace-id",
+  state: "csrf-token",
+});
+
+const callback = verifyPumbleOAuthCallback(
+  "https://example.com/pumble/oauth/callback?code=authorization-code&state=csrf-token",
+  { expectedState: "csrf-token" },
+);
+
+const request = createPumbleOAuthAccessTokenRequest({
+  clientId: process.env["PUMBLE_APP_CLIENT_ID"]!,
+  clientSecret: process.env["PUMBLE_APP_CLIENT_SECRET"]!,
+  code: callback.code,
+});
+const response = await fetch(request.url, request.init);
+if (!response.ok) throw new Error(`Pumble OAuth exchange failed: ${response.status}`);
+await tokenStore.saveTokens(await response.json() as PumbleOAuthAccessTokenResponse);
+```
+
+Use `InMemoryTokenStore` for tests and local demos only. Production apps should
+provide a `TokenStore` backed by their own encrypted database or secret store.
+
 ## 11. Where to go next
 
 * [README — Pagination patterns](../README.md#pagination-patterns)
