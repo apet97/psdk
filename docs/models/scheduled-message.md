@@ -1,0 +1,40 @@
+# ScheduledMessage
+
+## Example Usage
+
+```typescript
+import { ScheduledMessage } from "pumble-sdk/models";
+
+let value: ScheduledMessage = {
+  id: "dddddddddddddddddddd0001",
+  channelId: "bbbbbbbbbbbbbbbbbbbb0002",
+  workspaceId: "aaaaaaaaaaaaaaaaaaaa0000",
+  author: "aaaaaaaaaaaaaaaaaaaa0001",
+  text: "Reminder",
+  sendAt: 1893459600000,
+  alsoSendToChannel: false,
+  threadRootId: null,
+  rootText: null,
+  quotedMessage: null,
+  recurrence: null,
+};
+```
+
+## Fields
+
+| Field                                                                                     | Type                                                                                      | Required                                                                                  | Description                                                                               | Example                                                                                   |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `id`                                                                                      | *string*                                                                                  | :heavy_check_mark:                                                                        | N/A                                                                                       | dddddddddddddddddddd0001                                                                  |
+| `channelId`                                                                               | *string*                                                                                  | :heavy_check_mark:                                                                        | N/A                                                                                       |                                                                                           |
+| `workspaceId`                                                                             | *string*                                                                                  | :heavy_check_mark:                                                                        | N/A                                                                                       |                                                                                           |
+| `author`                                                                                  | *string*                                                                                  | :heavy_check_mark:                                                                        | N/A                                                                                       |                                                                                           |
+| `text`                                                                                    | *string*                                                                                  | :heavy_check_mark:                                                                        | N/A                                                                                       |                                                                                           |
+| `sendAt`                                                                                  | *number*                                                                                  | :heavy_check_mark:                                                                        | Delivery moment (epoch ms).                                                               | 1893459600000                                                                             |
+| `blocks`                                                                                  | [models.MessageBlock](../models/message-block.md)[]                                       | :heavy_minus_sign:                                                                        | N/A                                                                                       |                                                                                           |
+| `attachments`                                                                             | Record<string, *any*>[]                                                                   | :heavy_minus_sign:                                                                        | N/A                                                                                       |                                                                                           |
+| `files`                                                                                   | Record<string, *any*>[]                                                                   | :heavy_minus_sign:                                                                        | N/A                                                                                       |                                                                                           |
+| `alsoSendToChannel`                                                                       | *boolean*                                                                                 | :heavy_minus_sign:                                                                        | For threaded scheduled messages, whether to also broadcast to the parent channel on send. |                                                                                           |
+| `threadRootId`                                                                            | *string*                                                                                  | :heavy_minus_sign:                                                                        | N/A                                                                                       |                                                                                           |
+| `rootText`                                                                                | *string*                                                                                  | :heavy_minus_sign:                                                                        | N/A                                                                                       |                                                                                           |
+| `quotedMessage`                                                                           | Record<string, *any*>                                                                     | :heavy_minus_sign:                                                                        | N/A                                                                                       |                                                                                           |
+| `recurrence`                                                                              | [models.ScheduledMessageRecurrence](../models/scheduled-message-recurrence.md)            | :heavy_minus_sign:                                                                        | N/A                                                                                       | {<br/>"recurrenceType": "WEEKLY",<br/>"endAfterOccurrences": 10,<br/>"endDate": 1893459600000<br/>} |
