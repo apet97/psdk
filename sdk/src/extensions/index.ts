@@ -35,6 +35,17 @@ export {
 } from "./thread-context.js";
 
 export {
+  createConfirmationToken,
+  createWritePreview,
+  verifyConfirmationToken,
+  type ConfirmationSecret,
+  type WriteAction,
+  type WriteActionTarget,
+  type WritePreview,
+  type WriteRiskLevel,
+} from "./write-plan.js";
+
+export {
   findUserByEmail,
   findChannelByName,
   type FindClient,

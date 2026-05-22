@@ -300,6 +300,43 @@ To wire it into Claude Desktop via Docker:
 
 ## 10. Common patterns
 
+### Preview writes before dispatch
+
+For agent workflows that need a dry-run style confirmation step before a
+write, build a local preview and sign that exact preview with your own
+per-session secret or salt:
+
+```typescript
+import {
+  createConfirmationToken,
+  createWritePreview,
+  verifyConfirmationToken,
+} from "pumble-sdk/extensions/index.js";
+
+const preview = createWritePreview({
+  type: "send_message",
+  targetKind: "channel",
+  targetId: general.id,
+  targetName: "#general",
+  text: "Hello from pumble-sdk",
+  riskLevel: "medium",
+});
+
+const token = createConfirmationToken(preview, process.env["AGENT_CONFIRMATION_SALT"]!);
+
+// Later, immediately before the write:
+if (!verifyConfirmationToken(preview, token, process.env["AGENT_CONFIRMATION_SALT"]!)) {
+  throw new Error("write preview changed after confirmation");
+}
+```
+
+The token is only a local integrity token for your confirmation flow. It is
+not a Pumble API credential, is not sent to Pumble, and does not represent a
+server-side confirmation record. Store previews wherever your app normally
+stores pending work; the SDK does not keep a global preview registry.
+Free-form text is collapsed, redacted for common token/password patterns, and
+truncated in the preview.
+
 ### Pagination
 
 Three endpoints paginate: `listMessages`, `fetchScheduledMessages`,
