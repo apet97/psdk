@@ -35,6 +35,17 @@ export const CURATED_TOOLS = [
   "get_current_user",
   "resolve_user",
   "resolve_channel",
+  "search_messages",
+  "get_message",
+  "list_channel_messages",
+  "list_thread_replies",
+  "get_thread_context",
+  "preview_send_message",
+  "send_message_confirmed",
+  "preview_reply_to_thread",
+  "reply_to_thread_confirmed",
+  "add_reaction",
+  "remove_reaction",
 ];
 
 export class WrapperUsageError extends Error {
@@ -105,14 +116,14 @@ export function buildMcpInvocation({ argv, env, generatedMcp, curatedMcp, dryRun
     throw new WrapperUsageError("pumble-mcp: --audit-log requires a non-empty path argument.");
   }
 
-  const effectiveProfile = parsed.profile ?? "readwrite";
+  const callerSuppliedTool = parsed.passthrough.some((a) => a === "--tool" || a.startsWith("--tool="));
+  const effectiveProfile = parsed.profile ?? (parsed.dryRun || callerSuppliedTool ? "readwrite" : "curated");
   if (effectiveProfile !== "readonly" && effectiveProfile !== "readwrite" && effectiveProfile !== "curated") {
     throw new WrapperUsageError(`pumble-mcp: --profile must be 'readonly', 'readwrite', or 'curated', got: ${effectiveProfile}`);
   }
 
   const usesCuratedServer = effectiveProfile === "curated";
   const tools = usesCuratedServer ? [] : effectiveProfile === "readonly" ? READONLY_TOOLS : READWRITE_TOOLS;
-  const callerSuppliedTool = parsed.passthrough.some((a) => a === "--tool" || a.startsWith("--tool="));
   const args = [...parsed.passthrough];
   if (!hasApiKeyAuth(args)) {
     const apiKey = envApiKey(env);

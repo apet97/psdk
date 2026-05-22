@@ -99,6 +99,10 @@ jobs:
         # PUMBLE_API_KEY is unset, so this run is safe in PR CI.
         run: npm test
 
+      - name: MCP agent safety evals
+        working-directory: sdk
+        run: npm run test:mcp:safety
+
       - name: Example tests
         working-directory: sdk
         run: npm run test:examples

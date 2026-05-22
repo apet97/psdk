@@ -2,8 +2,8 @@
 // Friendly wrapper around the generated bin/mcp-server.js plus the
 // hand-written curated MCP server. Adds:
 //
-//   --profile curated              workflow-first curated MCP tools
-//   --profile readonly|readwrite   pre-set --tool whitelists (default: readwrite)
+//   --profile curated              workflow-first curated MCP tools (default)
+//   --profile readonly|readwrite   pre-set raw --tool whitelists
 //   --dry-run                      exposes all tools but intercepts mutating
 //                                  HTTP at the network layer via a fetch shim
 //   --audit-log <path>             append one JSON line per outbound HTTP call
@@ -56,11 +56,11 @@ Usage:
 Wrapper-only options:
   --profile curated       Launch workflow-first curated tools via the
                           hand-written MCP server (${CURATED_TOOLS.length} tools) instead of
-                          the generated raw endpoint server. Exposes:
+                          the generated raw endpoint server (default). Exposes:
                           ${CURATED_TOOLS.join(", ")}.
   --profile readonly      Expose only read-only tools (${READONLY_TOOLS.length} tools).
                           Mutating tools are hidden from the agent entirely.
-  --profile readwrite     Expose all ${READWRITE_TOOLS.length} tools (default).
+  --profile readwrite     Expose all ${READWRITE_TOOLS.length} generated raw tools.
   --dry-run               Expose all ${READWRITE_TOOLS.length} tools but intercept
                           mutating HTTP (POST/PUT/PATCH/DELETE) at the fetch
                           layer, returning synthetic 200s. Lets the agent
@@ -84,6 +84,7 @@ Examples:
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile curated
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readonly
+  PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio --dry-run
 `);
 }

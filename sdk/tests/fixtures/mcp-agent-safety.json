@@ -1,0 +1,37 @@
+{
+  "channels": [
+    {
+      "channel": {
+        "id": "channel-support-eng",
+        "name": "support-eng",
+        "channelType": "PUBLIC",
+        "workspaceId": "workspace-1"
+      }
+    },
+    {
+      "channel": {
+        "id": "channel-support-ops",
+        "name": "support-ops",
+        "channelType": "PRIVATE",
+        "workspaceId": "workspace-1"
+      }
+    }
+  ],
+  "ambiguousChannelQuery": "support",
+  "sendRequest": {
+    "channelId": "channel-support-eng",
+    "channel": "#support-eng",
+    "text": "Deploy after approval."
+  },
+  "wrongConfirmationToken": "pumble-write-plan-v1.wrong-token",
+  "defaultArgv": ["start", "--transport", "stdio"],
+  "rawProfileArgv": ["start", "--transport", "stdio", "--profile", "readwrite"],
+  "destructiveToolNames": [
+    "delete_message",
+    "edit_message",
+    "messages-delete-message",
+    "messages-edit-message",
+    "scheduled-messages-delete-scheduled-message",
+    "scheduled-messages-edit-scheduled-message"
+  ]
+}
