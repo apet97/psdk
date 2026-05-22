@@ -1,0 +1,37 @@
+# Reference docker-compose for running pumble-mcp in three modes.
+# Pick the service that matches what you want, then `docker compose run`.
+
+services:
+  # All 26 tools exposed; mutations go to the live workspace.
+  pumble-mcp:
+    build: .
+    image: pumble-mcp:latest
+    stdin_open: true
+    tty: false
+    environment:
+      PUMBLE_API_KEY: "${PUMBLE_API_KEY:?set PUMBLE_API_KEY before docker compose run}"
+    command:
+      - start
+      - --transport
+      - stdio
+
+  # 11 read-only tools; mutating tools hidden from the agent entirely.
+  pumble-mcp-readonly:
+    extends:
+      service: pumble-mcp
+    command:
+      - start
+      - --transport
+      - stdio
+      - --profile
+      - readonly
+
+  # All 26 tools exposed; mutating HTTP intercepted at the fetch layer.
+  pumble-mcp-dry-run:
+    extends:
+      service: pumble-mcp
+    command:
+      - start
+      - --transport
+      - stdio
+      - --dry-run

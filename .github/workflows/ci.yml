@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Nightly at 04:17 UTC — picks up any spec drift introduced by
+    # Pumble server-side changes.
+    - cron: "17 4 * * *"
+
+jobs:
+  lint-and-test:
+    name: Lint OAS · Generate · Build · Mocked tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: sdk/package-lock.json
+
+      - name: Install Speakeasy CLI
+        run: |
+          set -euo pipefail
+          curl -fsSL https://go.speakeasy.com/cli-install.sh | sh
+          echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
+
+      - name: Lint OpenAPI spec (0 errors, 0 warnings required)
+        run: |
+          set -euo pipefail
+          out=$(speakeasy lint openapi -s PumbleOpenApi.yaml 2>&1)
+          echo "$out"
+          echo "$out" | grep -qE '0 errors, 0 warnings' || {
+            echo "::error::speakeasy lint reported issues"
+            exit 1
+          }
+
+      - name: Regenerate SDK (sanity check — no source drift)
+        # Catches schema drift that would silently break a downstream
+        # regen. We don't commit the regen output in CI; the diff check
+        # below would fail loudly if it had to.
+        run: |
+          speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+
+      - name: Normalize generated package metadata
+        run: node sdk/scripts/normalize-package.mjs
+
+      - name: Check generated diff whitespace
+        run: git diff --check
+
+      - name: Verify no drift in committed hand-written paths
+        env:
+          GUARDED_PATHS: >-
+            sdk/src/extensions
+            sdk/tests
+            sdk/scripts
+            sdk/bin/pumble-cli.mjs
+            sdk/bin/pumble-mcp.mjs
+            sdk/bin/pumble-mcp-args.mjs
+            sdk/bin/dry-run-shim.mjs
+            sdk/bin/audit-log-shim.mjs
+            sdk/package.json
+            sdk/package-lock.json
+        run: |
+          # Speakeasy regen MUST NOT touch hand-written paths — both
+          # src/extensions, tests, scripts, and the wrapper shims under bin/
+          # are out-of-scope for the generator.
+          if ! git diff --quiet -- $GUARDED_PATHS; then
+            git diff --stat -- $GUARDED_PATHS
+            echo "::error::regen touched hand-written paths"
+            exit 1
+          fi
+
+      - name: Install SDK deps
+        working-directory: sdk
+        run: npm install --no-audit --no-fund
+
+      - name: Lint hand-written TypeScript
+        working-directory: sdk
+        run: npm run lint
+
+      - name: Build
+        working-directory: sdk
+        run: npm run build
+
+      - name: Mocked vitest
+        working-directory: sdk
+        # The live-only test suite (search-all live block) skips when
+        # PUMBLE_API_KEY is unset, so this run is safe in PR CI.
+        run: npm test
+
+      - name: Replay arazzo fixture
+        working-directory: sdk
+        # Re-record locally with:
+        #   source /tmp/pumble-livetest.env && PUMBLE_RECORD=arazzo-26-workflows node scripts/run-arazzo-live.mjs
+        run: node scripts/run-arazzo-live.mjs --replay arazzo-26-workflows
+
+      - name: Replay live vitest fixture
+        working-directory: sdk
+        env:
+          PUMBLE_REPLAY: search-all-live
+          NODE_OPTIONS: --import ./scripts/replayer.mjs
+        run: ./node_modules/.bin/vitest run tests/search-all.test.ts
+
+      - name: Scan replay fixtures for secrets and PII
+        working-directory: sdk
+        run: npm run test:fixtures:scan
+
+      - name: Pack/install/export smoke
+        working-directory: sdk
+        run: npm run test:pack -- --skip-build
+
+      - name: Bench smoke
+        working-directory: sdk
+        run: npm run bench:smoke
+
+  live-arazzo:
+    # Optional nightly job that runs the live arazzo runner against the
+    # sacrificial Pumble workspace. Requires PUMBLE_API_KEY repo secret.
+    name: Live arazzo runner (nightly)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    timeout-minutes: 20
+    needs: lint-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: sdk/package-lock.json
+
+      - name: Install Speakeasy CLI
+        run: |
+          curl -fsSL https://go.speakeasy.com/cli-install.sh | sh
+          echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
+
+      - name: Regenerate SDK
+        run: speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+
+      - name: Normalize generated package metadata
+        run: node sdk/scripts/normalize-package.mjs
+
+      - name: Install & build
+        working-directory: sdk
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Run live arazzo against sacrificial workspace
+        working-directory: sdk
+        env:
+          PUMBLE_API_KEY: ${{ secrets.PUMBLE_API_KEY }}
+          PUMBLE_BASE_URL: https://pumble-api-keys.addons.marketplace.cake.com
+        run: |
+          if [ -z "${PUMBLE_API_KEY}" ]; then
+            echo "::warning::PUMBLE_API_KEY secret missing — skipping live arazzo"
+            exit 0
+          fi
+          node scripts/run-arazzo-live.mjs
+
+      - name: Run live vitest
+        working-directory: sdk
+        env:
+          PUMBLE_API_KEY: ${{ secrets.PUMBLE_API_KEY }}
+        run: |
+          if [ -z "${PUMBLE_API_KEY}" ]; then exit 0; fi
+          npm run test:live

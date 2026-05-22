@@ -1,0 +1,158 @@
+name: Release
+
+on:
+  push:
+    tags:
+      # Matches v0.3.7, v1.0.0, v1.2.3-rc.1, etc.
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+
+permissions:
+  # Required for npm provenance attestation (sigstore).
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    name: Publish pumble-sdk to npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read tag → version
+        id: tag
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Strip leading "v"; refuse if the tag isn't a clean semver.
+          ver="${GITHUB_REF_NAME#v}"
+          if ! echo "$ver" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'; then
+            echo "::error::tag '${GITHUB_REF_NAME}' is not a semver"
+            exit 1
+          fi
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+          cache-dependency-path: sdk/package-lock.json
+
+      - name: Install Speakeasy CLI
+        run: |
+          set -euo pipefail
+          curl -fsSL https://go.speakeasy.com/cli-install.sh | sh
+          echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
+
+      - name: Lint OpenAPI spec
+        run: speakeasy lint openapi -s PumbleOpenApi.yaml
+
+      - name: Regenerate SDK from YAML
+        # Releases always ship a fresh regen so we never publish stale
+        # generated code that drifted from the spec.
+        run: speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+
+      - name: Normalize generated package metadata
+        run: node sdk/scripts/normalize-package.mjs
+
+      - name: Check generated diff whitespace
+        run: git diff --check
+
+      - name: Verify regen left hand-written paths untouched
+        run: |
+          guarded="sdk/src/extensions sdk/tests sdk/scripts sdk/bin/pumble-cli.mjs sdk/bin/pumble-mcp.mjs sdk/bin/pumble-mcp-args.mjs sdk/bin/dry-run-shim.mjs sdk/bin/audit-log-shim.mjs"
+          if ! git diff --quiet -- $guarded; then
+            git diff --stat -- $guarded
+            echo "::error::regen touched hand-written paths"
+            exit 1
+          fi
+
+      - name: Pin package.json version to the git tag
+        working-directory: sdk
+        env:
+          TARGET_VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Reject the tag-vs-package mismatch loudly. Speakeasy bumps
+          # the patch on every regen, so the regenerated package.json
+          # may be ahead/behind the git tag — we want the published
+          # artifact to match the tag exactly.
+          current=$(node -p "require('./package.json').version")
+          if [ "$current" != "$TARGET_VERSION" ]; then
+            echo "::notice::pinning package.json $current → $TARGET_VERSION"
+            npm version "$TARGET_VERSION" --no-git-tag-version --allow-same-version
+          fi
+
+      - name: Install
+        working-directory: sdk
+        run: npm install --no-audit --no-fund
+
+      - name: Lint hand-written TypeScript (gate)
+        working-directory: sdk
+        run: npm run lint
+
+      - name: Build
+        working-directory: sdk
+        run: npm run build
+
+      - name: Mocked vitest (gate)
+        working-directory: sdk
+        # Refuse to publish a release that doesn't pass the mocked
+        # extension test suite.
+        run: npm test
+
+      - name: Replay arazzo fixture (gate)
+        working-directory: sdk
+        run: npm run test:arazzo:replay
+
+      - name: Replay live vitest fixture (gate)
+        working-directory: sdk
+        run: npm run test:live:replay
+
+      - name: Scan replay fixtures for secrets and PII (gate)
+        working-directory: sdk
+        run: npm run test:fixtures:scan
+
+      - name: Pack/install/export smoke (gate)
+        working-directory: sdk
+        run: npm run test:pack -- --skip-build
+
+      - name: Bench smoke (gate)
+        working-directory: sdk
+        run: npm run bench:smoke
+
+      - name: Skip if version is already on npm
+        id: check
+        working-directory: sdk
+        env:
+          TARGET_VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          if npm view "pumble-sdk@${TARGET_VERSION}" version >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::pumble-sdk@${TARGET_VERSION} already on npm — skipping publish"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm with provenance
+        if: steps.check.outputs.already_published != 'true'
+        working-directory: sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          # --provenance attaches an attestation via id-token; --access
+          # public because pumble-sdk is unscoped/public.
+          npm publish --provenance --access public
+
+      - name: Create GitHub release
+        if: steps.check.outputs.already_published != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true

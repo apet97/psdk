@@ -1,0 +1,440 @@
+arazzo: 1.0.1
+info:
+  title: Test Suite
+  summary: Created from ./PumbleOpenApi.yaml
+  version: 0.0.1
+sourceDescriptions:
+  - name: ./PumbleOpenApi.yaml
+    url: https://TBD.com
+    type: openapi
+# NOTE: successCriteria deliberately verify status + content-type only,
+# plus light structural JSONPath where it adds value. The mock server's
+# fake bodies are not stable enough for exact-value assertions, and
+# strict body matching repeatedly broke `speakeasy test` against the
+# generated mock. x-speakeasy-test-rebuild is set to false so this file
+# survives regeneration. (`speakeasy test` itself currently requires an
+# Enterprise tier add-on — this file is kept ready for that day.)
+workflows:
+  - workflowId: listChannels
+    steps:
+      - stepId: test
+        operationId: listChannels
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $
+            type: jsonpath
+    x-speakeasy-test-group: Channels
+    x-speakeasy-test-rebuild: false
+  - workflowId: getChannel
+    steps:
+      - stepId: test
+        operationId: getChannel
+        parameters:
+          - name: channelId
+            in: query
+            value: bbbbbbbbbbbbbbbbbbbb0001
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.channel.id
+            type: jsonpath
+    x-speakeasy-test-group: Channels
+    x-speakeasy-test-rebuild: false
+  - workflowId: createChannel
+    steps:
+      - stepId: test
+        operationId: createChannel
+        requestBody:
+          contentType: application/json
+          payload:
+            name: sdk-livetest
+            type: PUBLIC
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Channels
+    x-speakeasy-test-rebuild: false
+  - workflowId: sendMessage
+    steps:
+      - stepId: test
+        operationId: sendMessage
+        requestBody:
+          contentType: application/json
+          payload:
+            channelId: bbbbbbbbbbbbbbbbbbbb0002
+            text: hello from arazzo
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: sendReply
+    steps:
+      - stepId: test
+        operationId: sendReply
+        requestBody:
+          contentType: application/json
+          payload:
+            channelId: bbbbbbbbbbbbbbbbbbbb0002
+            messageId: cccccccccccccccccccc0001
+            text: reply from arazzo
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: dmUser
+    steps:
+      - stepId: test
+        operationId: dmUser
+        requestBody:
+          contentType: application/json
+          payload:
+            userId: aaaaaaaaaaaaaaaaaaaa0002
+            text: dm from arazzo
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: dmGroup
+    steps:
+      - stepId: test
+        operationId: dmGroup
+        requestBody:
+          contentType: application/json
+          payload:
+            userIds:
+              - aaaaaaaaaaaaaaaaaaaa0002
+              - aaaaaaaaaaaaaaaaaaaa0003
+            text: dm-group from arazzo
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: fetchMessage
+    steps:
+      - stepId: test
+        operationId: fetchMessage
+        parameters:
+          - name: messageId
+            in: query
+            value: cccccccccccccccccccc0001
+          - name: channelId
+            in: query
+            value: bbbbbbbbbbbbbbbbbbbb0002
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: fetchThreadReplies
+    steps:
+      - stepId: test
+        operationId: fetchThreadReplies
+        parameters:
+          - name: rootMessageId
+            in: query
+            value: cccccccccccccccccccc0001
+          - name: channelId
+            in: query
+            value: bbbbbbbbbbbbbbbbbbbb0002
+          - name: limit
+            in: query
+            value: 100
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $
+            type: jsonpath
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: searchMessages
+    steps:
+      - stepId: test
+        operationId: searchMessages
+        requestBody:
+          contentType: application/json
+          payload:
+            text: arazzo
+            limit: 10
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.content
+            type: jsonpath
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: listMessages
+    steps:
+      - stepId: test
+        operationId: listMessages
+        parameters:
+          - name: channelId
+            in: query
+            value: bbbbbbbbbbbbbbbbbbbb0002
+          - name: limit
+            in: query
+            value: 100
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.messages
+            type: jsonpath
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: addReaction
+    steps:
+      - stepId: test
+        operationId: addReaction
+        requestBody:
+          contentType: application/json
+          payload:
+            channelId: bbbbbbbbbbbbbbbbbbbb0002
+            messageId: cccccccccccccccccccc0001
+            reaction: ":+1:"
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: removeReaction
+    steps:
+      - stepId: test
+        operationId: removeReaction
+        parameters:
+          - name: messageId
+            in: query
+            value: cccccccccccccccccccc0001
+          - name: channelId
+            in: query
+            value: bbbbbbbbbbbbbbbbbbbb0002
+          - name: reaction
+            in: query
+            value: ":+1:"
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: createScheduledMessage
+    steps:
+      - stepId: test
+        operationId: createScheduledMessage
+        requestBody:
+          contentType: application/json
+          payload:
+            channelId: bbbbbbbbbbbbbbbbbbbb0002
+            sendAt: 1893456000000
+            text: scheduled from arazzo
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Scheduled Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: fetchScheduledMessages
+    steps:
+      - stepId: test
+        operationId: fetchScheduledMessages
+        parameters:
+          - name: channelId
+            in: query
+            value: bbbbbbbbbbbbbbbbbbbb0002
+          - name: limit
+            in: query
+            value: 100
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.scheduledMessages
+            type: jsonpath
+    x-speakeasy-test-group: Scheduled Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: fetchScheduledMessage
+    steps:
+      - stepId: test
+        operationId: fetchScheduledMessage
+        parameters:
+          - name: scheduledMessageId
+            in: query
+            value: dddddddddddddddddddd0001
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Scheduled Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: listUsers
+    steps:
+      - stepId: test
+        operationId: listUsers
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $
+            type: jsonpath
+    x-speakeasy-test-group: Users
+    x-speakeasy-test-rebuild: false
+  - workflowId: listUserGroups
+    steps:
+      - stepId: test
+        operationId: listUserGroups
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $
+            type: jsonpath
+    x-speakeasy-test-group: Users
+    x-speakeasy-test-rebuild: false
+  - workflowId: myInfo
+    steps:
+      - stepId: test
+        operationId: myInfo
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Users
+    x-speakeasy-test-rebuild: false
+  - workflowId: editScheduledMessage
+    steps:
+      - stepId: test
+        operationId: editScheduledMessage
+        requestBody:
+          contentType: application/json
+          payload:
+            scheduledMessageId: dddddddddddddddddddd0001
+            channelId: bbbbbbbbbbbbbbbbbbbb0002
+            sendAt: 1893456000000
+            text: scheduled edit from arazzo
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+          - context: $response.body
+            condition: $.id
+            type: jsonpath
+    x-speakeasy-test-group: Scheduled Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: editMessage
+    steps:
+      - stepId: test
+        operationId: editMessage
+        requestBody:
+          contentType: application/json
+          payload:
+            messageId: cccccccccccccccccccc0001
+            channelId: bbbbbbbbbbbbbbbbbbbb0002
+            text: edited by arazzo runner
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: deleteMessage
+    steps:
+      - stepId: test
+        operationId: deleteMessage
+        parameters:
+          - name: messageId
+            in: query
+            value: cccccccccccccccccccc0001
+          - name: channelId
+            in: query
+            value: bbbbbbbbbbbbbbbbbbbb0002
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+    x-speakeasy-test-group: Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: deleteScheduledMessage
+    steps:
+      - stepId: test
+        operationId: deleteScheduledMessage
+        parameters:
+          - name: scheduledMessageId
+            in: query
+            value: dddddddddddddddddddd0001
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+    x-speakeasy-test-group: Scheduled Messages
+    x-speakeasy-test-rebuild: false
+  - workflowId: addUsersToChannel
+    steps:
+      - stepId: test
+        operationId: addUsersToChannel
+        requestBody:
+          contentType: application/json
+          payload:
+            channelId: bbbbbbbbbbbbbbbbbbbb0002
+            userIds:
+              - aaaaaaaaaaaaaaaaaaaa0002
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+    x-speakeasy-test-group: Channels
+    x-speakeasy-test-rebuild: false
+  - workflowId: removeUserFromChannel
+    steps:
+      - stepId: test
+        operationId: removeUserFromChannel
+        requestBody:
+          contentType: application/json
+          payload:
+            channelId: bbbbbbbbbbbbbbbbbbbb0002
+            userId: aaaaaaaaaaaaaaaaaaaa0002
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+    x-speakeasy-test-group: Channels
+    x-speakeasy-test-rebuild: false
+  - workflowId: customStatus
+    steps:
+      - stepId: test
+        operationId: customStatus
+        requestBody:
+          contentType: application/json
+          payload:
+            code: ":computer:"
+            text: arazzo runner status
+            expiresAt: 1893459600000
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.header.Content-Type == application/json
+    x-speakeasy-test-group: Users
+    x-speakeasy-test-rebuild: false

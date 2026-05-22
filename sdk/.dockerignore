@@ -1,0 +1,17 @@
+node_modules
+esm
+bin/mcp-server.js
+bin/mcp-server.js.map
+.git
+.github
+.speakeasy/logs
+.speakeasy/gen.lock
+*.log
+*.tgz
+tests
+scripts/*
+!scripts/normalize-package.mjs
+Dockerfile
+.dockerignore
+docker-compose*
+docs

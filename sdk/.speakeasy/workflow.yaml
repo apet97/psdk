@@ -1,0 +1,19 @@
+workflowVersion: 1.0.0
+speakeasyVersion: latest
+sources:
+    Pumble API Addon documentation:
+        inputs:
+            - location: ../PumbleOpenApi.yaml
+        output: .speakeasy/out.openapi.yaml
+        registry:
+            location: registry.speakeasyapi.dev/a5115/a5115/pumble-api-addon-documentation
+targets:
+    pumble-sdk:
+        target: typescript
+        source: Pumble API Addon documentation
+        codeSamples:
+            registry:
+                location: registry.speakeasyapi.dev/a5115/a5115/pumble-api-addon-documentation-typescript-code-samples
+            labelOverride:
+                fixedValue: Typescript (SDK)
+            blocking: false

@@ -1,0 +1,128 @@
+configVersion: 2.0.0
+generation:
+  devContainers:
+    enabled: false
+    schemaPath: .speakeasy/out.openapi.yaml
+  sdkClassName: PumbleSdk
+  maintainOpenAPIOrder: true
+  usageSnippets:
+    optionalPropertyRendering: withExample
+    sdkInitStyle: constructor
+  useClassNamesForArrayFields: true
+  fixes:
+    nameResolutionDec2023: true
+    nameResolutionFeb2025: true
+    parameterOrderingFeb2024: true
+    requestResponseComponentNamesFeb2024: true
+    securityFeb2025: true
+    sharedErrorComponentsApr2025: true
+    sharedNestedComponentsJan2026: true
+    nameOverrideFeb2026: true
+  auth:
+    oAuth2ClientCredentialsEnabled: false
+    oAuth2PasswordEnabled: false
+    hoistGlobalSecurity: true
+  inferSSEOverload: true
+  sdkHooksConfigAccess: true
+  schemas:
+    allOfMergeStrategy: shallowMerge
+  requestBodyFieldName: body
+  versioningStrategy: automatic
+  persistentEdits: {}
+  tests:
+    generateTests: true
+    generateNewTests: true
+    skipResponseBodyAssertions: false
+typescript:
+  version: 0.3.21
+  acceptHeaderEnum: false
+  additionalDependencies:
+    dependencies: {}
+    devDependencies:
+      vitest: ^2.1.9
+      yaml: ^2.6.0
+    peerDependencies:
+      '@opentelemetry/api': ^1.9.0
+  additionalPackageJSON:
+    description: TypeScript SDK and MCP server for the Pumble API-Keys add-on
+    license: MIT
+    bin:
+      pumble: ./bin/pumble-cli.mjs
+      pumble-mcp: ./bin/pumble-mcp.mjs
+    engines:
+      node: ">=20"
+    files:
+      - bin/audit-log-shim.mjs
+      - bin/dry-run-shim.mjs
+      - bin/mcp-server.js
+      - bin/pumble-cli.mjs
+      - bin/pumble-mcp-args.mjs
+      - bin/pumble-mcp.mjs
+      - docs/QUICKSTART.md
+      - esm
+      - src
+    peerDependenciesMeta:
+      '@opentelemetry/api':
+        optional: true
+  additionalScripts:
+    prebuild: node scripts/normalize-package.mjs
+    test: vitest run
+    test:arazzo: node scripts/run-arazzo-live.mjs
+    test:arazzo:replay: node scripts/run-arazzo-live.mjs --replay arazzo-26-workflows
+    test:fixtures:scan: node scripts/scan-fixtures.mjs
+    test:live: vitest run tests/search-all.test.ts
+    test:live:replay: PUMBLE_REPLAY=search-all-live NODE_OPTIONS="--import ./scripts/replayer.mjs" vitest run tests/search-all.test.ts
+    test:pack: node scripts/pack-smoke.mjs
+    fixtures:minimize: node scripts/minimize-fixtures.mjs
+    bench:smoke: node scripts/perf-smoke.mjs
+  alwaysIncludeInboundAndOutbound: false
+  author: Pumble SDK Team
+  baseErrorName: PumbleSDKError
+  clientServerStatusCodesAsErrors: true
+  constFieldsAlwaysOptional: false
+  defaultErrorName: PumbleSDKDefaultError
+  enableCustomCodeRegions: false
+  enableMCPServer: true
+  enableReactQuery: false
+  enumFormat: union
+  envVarPrefix: PUMBLESDK
+  exportZodModelNamespace: false
+  fixEnumNameSanitization: false
+  flatAdditionalProperties: true
+  flattenGlobalSecurity: true
+  flatteningOrder: parameters-first
+  formStringArrayEncodeMode: array
+  forwardCompatibleEnumsByDefault: true
+  forwardCompatibleUnionsByDefault: tagged-only
+  generateExamples: false
+  imports:
+    option: openapi
+    paths:
+      callbacks: models/callbacks
+      errors: models/errors
+      operations: models/operations
+      shared: models
+      webhooks: models/webhooks
+  inferUnionDiscriminators: true
+  inputModelSuffix: input
+  jsonpath: rfc9535
+  laxMode: lax
+  legacyFileNaming: false
+  maxMethodParams: 0
+  methodArguments: infer-optional-args
+  modelPropertyCasing: camel
+  moduleFormat: esm
+  multipartArrayFormat: standard
+  outputModelSuffix: output
+  packageName: pumble-sdk
+  preApplyUnionDiscriminators: true
+  preserveModelFieldNames: false
+  responseFormat: flat
+  sseFlatResponse: false
+  templateVersion: v2
+  unionStrategy: populated-fields
+  usageSDKInitImports: []
+  useIndexModules: true
+  useOxlint: true
+  useTsgo: true
+  zodVersion: v3
