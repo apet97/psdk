@@ -129,10 +129,16 @@ export {
 
 export {
   createPumbleEventRouter,
+  PumbleApp,
+  type PumbleAppEventContext,
+  type PumbleAppOptions,
   type PumbleEventDispatchResult,
   type PumbleEventHandler,
   type PumbleEventRouter,
   type PumbleEventRouterContext,
+  type PumbleNodeWebhookHandler,
+  type PumbleWebhookHttpResult,
+  type PumbleWebhookRawBody,
 } from "./app/index.js";
 
 export {
