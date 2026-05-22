@@ -1,7 +1,7 @@
 # Integration Usage
 
 This package combines generated Pumble API coverage with hand-written helpers
-for application and agent workflows.
+for application and MCP workflows.
 
 ## Generated And Hand-Written Boundary
 

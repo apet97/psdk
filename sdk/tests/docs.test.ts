@@ -12,7 +12,6 @@ const integrationUsage = readFileSync(
   new URL("../docs/INTEGRATION-USAGE.md", import.meta.url),
   "utf8",
 );
-const llmsTxt = readFileSync(new URL("../docs/llms.txt", import.meta.url), "utf8");
 const packageSplit = readFileSync(new URL("../docs/PACKAGE-SPLIT.md", import.meta.url), "utf8");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
@@ -157,13 +156,7 @@ describe("docs", () => {
     }
   });
 
-  test("agent docs index points to local integration sources", () => {
-    expect(llmsTxt).toContain("README: ../README.md");
-    expect(llmsTxt).toContain("Quickstart: QUICKSTART.md");
-    expect(llmsTxt).toContain("Integration usage: INTEGRATION-USAGE.md");
-    expect(llmsTxt).toContain("Package split policy: PACKAGE-SPLIT.md");
-    expect(llmsTxt).toContain("API reference source: ../PumbleOpenApi.yaml");
-
+  test("public docs point to local integration sources", () => {
     for (const relativePath of [
       "README.md",
       "docs/QUICKSTART.md",
@@ -175,7 +168,7 @@ describe("docs", () => {
     }
   });
 
-  test("integration usage states agent safety contracts without unsupported modes", () => {
+  test("integration usage states MCP write contracts without unsupported modes", () => {
     for (const phrase of requiredIntegrationUsagePhrases) {
       expect(integrationUsage).toContain(phrase);
     }

@@ -25,7 +25,6 @@ const desired = {
     "docs/INTEGRATION-USAGE.md",
     "docs/PACKAGE-SPLIT.md",
     "docs/QUICKSTART.md",
-    "docs/llms.txt",
     "esm",
     "src",
   ],

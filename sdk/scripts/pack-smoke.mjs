@@ -83,7 +83,6 @@ try {
     "docs/INTEGRATION-USAGE.md",
     "docs/PACKAGE-SPLIT.md",
     "docs/QUICKSTART.md",
-    "docs/llms.txt",
     "bin/mcp-server.js",
     "bin/pumble-cli.mjs",
     "bin/pumble-mcp-curated.js",

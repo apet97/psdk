@@ -3,7 +3,7 @@
 `pumble-sdk` intentionally ships as one npm package today. The generated API
 layer, hand-written facades, app helpers, test fixtures, and curated MCP
 server are still being hardened together, so keeping one package preserves
-stable import paths while those seams settle.
+stable import paths while that work finishes.
 
 The future split is documented here so extraction can happen deliberately
 instead of by directory drift.
@@ -13,7 +13,7 @@ instead of by directory drift.
 | `@pumble/sdk-core` | Generated SDK, models, and public client facade exports. | Ready only after generated imports and facade imports are documented and stable. |
 | `@pumble/webhooks` | `src/extensions/webhooks.ts` and app event routing helpers. | Ready only after webhook signing, event dispatch, and retry semantics stay green in tests and live checks. |
 | `@pumble/testing` | Replay recorder/replayer, fixture sanitizer, dry-run helpers, and public testing helpers. | Ready only after fixture scan and pack smoke prove no secrets, tests, scripts, or examples leak into publish artifacts. |
-| `@pumble/app-framework` | `PumbleApp`, install lifecycle gates, OAuth placeholders, and socket-mode guardrails. | Ready only after public APIs are documented without promising unsupported install or socket behavior. |
+| `@pumble/app-framework` | App lifecycle helpers and event routing helpers. | Ready only after public APIs are documented with supported install and event behavior. |
 | `@pumble/mcp` | MCP wrapper binaries plus curated tools, prompts, resources, and safety evals. | Ready only after curated read/write workflows remain the default and raw generated tools stay opt-in. |
 
 ## Extraction Gates

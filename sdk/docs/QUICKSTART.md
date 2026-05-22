@@ -27,7 +27,7 @@ The package is ESM-only. CommonJS callers should use `await import(...)`.
 
 ## Create Client
 
-Use the hand-written facade for common app and agent flows:
+Use the hand-written facade for common app and integration flows:
 
 ```typescript
 import { createPumbleClient } from "pumble-sdk/extensions/index.js";
@@ -146,7 +146,7 @@ npx -y --package pumble-sdk -- pumble-mcp start \
   --transport stdio
 ```
 
-For hosts where the model must not see any write tools at all, use the
+For hosts that must not expose any write tools, use the
 read-only generated profile explicitly:
 
 ```bash
@@ -178,7 +178,7 @@ Claude Desktop or Cursor config:
 
 ## Run Curated MCP Write With Preview/Confirmation
 
-Use the curated profile when an agent may write only after preview:
+Use the curated profile when writes should require preview first:
 
 ```bash
 npx -y --package pumble-sdk -- pumble-mcp start \
