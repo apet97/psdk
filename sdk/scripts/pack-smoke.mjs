@@ -81,6 +81,7 @@ try {
     "LICENSE",
     "package.json",
     "docs/INTEGRATION-USAGE.md",
+    "docs/PACKAGE-SPLIT.md",
     "docs/QUICKSTART.md",
     "docs/llms.txt",
     "bin/mcp-server.js",

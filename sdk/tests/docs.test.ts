@@ -13,6 +13,7 @@ const integrationUsage = readFileSync(
   "utf8",
 );
 const llmsTxt = readFileSync(new URL("../docs/llms.txt", import.meta.url), "utf8");
+const packageSplit = readFileSync(new URL("../docs/PACKAGE-SPLIT.md", import.meta.url), "utf8");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -160,12 +161,14 @@ describe("docs", () => {
     expect(llmsTxt).toContain("README: ../README.md");
     expect(llmsTxt).toContain("Quickstart: QUICKSTART.md");
     expect(llmsTxt).toContain("Integration usage: INTEGRATION-USAGE.md");
+    expect(llmsTxt).toContain("Package split policy: PACKAGE-SPLIT.md");
     expect(llmsTxt).toContain("API reference source: ../PumbleOpenApi.yaml");
 
     for (const relativePath of [
       "README.md",
       "docs/QUICKSTART.md",
       "docs/INTEGRATION-USAGE.md",
+      "docs/PACKAGE-SPLIT.md",
       "../PumbleOpenApi.yaml",
     ]) {
       expect(existsSync(resolve(sdkRoot, relativePath)), relativePath).toBe(true);
@@ -181,5 +184,33 @@ describe("docs", () => {
     expect(integrationUsage).toContain("reply_to_thread_confirmed");
     expect(integrationUsage).not.toMatch(/\bOAuth\b/i);
     expect(integrationUsage).not.toMatch(/\bsocket mode\b/i);
+  });
+
+  test("package split policy documents extraction gates without promising a split", () => {
+    expect(readme).toContain("docs/PACKAGE-SPLIT.md");
+    expect(readme).toContain("currently publishes one package: `pumble-sdk`");
+
+    for (const packageName of [
+      "@pumble/sdk-core",
+      "@pumble/webhooks",
+      "@pumble/testing",
+      "@pumble/app-framework",
+      "@pumble/mcp",
+    ]) {
+      expect(packageSplit).toContain(packageName);
+    }
+
+    for (const gate of [
+      "Public APIs",
+      "import paths",
+      "npm run test:pack",
+      "Two live runs",
+      "no hand patches in generated source",
+    ]) {
+      expect(packageSplit).toContain(gate);
+    }
+
+    expect(packageSplit).toContain("Do not split packages yet.");
+    expect(packageSplit).not.toMatch(/will split|is split into|now publishes/i);
   });
 });

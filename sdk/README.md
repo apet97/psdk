@@ -57,6 +57,7 @@ SDKs receive a single union type for typed error handling.
   * [Observability](#observability)
   * [Record/replay fixtures](#recordreplay-fixtures)
   * [Receiving Pumble webhooks](#receiving-pumble-webhooks)
+  * [Package split policy](#package-split-policy)
 * [Development](#development)
   * [Maturity](#maturity)
   * [Contributions](#contributions)
@@ -1083,6 +1084,16 @@ Typed handlers are available for `NEW_MESSAGE`, `UPDATED_MESSAGE`,
 HTTP 500 so Pumble can retry; duplicate deliveries are tolerated by
 keeping the receiver stateless.
 <!-- End custom section [webhook-receiver] -->
+
+<!-- Start custom section [package-split-policy] -->
+## Package split policy
+
+This repository currently publishes one package: `pumble-sdk`. Future package
+names and extraction gates are tracked in
+[`docs/PACKAGE-SPLIT.md`](docs/PACKAGE-SPLIT.md). The package will stay unified
+until public APIs are documented, import paths are stable, pack smoke remains
+green, two live runs are green, and generated source has no hand patches.
+<!-- End custom section [package-split-policy] -->
 
 # Development
 

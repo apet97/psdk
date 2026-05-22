@@ -5,6 +5,7 @@ Use this file as the small entrypoint for agent and MCP integrations.
 - README: ../README.md
 - Quickstart: QUICKSTART.md
 - Integration usage: INTEGRATION-USAGE.md
+- Package split policy: PACKAGE-SPLIT.md
 - API reference source: ../PumbleOpenApi.yaml
 
 Recommended path:
@@ -12,4 +13,5 @@ Recommended path:
 1. Read QUICKSTART.md for first-use client, webhook, and MCP flows.
 2. Read INTEGRATION-USAGE.md before writing automation or agent prompts.
 3. Use ../PumbleOpenApi.yaml for generated endpoint shape and schema names.
-4. Prefer the curated MCP profile before exposing raw generated tools.
+4. Read PACKAGE-SPLIT.md before proposing package extraction.
+5. Prefer the curated MCP profile before exposing raw generated tools.

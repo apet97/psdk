@@ -22,6 +22,7 @@ const desired = {
     "bin/pumble-mcp-args.mjs",
     "bin/pumble-mcp.mjs",
     "docs/INTEGRATION-USAGE.md",
+    "docs/PACKAGE-SPLIT.md",
     "docs/QUICKSTART.md",
     "docs/llms.txt",
     "esm",
