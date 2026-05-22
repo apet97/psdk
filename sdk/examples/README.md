@@ -38,3 +38,28 @@ From the SDK root:
 ```bash
 npm run test:examples
 ```
+
+## Reply To Thread
+
+`reply-to-thread.ts` is a live recipe for replying under an existing root
+message. It reads credentials and target IDs from the environment:
+
+```bash
+export PUMBLE_API_KEY="<pumble-api-key>"
+export PUMBLE_CHANNEL_ID="<channel-id>"
+export PUMBLE_THREAD_ROOT_ID="<root-message-id>"
+export PUMBLE_REPLY_TEXT="Thanks for the context."
+npx tsx reply-to-thread.ts
+```
+
+The helper functions in the file are import-checked by `npm run test:examples`
+without live credentials.
+
+## Curated MCP Preview
+
+`curated-mcp-preview.md` shows the safe MCP write flow:
+`preview_reply_to_thread` before `reply_to_thread_confirmed`, and
+`preview_send_message` before `send_message_confirmed`.
+
+Examples are intentionally excluded from the published npm tarball; they are
+repo-local recipes, not package runtime files.

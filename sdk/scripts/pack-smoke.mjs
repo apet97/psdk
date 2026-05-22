@@ -89,7 +89,8 @@ try {
   ]) {
     assertTarEntry(tarFiles, path);
   }
-  assertNoTarEntry(tarFiles, /^package\/(?:tests|scripts|examples|\.speakeasy)\//, "dev-only directories");
+  assertNoTarEntry(tarFiles, /^package\/(?:tests|scripts|\.speakeasy)\//, "dev-only directories");
+  assertNoTarEntry(tarFiles, /^package\/examples\//, "examples directory");
   assertNoTarEntry(tarFiles, /^package\/package-lock\.json$/, "package lock");
   assertNoTarEntry(tarFiles, /^package\/bin\/mcp-server\.js\.map$/, "MCP source map");
   assertNoTarEntry(tarFiles, /^package\/esm\/.+\.map$/, "compiled source map");
