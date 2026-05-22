@@ -45,8 +45,10 @@ to be set in the environment when they run.
 npm install pumble-sdk
 ```
 
-ESM-only — `import { PumbleSDK } from "pumble-sdk"`. For CommonJS callers,
-use `await import("pumble-sdk")`.
+ESM-only. Most apps should start with the hand-curated facade:
+`import { createPumbleClient } from "pumble-sdk/extensions/index.js"`.
+For direct generated access, use `import { PumbleSDK } from "pumble-sdk"`.
+For CommonJS callers, use `await import(...)`.
 
 ## 4. Quick CLI tour
 
@@ -80,14 +82,14 @@ pumble status clear
 
 ```typescript
 // hello.ts
-import { PumbleSDK } from "pumble-sdk";
+import { createPumbleClient } from "pumble-sdk/extensions/index.js";
 
-const sdk = new PumbleSDK({ apiKeyAuth: process.env["PUMBLE_API_KEY"]! });
+const client = createPumbleClient({ apiKeyAuth: process.env["PUMBLE_API_KEY"]! });
 
-const me = await sdk.users.myInfo();
+const me = await client.identity.me();
 console.log(`I am ${me.name} (${me.email}) — role ${me.role}`);
 
-const channels = await sdk.channels.listChannels();
+const channels = await client.channels.list();
 console.log(`Workspace has ${channels.length} channels`);
 ```
 
@@ -104,18 +106,22 @@ I am <Your Name> (<your email>) — role OWNER
 Workspace has 12 channels
 ```
 
+The facade groups common operations under `identity`, `channels`, `users`,
+`messages`, and `threads`. It does not hide the generated SDK; use
+`client.raw` whenever you need a method that is not curated yet.
+
 ## 6. Send a message
 
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { createPumbleClient } from "pumble-sdk/extensions/index.js";
 
-const sdk = new PumbleSDK({ apiKeyAuth: process.env["PUMBLE_API_KEY"]! });
+const client = createPumbleClient({ apiKeyAuth: process.env["PUMBLE_API_KEY"]! });
 
-const channels = await sdk.channels.listChannels();
+const channels = await client.channels.list();
 const general = channels.find((c) => c.channel.name === "general")?.channel;
 if (!general) throw new Error("no #general?");
 
-const sent = await sdk.messages.sendMessage({
+const sent = await client.messages.send({
   channelId: general.id,
   text: "Hello from pumble-sdk 👋",
 });

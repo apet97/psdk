@@ -2,6 +2,12 @@
 // does NOT touch this directory, so anything exported here survives a
 // `speakeasy generate sdk` run.
 export {
+  createPumbleClient,
+  type CreatePumbleClientOptions,
+  type PumbleClient,
+} from "./client.js";
+
+export {
   searchAllMessages,
   type SearchAllClient,
   type SearchAllPageResult,
