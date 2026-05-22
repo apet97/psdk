@@ -99,6 +99,10 @@ jobs:
         # PUMBLE_API_KEY is unset, so this run is safe in PR CI.
         run: npm test
 
+      - name: Example tests
+        working-directory: sdk
+        run: npm run test:examples
+
       - name: Replay arazzo fixture
         working-directory: sdk
         # Re-record locally with:
