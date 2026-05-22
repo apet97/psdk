@@ -7,9 +7,22 @@ const releaseWorkflow = readFileSync(
 );
 
 describe("release workflow parity", () => {
+  it("uses Node 24-compatible official actions", () => {
+    expect(releaseWorkflow).toContain("actions/checkout@v5");
+    expect(releaseWorkflow).toContain("actions/setup-node@v5");
+    expect(releaseWorkflow).not.toContain("actions/checkout@v4");
+    expect(releaseWorkflow).not.toContain("actions/setup-node@v4");
+  });
+
   it("enforces the same strict Speakeasy lint result as CI", () => {
     expect(releaseWorkflow).toContain("0 errors, 0 warnings");
     expect(releaseWorkflow).toContain("speakeasy lint reported issues");
+  });
+
+  it("requires Speakeasy credentials before release regeneration", () => {
+    expect(releaseWorkflow).toContain("SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}");
+    expect(releaseWorkflow).toContain("SPEAKEASY_API_KEY secret is required");
+    expect(releaseWorkflow).toContain("speakeasy generate sdk");
   });
 
   it("guards generated-regeneration drift in hand-written release paths", () => {

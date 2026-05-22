@@ -15,11 +15,13 @@ jobs:
     name: Lint OAS · Generate · Build · Mocked tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: "npm"
@@ -53,8 +55,14 @@ jobs:
         # Catches schema drift that would silently break a downstream
         # regen. We don't commit the regen output in CI; the diff check
         # below would fail loudly if it had to.
+        if: env.SPEAKEASY_API_KEY != ''
         run: |
           speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+
+      - name: Skip SDK regeneration without Speakeasy credentials
+        if: env.SPEAKEASY_API_KEY == ''
+        run: |
+          echo "::notice::SPEAKEASY_API_KEY is not configured; skipping SDK regeneration drift check"
 
       - name: Normalize generated package metadata
         run: node sdk/scripts/normalize-package.mjs
@@ -97,11 +105,13 @@ jobs:
     if: github.event_name == 'schedule'
     timeout-minutes: 20
     needs: lint-and-test
+    env:
+      SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: "npm"
@@ -117,7 +127,13 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Regenerate SDK
+        if: env.SPEAKEASY_API_KEY != ''
         run: speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+
+      - name: Skip SDK regeneration without Speakeasy credentials
+        if: env.SPEAKEASY_API_KEY == ''
+        run: |
+          echo "::notice::SPEAKEASY_API_KEY is not configured; skipping SDK regeneration drift check"
 
       - name: Normalize generated package metadata
         run: node sdk/scripts/normalize-package.mjs

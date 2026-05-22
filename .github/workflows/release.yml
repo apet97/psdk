@@ -17,9 +17,11 @@ jobs:
     name: Publish pumble-sdk to npm
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Read tag → version
         id: tag
@@ -35,7 +37,7 @@ jobs:
           fi
           echo "version=$ver" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
@@ -69,7 +71,13 @@ jobs:
       - name: Regenerate SDK from YAML
         # Releases always ship a fresh regen so we never publish stale
         # generated code that drifted from the spec.
-        run: speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+        run: |
+          set -euo pipefail
+          if [ -z "${SPEAKEASY_API_KEY}" ]; then
+            echo "::error::SPEAKEASY_API_KEY secret is required for release regeneration"
+            exit 1
+          fi
+          speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
 
       - name: Normalize generated package metadata
         run: node sdk/scripts/normalize-package.mjs
