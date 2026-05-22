@@ -1,607 +1,115 @@
 # Quickstart
 
-This guide gets you from "never used Pumble's API" to "an MCP server talking
-to your workspace, with safe write modes" in about ten minutes.
+This path gets one useful result at a time: read your identity, resolve a
+target, write a message, reply in thread, verify a webhook, and run the MCP
+server without exposing unchecked writes.
 
-> If you only want to *read* about what's in the SDK, jump to the main
-> [README](../README.md). If something here drifts from reality, the live
-> arazzo runner at `scripts/run-arazzo-live.mjs` is the source of truth —
-> 26/26 workflows there pass against the real Pumble API.
+## Prerequisites
 
-## 1. Prerequisites
-
-* Node 20 or newer (`node --version`)
-* A Pumble workspace where you have **admin** access (so you can mint API keys)
-* Optional: Docker, if you'd rather run the MCP server as a container
-
-## 2. Get a Pumble API key
-
-1. Open Pumble in a browser.
-2. Click your avatar → **Workspace settings** → **API keys**.
-3. **Create new key**. Give it a recognisable name (e.g. `pumble-mcp-laptop`).
-4. Copy the key — it starts with `pmb_`. **Pumble shows it only once;** if
-   you lose it, mint a new one.
-
-Store the key somewhere your shell can see it. The recommended pattern is a
-locked-down file:
+* Node 20 or newer.
+* A Pumble API key from **Workspace settings -> API keys**.
+* `PUMBLE_API_KEY` exported in your shell.
 
 ```bash
-# ~/.config/pumble.env  (or whichever path you like)
 export PUMBLE_API_KEY="<pumble-api-key>"
 ```
 
-Then source it before any session:
+Keep API keys in environment variables or a local secret manager. Do not put
+them in source files.
 
-```bash
-source ~/.config/pumble.env
-```
-
-The smoke tests and arazzo runner in this repo expect `PUMBLE_API_KEY`
-to be set in the environment when they run.
-
-## 3. Install the SDK
+## Install
 
 ```bash
 npm install pumble-sdk
 ```
 
-ESM-only. Most apps should start with the hand-curated facade:
-`import { createPumbleClient } from "pumble-sdk/extensions/index.js"`.
-For direct generated access, use `import { PumbleSDK } from "pumble-sdk"`.
-For CommonJS callers, use `await import(...)`.
+The package is ESM-only. CommonJS callers should use `await import(...)`.
 
-## 4. Quick CLI tour
+## Create Client
 
-The SDK package also installs `pumble`, a small one-shot CLI for shell
-workflows and manual triage. It reads the same `PUMBLE_API_KEY` environment
-variable used by the examples below.
-
-```bash
-pumble whoami
-pumble channels list
-pumble send '#general' "hello from the CLI"
-pumble search "deploy" --limit 3
-pumble messages '#general' --limit 5 --json
-pumble schedule list --channel '#general'
-```
-
-Write commands (`send`, `dm`, `channels create`, `status set`, `status clear`,
-`schedule cancel`) are quiet on success unless you pass `-v`/`--verbose` or
-`--json`.
-
-Use IDs when you already have them, or names/emails for convenience:
-
-```bash
-pumble channels create sdk-demo --private -v
-pumble dm ada@example.com "can you review this?"
-pumble status set :coffee: "Deep work" --expires-at 1893456000000
-pumble status clear
-```
-
-## 5. Hello world
+Use the hand-written facade for common app and agent flows:
 
 ```typescript
-// hello.ts
 import { createPumbleClient } from "pumble-sdk/extensions/index.js";
 
-const client = createPumbleClient({ apiKeyAuth: process.env["PUMBLE_API_KEY"]! });
+const pumble = createPumbleClient({
+  apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
+});
 
-const me = await client.identity.me();
-console.log(`I am ${me.name} (${me.email}) — role ${me.role}`);
-
-const channels = await client.channels.list();
-console.log(`Workspace has ${channels.length} channels`);
-```
-
-Run:
-
-```bash
-npx tsx hello.ts
-```
-
-Expected output (one line each):
-
-```
-I am <Your Name> (<your email>) — role OWNER
-Workspace has 12 channels
+const me = await pumble.identity.me();
+console.log(`authenticated as ${me.name} <${me.email}>`);
 ```
 
 The facade groups common operations under `identity`, `channels`, `users`,
-`messages`, and `threads`. It does not hide the generated SDK; use
-`client.raw` whenever you need a method that is not curated yet.
+`messages`, and `threads`. The generated SDK remains available as
+`pumble.raw`.
 
-## 6. Send a message
+## Resolve Channel/User
+
+Resolve names and emails before writes so the write call uses exact IDs:
 
 ```typescript
-import { createPumbleClient } from "pumble-sdk/extensions/index.js";
+import {
+  createPumbleClient,
+  findChannelByName,
+  findUserByEmail,
+} from "pumble-sdk/extensions/index.js";
 
-const client = createPumbleClient({ apiKeyAuth: process.env["PUMBLE_API_KEY"]! });
-
-const channels = await client.channels.list();
-const general = channels.find((c) => c.channel.name === "general")?.channel;
-if (!general) throw new Error("no #general?");
-
-const sent = await client.messages.send({
-  channelId: general.id,
-  text: "Hello from pumble-sdk 👋",
+const pumble = createPumbleClient({
+  apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
 });
+
+const channel = await findChannelByName(pumble.raw, "general");
+if (!channel) throw new Error("Could not find #general");
+
+const reviewer = await findUserByEmail(pumble.raw, "ada@example.com");
+if (!reviewer) throw new Error("Could not find ada@example.com");
+
+console.log(channel.id, reviewer.id);
+```
+
+Pumble does not provide server-side channel-name or user-email search for
+these calls; the helpers list once and match client-side.
+
+## Send Message
+
+```typescript
+const sent = await pumble.messages.send({
+  channelId: channel.id,
+  text: "Hello from pumble-sdk.",
+});
+
 console.log("message id:", sent.id);
 ```
 
-### Thread context and replies
+Keep the returned message ID if you need to fetch, reply, or audit the
+message later.
 
-Use the facade when an app or agent needs the current shape of a thread
-without pulling bulky message fields or inventing a summary:
+## Reply To Thread
 
 ```typescript
-const context = await client.threads.getContext({
-  channelId: general.id,
+await pumble.threads.replyToThread({
+  channelId: channel.id,
+  messageId: sent.id,
+  text: "Thread reply from pumble-sdk.",
+});
+
+const thread = await pumble.threads.getContext({
+  channelId: channel.id,
   messageId: sent.id,
   replyLimit: 10,
 });
 
-console.log(context.root.text);
-console.log("participants:", context.participants);
-console.log("visible replies:", context.replies.length, "of", context.replyCount);
+console.log("visible replies:", thread.replies.length, "of", thread.replyCount);
 ```
 
-`getContext` returns `{ root, replies, participants, replyCount }`, where
-`root` and each reply keep the original text verbatim. To write back to the
-same thread, prefer the explicit wrapper:
+`getContext` returns the root message, visible replies, participants, and the
+server-reported reply count.
 
-```typescript
-await client.threads.replyToThread({
-  channelId: general.id,
-  messageId: sent.id,
-  text: "Replying in thread.",
-});
-```
+## Verify Webhook
 
-The generated thread methods are still available as `client.threads.reply`
-and `client.threads.listReplies` when you need the raw SDK surface.
-
-## 7. Set up the MCP server (Claude Desktop)
-
-The same SDK is also an MCP server, so any tool that speaks MCP (Claude
-Desktop, Cursor, Continue, etc.) can drive your Pumble workspace.
-
-Use the `pumble-mcp` wrapper — it adds `--profile readonly|readwrite` and
-`--dry-run` flags on top of the generated server.
-
-**`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)**:
-
-```json
-{
-  "mcpServers": {
-    "pumble": {
-      "command": "npx",
-      "args": [
-        "-y", "--package", "pumble-sdk",
-        "--", "pumble-mcp",
-        "start",
-        "--transport", "stdio",
-        "--profile", "readwrite"
-      ],
-      "env": {
-        "PUMBLE_API_KEY": "<pumble-api-key>"
-      }
-    }
-  }
-}
-```
-
-Then restart Claude Desktop. You should see "pumble" in the model's tool
-list with 26 tools.
-
-> Don't keep your API key in this file long-term — Claude Desktop reads it
-> verbatim on every launch. Source it from a wrapper script instead (see
-> the README's "Configuring a read-only MCP profile" section).
-
-### Read-only profile
-
-For agents that should never write to the workspace, swap the entry to
-`--profile readonly` — that exposes 11 read-only tools and the model
-literally cannot call the mutating ones:
-
-```json
-{
-  "mcpServers": {
-    "pumble-read": {
-      "command": "npx",
-      "args": [
-        "-y", "--package", "pumble-sdk", "--", "pumble-mcp",
-        "start", "--transport", "stdio",
-        "--profile", "readonly"
-      ],
-      "env": {
-        "PUMBLE_API_KEY": "<pumble-api-key>"
-      }
-    }
-  }
-}
-```
-
-### Curated write confirmations
-
-For agents that may write but should preview first, run the curated MCP
-server instead of exposing the generated write surface:
-
-```json
-{
-  "mcpServers": {
-    "pumble-curated": {
-      "command": "npx",
-      "args": [
-        "-y", "--package", "pumble-sdk", "--", "pumble-mcp-curated",
-        "start", "--transport", "stdio"
-      ],
-      "env": {
-        "PUMBLE_API_KEY": "<pumble-api-key>"
-      }
-    }
-  }
-}
-```
-
-The curated write flow is two-step for messages:
-`preview_send_message` -> `send_message_confirmed`, and
-`preview_reply_to_thread` -> `reply_to_thread_confirmed`. Preview tools do
-not call Pumble; they return `{ request, preview, confirmationToken }`.
-Pass that same payload to the confirmed tool to perform exactly one SDK
-write. The token is a process-local integrity token, not a Pumble API
-credential or server-side approval record.
-
-Reaction tools (`add_reaction`, `remove_reaction`) skip confirmation, but
-they require exact `channelId`, `messageId`, and `reaction` values. The
-curated profile does not expose delete or edit tools.
-
-### Dry-run profile
-
-When you *want* the model to practise calling write tools but don't want
-those calls to actually happen, use `--dry-run` instead. All 26 tools are
-exposed, but every mutating HTTP request (`POST` / `PUT` / `PATCH` /
-`DELETE`) is short-circuited to a synthetic 200-OK response by the fetch
-shim:
-
-```json
-{
-  "mcpServers": {
-    "pumble-dry": {
-      "command": "npx",
-      "args": [
-        "-y", "--package", "pumble-sdk", "--", "pumble-mcp",
-        "start", "--transport", "stdio",
-        "--dry-run"
-      ],
-      "env": {
-        "PUMBLE_API_KEY": "<pumble-api-key>"
-      }
-    }
-  }
-}
-```
-
-You'll see `[pumble-dry-run] POST /sendMessage → synthesised 200` on
-stderr for every intercepted call.
-
-## 8. Same thing with Cursor
-
-`~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "pumble": {
-      "command": "npx",
-      "args": [
-        "-y", "--package", "pumble-sdk", "--", "pumble-mcp",
-        "start", "--transport", "stdio"
-      ],
-      "env": {
-        "PUMBLE_API_KEY": "<pumble-api-key>"
-      }
-    }
-  }
-}
-```
-
-## 9. Same thing with Docker
-
-```bash
-docker build -t pumble-mcp:latest .
-docker run --rm -i -e PUMBLE_API_KEY pumble-mcp:latest \
-  start --transport stdio --profile readonly
-```
-
-To wire it into Claude Desktop via Docker:
-
-```json
-{
-  "mcpServers": {
-    "pumble": {
-      "command": "docker",
-      "args": [
-        "run", "--rm", "-i",
-        "-e", "PUMBLE_API_KEY",
-        "pumble-mcp:latest",
-        "start", "--transport", "stdio",
-        "--profile", "readonly"
-      ]
-    }
-  }
-}
-```
-
-## 10. Common patterns
-
-### Preview writes before dispatch
-
-For agent workflows that need a dry-run style confirmation step before a
-write, build a local preview and sign that exact preview with your own
-per-session secret or salt:
-
-```typescript
-import {
-  createConfirmationToken,
-  createWritePreview,
-  verifyConfirmationToken,
-} from "pumble-sdk/extensions/index.js";
-
-const preview = createWritePreview({
-  type: "send_message",
-  targetKind: "channel",
-  targetId: general.id,
-  targetName: "#general",
-  text: "Hello from pumble-sdk",
-  riskLevel: "medium",
-});
-
-const token = createConfirmationToken(preview, process.env["AGENT_CONFIRMATION_SALT"]!);
-
-// Later, immediately before the write:
-if (!verifyConfirmationToken(preview, token, process.env["AGENT_CONFIRMATION_SALT"]!)) {
-  throw new Error("write preview changed after confirmation");
-}
-```
-
-The token is only a local integrity token for your confirmation flow. It is
-not a Pumble API credential, is not sent to Pumble, and does not represent a
-server-side confirmation record. Store previews wherever your app normally
-stores pending work; the SDK does not keep a global preview registry.
-Free-form text is collapsed, redacted for common token/password patterns, and
-truncated in the preview.
-
-### Pagination
-
-Three endpoints paginate: `listMessages`, `fetchScheduledMessages`,
-`searchMessages`. All return a `PageIterator` you can drive with
-`for await (... of ...)`:
-
-```typescript
-const it = await sdk.messages.listMessages({ channelId, limit: 50 });
-for await (const page of it) {
-  for (const msg of page.result?.messages ?? []) {
-    console.log(msg.id, msg.text);
-  }
-}
-```
-
-For `searchMessages`, the built-in iterator is fine for low-volume
-queries but can skip co-second messages on page boundaries. Use the
-hand-written `searchAllMessages` helper from `pumble-sdk/extensions/index.js` for
-defensive walks:
-
-```typescript
-import { searchAllMessages } from "pumble-sdk/extensions/index.js";
-
-for await (const hit of searchAllMessages(sdk, { text: "deploy", limit: 50 })) {
-  console.log(hit.timestamp.toISOString(), hit.text);
-}
-```
-
-See the README's "Pagination patterns" section for the full picture.
-
-### Error handling
-
-Pumble emits two error body shapes. Discriminate with `instanceof`:
-
-```typescript
-import { PumbleSDKError, LegacyError, StructuredError }
-  from "pumble-sdk/models/errors";
-
-try {
-  await sdk.messages.sendMessage({ channelId: "bad", text: "x" });
-} catch (e) {
-  if (e instanceof LegacyError) console.warn("legacy:", e.data$.error);
-  else if (e instanceof StructuredError) console.warn("structured:", e.data$.message);
-  else if (e instanceof PumbleSDKError) console.warn("other:", e.statusCode);
-  else throw e;
-}
-```
-
-For agents and queue workers, `categorizeError` gives a stable semantic
-bucket without parsing message text:
-
-```typescript
-import { categorizeError } from "pumble-sdk/extensions/index.js";
-
-try {
-  await sdk.messages.sendMessage({ channelId, text: "hello" });
-} catch (e) {
-  const categorized = categorizeError(e);
-  if (categorized.retryable) {
-    console.warn("retry later:", categorized.category, categorized.message);
-  }
-}
-```
-
-Categories are `permission`, `not-found`, `rate-limit`, `validation`,
-`transient`, and `unknown`. `withRetries` uses this same classification
-by default.
-
-### Find by name/email
-
-The `pumble-sdk/extensions/index.js` barrel ships convenience lookups:
-
-```typescript
-import { findChannelByName, findUserByEmail } from "pumble-sdk/extensions/index.js";
-
-const general = await findChannelByName(sdk, "general");
-const alice   = await findUserByEmail(sdk, "alice@example.com");
-```
-
-Both are case-insensitive by default. They walk the (un-paginated)
-listings and match client-side — Pumble has no server-side search by
-either field.
-
-### Retry transients
-
-```typescript
-import { withRetries } from "pumble-sdk/extensions/index.js";
-
-const result = await withRetries(
-  () => sdk.messages.sendMessage({ channelId, text: "..." }),
-  { maxAttempts: 5, baseMs: 250 },
-);
-```
-
-Permanent errors (4xx other than 408/425/429) re-throw immediately;
-transient network/5xx errors back off with jitter. When Pumble returns
-429 or 503 with `Retry-After`, the wrapper uses that server-provided
-delay (capped by `maxDelayMs`) before retrying.
-
-### Cap outbound request rate
-
-Use `createRateLimiter` when an agent or batch job can burst faster
-than Pumble's per-user ceiling:
-
-```typescript
-import { createRateLimiter, withRetries } from "pumble-sdk/extensions/index.js";
-
-const limiter = createRateLimiter({ rps: 3, burst: 10, maxQueue: 50 });
-
-await withRetries(
-  () => limiter.limit(() =>
-    sdk.messages.sendMessage({ channelId, text: "..." })
-  ),
-  { maxAttempts: 5 },
-);
-```
-
-Put the limiter inside `withRetries`, so each retry attempt acquires its
-own token. Create separate limiter instances when reads and writes need
-different budgets. Pass `{ signal }` to `limit` when queued work should be
-cancelled with the surrounding request.
-
-### Branded IDs
-
-Opt in to compile-time prevention of "passed channelId where messageId
-was expected" bugs:
-
-```typescript
-import { asChannelId, asMessageId } from "pumble-sdk/extensions/index.js";
-
-const cid = asChannelId(general.id);  // throws if shape isn't 24-hex
-const mid = asMessageId(sent.id);
-
-// sdk.messages.fetchMessage expects messageId/channelId as plain string
-// but cid and mid are still assignable; the protection is one-way:
-// you can't accidentally swap them.
-```
-
-### Enable audit logging
-
-Two surfaces, two ways to enable.
-
-**On the MCP wrapper** — flip on `--audit-log <path>` to get one JSON
-line per outbound fetch. The format depends on the mode:
-
-```bash
-# Live workspace: {ts, method, url, status, durationMs}
-pumble-mcp start --transport stdio \
-  --audit-log /tmp/pumble-mcp.jsonl
-
-# Read-only profile + audit
-pumble-mcp start --transport stdio \
-  --profile readonly \
-  --audit-log /tmp/pumble-readonly.jsonl
-
-# Dry-run: {ts, method, path, requestBody, syntheticBody}
-# requestBody is sanitized before it is written.
-PUMBLE_API_KEY=fake pumble-mcp start --transport stdio \
-  --dry-run \
-  --audit-log /tmp/pumble-dry.jsonl
-
-# Inspect:
-tail -f /tmp/pumble-mcp.jsonl | jq -c '{op: .method + " " + (.path // .url), status, durationMs}'
-```
-
-The wrapper preloads a tiny `--import` shim into the child Node
-process so `globalThis.fetch` is wrapped before the SDK captures its
-default fetcher. Audit failures (e.g. disk full) log to stderr once
-and never break the SDK call path.
-
-**At the SDK layer** — wrap the client with `wrapClient` so every
-logical method call (not just every fetch) lands in the audit and an
-optional OpenTelemetry span:
-
-```typescript
-import { PumbleSDK } from "pumble-sdk";
-import {
-  createJsonlAuditWriter,
-  createOTelSpanRecorder,
-  wrapClient,
-} from "pumble-sdk/extensions/index.js";
-
-const sdk = wrapClient(
-  new PumbleSDK({ apiKeyAuth: process.env["PUMBLE_API_KEY"]! }),
-  {
-    recorder: createOTelSpanRecorder(),                       // no-op if @opentelemetry/api isn't installed
-    writer:   createJsonlAuditWriter("/tmp/pumble-sdk.jsonl"),
-  },
-);
-
-// Same API surface — every call now emits a span + audit entry.
-await sdk.users.myInfo();
-```
-
-`@opentelemetry/api` is an optional peer; install it in your app to
-opt in. Without it, the recorder degrades to a no-op so the SDK still
-loads cleanly. The audit summary keeps known identifiers
-(`channelId`, `messageId`, etc.) and drops bodies/free-form text by
-default.
-
-### Replay live-shaped tests without credentials
-
-The repo includes checked-in fixtures for CI and local verification:
-
-```bash
-cd sdk
-npm run test:arazzo:replay
-npm run test:live:replay
-npm run test:fixtures:scan
-npm run test:pack
-```
-
-To refresh the arazzo fixture after an intentional spec or SDK request
-shape change:
-
-```bash
-source /tmp/pumble-livetest.env
-PUMBLE_RECORD=arazzo-26-workflows node scripts/run-arazzo-live.mjs
-```
-
-Replay mode never falls through to the live network. If a request shape
-changes, the replayer raises `PUMBLE_REPLAY miss` so the fixture drift is
-obvious. The recorder sanitizes headers, IDs, emails, names, URLs, and
-free-form text before writing fixtures, then minimizes known endpoint responses.
-Run `npm run fixtures:minimize` after re-recording and `npm run bench:smoke`
-when you want fresh helper-path performance receipts.
-
-### Two-way: receive webhooks
-
-Use `createWebhookHandler` when your app needs signed Pumble callbacks
-instead of pull-only SDK calls:
+Use `createWebhookHandler` when your app receives signed Pumble callbacks.
+Mount it on a raw-body route; Pumble signs `${timestamp}:${rawBody}`.
 
 ```typescript
 import express from "express";
@@ -618,116 +126,99 @@ const webhook = createWebhookHandler({
   },
 });
 
-// Keep this route raw. Pumble signs `${timestamp}:${rawBody}`.
 app.post("/pumble/webhooks", (req, res) => {
   void webhook(req, res);
 });
 ```
 
-The verified headers are `x-pumble-request-timestamp` and
-`x-pumble-request-signature`. Invalid signatures and stale timestamps
-return 401; oversized bodies return 413; malformed JSON returns 400;
-handler failures return 500 so Pumble can retry. Empty signing secrets are
-rejected at construction time. The SDK does not depend on Express at
-runtime — the helper accepts plain Node HTTP request/response objects.
+The helper verifies `x-pumble-request-timestamp` and
+`x-pumble-request-signature`, rejects stale deliveries, rejects malformed JSON,
+and returns 500 on handler failure so Pumble can retry.
 
-### Socket mode gate
+## Run Curated MCP Readonly
 
-Pumble's official SDK source confirms socket mode uses a WebSocket URL lookup,
-`"ping"`/`"pong"` keepalive messages, and JSON frames shaped
-`{ payload, correlation_id }`. This SDK only implements the verified event
-dispatch subset for `PUMBLE_EVENT`/`APP_EVENT` payloads. Slash commands,
-shortcuts, dynamic menus, view actions, and block interactions need response
-frame semantics and currently fail closed with `PumbleSocketModeUnsupportedError`.
+`pumble-mcp` is the MCP package bin. By default, `pumble-mcp start` uses the
+curated profile; start there and verify read behavior before enabling any
+write flow:
 
-The package intentionally does **not** bundle a WebSocket dependency. Inject a
-transport only after you have selected a verified implementation for your app:
-
-```typescript
-import {
-  createPumbleEventRouter,
-  createPumbleSocketModeReceiver,
-} from "pumble-sdk/extensions/app/index.js";
-
-const router = createPumbleEventRouter()
-  .on("NEW_MESSAGE", async (event) => {
-    console.log(event.workspaceId, event.body.cId, event.body.tx);
-  });
-
-const receiver = createPumbleSocketModeReceiver({
-  getWebSocketUrl: async () => {
-    // Fetch the Pumble-provided socket URL using your app id and app key.
-    // Keep this app credential server-side.
-    return process.env["PUMBLE_SOCKET_URL"]!;
-  },
-  createSocket: (url) => new YourVerifiedWebSocket(url),
-  router,
-});
-
-await receiver.connect();
+```bash
+npx -y --package pumble-sdk -- pumble-mcp start \
+  --transport stdio
 ```
 
-If `createSocket` is omitted, `connect()` throws. That guard is deliberate:
-without an injected, reviewed WebSocket transport, socket mode is not enabled.
+For hosts where the model must not see any write tools at all, use the
+read-only generated profile explicitly:
 
-### App routing and OAuth install helpers
-
-`PumbleApp` and `createWebhookHandler` are available for signed webhook/app
-routing. OAuth install support is intentionally limited to the verified Pumble
-install flow primitives: build the consent URL, verify the redirect callback
-has a `code`, build the multipart access-token request, and store returned
-tokens through an app-provided `TokenStore`.
-
-The SDK does not start a redirect server, exchange tokens automatically, or
-persist tokens to disk by default:
-
-```typescript
-import {
-  InMemoryTokenStore,
-  createPumbleOAuthAccessTokenRequest,
-  createPumbleOAuthAuthorizationUrl,
-  verifyPumbleOAuthCallback,
-  type PumbleOAuthAccessTokenResponse,
-} from "pumble-sdk/extensions/app/index.js";
-
-const tokenStore = new InMemoryTokenStore(); // process-local; provide your own production store
-
-const installUrl = createPumbleOAuthAuthorizationUrl({
-  clientId: process.env["PUMBLE_APP_CLIENT_ID"]!,
-  redirectUrl: "https://example.com/pumble/oauth/callback",
-  userScopes: ["messages:read"],
-  botScopes: ["messages:write"],
-  defaultWorkspaceId: "workspace-id",
-  state: "csrf-token",
-});
-
-const callback = verifyPumbleOAuthCallback(
-  "https://example.com/pumble/oauth/callback?code=authorization-code&state=csrf-token",
-  { expectedState: "csrf-token" },
-);
-
-const request = createPumbleOAuthAccessTokenRequest({
-  clientId: process.env["PUMBLE_APP_CLIENT_ID"]!,
-  clientSecret: process.env["PUMBLE_APP_CLIENT_SECRET"]!,
-  code: callback.code,
-});
-const response = await fetch(request.url, request.init);
-if (!response.ok) throw new Error(`Pumble OAuth exchange failed: ${response.status}`);
-await tokenStore.saveTokens(await response.json() as PumbleOAuthAccessTokenResponse);
+```bash
+npx -y --package pumble-sdk -- pumble-mcp start \
+  --transport stdio \
+  --profile readonly
 ```
 
-Use `InMemoryTokenStore` for tests and local demos only. Production apps should
-provide a `TokenStore` backed by their own encrypted database or secret store.
+Claude Desktop or Cursor config:
 
-## 11. Where to go next
+```json
+{
+  "mcpServers": {
+    "pumble-read": {
+      "command": "npx",
+      "args": [
+        "-y", "--package", "pumble-sdk", "--",
+        "pumble-mcp", "start",
+        "--transport", "stdio",
+        "--profile", "readonly"
+      ],
+      "env": {
+        "PUMBLE_API_KEY": "<pumble-api-key>"
+      }
+    }
+  }
+}
+```
 
-* [README — Pagination patterns](../README.md#pagination-patterns)
-* [README — Command-line CLI](../README.md#command-line-cli)
-* [README — Configuring a read-only MCP profile](../README.md#configuring-a-read-only-mcp-profile)
-* [README — Discriminating the LegacyError / StructuredError union](../README.md#discriminating-the-legacyerror--structurederror-union)
-* [README — Receiving Pumble webhooks](../README.md#receiving-pumble-webhooks)
-* [README — Observability](../README.md#observability)
-* [README — Record/replay fixtures](../README.md#recordreplay-fixtures)
-* `scripts/run-arazzo-live.mjs` — runs the full 26-workflow test suite
-  against the live API
-* `tests/` — vitest mocked + live coverage of the hand-written extensions
+## Run Curated MCP Write With Preview/Confirmation
+
+Use the curated profile when an agent may write only after preview:
+
+```bash
+npx -y --package pumble-sdk -- pumble-mcp start \
+  --transport stdio \
+  --profile curated
+```
+
+Curated message writes are two-step:
+
+* `preview_send_message` -> `send_message_confirmed`
+* `preview_reply_to_thread` -> `reply_to_thread_confirmed`
+
+Preview tools do not call Pumble. They return `{ request, preview,
+confirmationToken }`. Pass that payload to the confirmed tool to perform the
+SDK write. The token is process-local integrity data for the pending preview;
+it is not a Pumble credential or a server-side approval record.
+
+Use `--profile readwrite` only when you intentionally want the raw generated
+write surface.
+
+## Live Test Command List
+
+Run the offline gates first:
+
+```bash
+cd sdk
+npx vitest run tests/docs.test.ts
+npm run test:pack
+npm run test:arazzo:replay
+npm run test:live:replay
+```
+
+Run live gates only with sacrificial workspace credentials:
+
+```bash
+cd sdk
+source /tmp/pumble-livetest.env
+npm run test:arazzo
+npm run test:live
+```
+
+`npm run test:pack` builds, packs, installs into a temporary app, and checks
+the exported package surface and bins.

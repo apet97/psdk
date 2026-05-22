@@ -98,8 +98,11 @@ yarn add pumble-sdk
 
 ### Model Context Protocol (MCP) Server
 
-This SDK is also an installable MCP server where the various SDK methods are
-exposed as tools that can be invoked by AI applications.
+This SDK is also an installable MCP server for AI applications. The
+`pumble-mcp` wrapper defaults to the curated profile, where message writes
+require a preview/confirmation step. Use `--profile readonly` when the model
+must not see write tools, and `--profile readwrite` only when you intentionally
+want the raw generated write surface.
 
 > Node.js v20 or greater is required to run the MCP server from npm.
 
@@ -622,10 +625,9 @@ resolution uses the SDK helpers and performs one `listChannels()` or
 <!-- Start custom section [mcp-readonly] -->
 ## Configuring a read-only MCP profile
 
-The bundled MCP server exposes 26 tools by default through the generated
-server. Use the `pumble-mcp` wrapper for agent workflows: it applies named
-profiles, preserves explicit `--tool` whitelists, and supports audit and
-dry-run modes without hand-maintaining a long argument list.
+Use `pumble-mcp` for agent workflows. With no profile flag it starts the
+curated profile, where message writes go through preview/confirmation tools.
+Use the read-only profile when the host must not expose mutating tools at all:
 
 ```bash
 pumble-mcp start \
@@ -633,9 +635,22 @@ pumble-mcp start \
   --profile readonly
 ```
 
-The read-only profile exposes 11 tools and hides mutating operations such
-as `messages-delete-message`, `scheduled-messages-delete-scheduled-message`,
-and `channels-remove-user-from-channel`.
+The read-only profile exposes only read tools and hides mutating operations
+such as message sends, replies, deletes, scheduled-message writes, and channel
+membership changes.
+
+For confirmed writes, keep the curated profile explicit:
+
+```bash
+pumble-mcp start \
+  --transport stdio \
+  --profile curated
+```
+
+Curated message writes are two-step: `preview_send_message` returns a preview
+and confirmation token, then `send_message_confirmed` performs the SDK write
+with that same payload. Thread replies follow the same pattern with
+`preview_reply_to_thread` and `reply_to_thread_confirmed`.
 
 ### Claude Desktop / Cursor: keep secrets in a launcher
 
