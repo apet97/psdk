@@ -128,6 +128,14 @@ export {
 } from "./testing/index.js";
 
 export {
+  createPumbleEventRouter,
+  type PumbleEventDispatchResult,
+  type PumbleEventHandler,
+  type PumbleEventRouter,
+  type PumbleEventRouterContext,
+} from "./app/index.js";
+
+export {
   createWebhookHandler,
   PUMBLE_REQUEST_SIGNATURE_HEADER,
   PUMBLE_REQUEST_TIMESTAMP_HEADER,
