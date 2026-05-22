@@ -8,6 +8,11 @@ type PackageJson = {
 };
 
 const quickstart = readFileSync(new URL("../docs/QUICKSTART.md", import.meta.url), "utf8");
+const integrationUsage = readFileSync(
+  new URL("../docs/INTEGRATION-USAGE.md", import.meta.url),
+  "utf8",
+);
+const llmsTxt = readFileSync(new URL("../docs/llms.txt", import.meta.url), "utf8");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -24,6 +29,14 @@ const requiredQuickstartHeadings = [
   "run curated mcp readonly",
   "run curated mcp write with preview/confirmation",
   "live test command list",
+];
+
+const requiredIntegrationUsagePhrases = [
+  "Generated And Hand-Written Boundary",
+  "curated profile",
+  "Resolve before act",
+  "Curated message writes require preview and confirmation",
+  "Do not put API keys",
 ];
 
 function markdownHeadings(markdown: string): string[] {
@@ -141,5 +154,32 @@ describe("docs", () => {
     for (const name of extensionImports) {
       expect(exports.has(name), name).toBe(true);
     }
+  });
+
+  test("agent docs index points to local integration sources", () => {
+    expect(llmsTxt).toContain("README: ../README.md");
+    expect(llmsTxt).toContain("Quickstart: QUICKSTART.md");
+    expect(llmsTxt).toContain("Integration usage: INTEGRATION-USAGE.md");
+    expect(llmsTxt).toContain("API reference source: ../PumbleOpenApi.yaml");
+
+    for (const relativePath of [
+      "README.md",
+      "docs/QUICKSTART.md",
+      "docs/INTEGRATION-USAGE.md",
+      "../PumbleOpenApi.yaml",
+    ]) {
+      expect(existsSync(resolve(sdkRoot, relativePath)), relativePath).toBe(true);
+    }
+  });
+
+  test("integration usage states agent safety contracts without unsupported modes", () => {
+    for (const phrase of requiredIntegrationUsagePhrases) {
+      expect(integrationUsage).toContain(phrase);
+    }
+    expect(integrationUsage).toContain("pumble-mcp start` defaults to the curated profile");
+    expect(integrationUsage).toContain("preview_reply_to_thread");
+    expect(integrationUsage).toContain("reply_to_thread_confirmed");
+    expect(integrationUsage).not.toMatch(/\bOAuth\b/i);
+    expect(integrationUsage).not.toMatch(/\bsocket mode\b/i);
   });
 });

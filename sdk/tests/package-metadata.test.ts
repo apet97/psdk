@@ -29,7 +29,9 @@ describe("package metadata", () => {
       "bin/pumble-cli.mjs",
       "bin/pumble-mcp-args.mjs",
       "bin/pumble-mcp.mjs",
+      "docs/INTEGRATION-USAGE.md",
       "docs/QUICKSTART.md",
+      "docs/llms.txt",
       "esm",
       "src",
     ]);
