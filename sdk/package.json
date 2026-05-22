@@ -91,7 +91,8 @@
     "test:mcp:safety": "vitest run tests/mcp-agent-safety.test.ts",
     "test:pack": "node scripts/pack-smoke.mjs",
     "fixtures:minimize": "node scripts/minimize-fixtures.mjs",
-    "bench:smoke": "node scripts/perf-smoke.mjs"
+    "bench:smoke": "node scripts/perf-smoke.mjs",
+    "package-split:dry-run": "node scripts/package-split-dry-run.mjs"
   },
   "peerDependencies": {
     "@opentelemetry/api": "^1.9.0"

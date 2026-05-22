@@ -21,9 +21,12 @@ describe("package metadata", () => {
     expect(pkg.engines).toEqual({ node: ">=20" });
   });
 
-  it("declares release parity verification scripts", () => {
+  it("declares release parity and package planning scripts", () => {
     expect(pkg.scripts.verify).toBe("npm run verify:offline && npm run verify:live");
     expect(pkg.scripts["verify:live"]).toBe("node scripts/verify-live.mjs");
+    expect(pkg.scripts["package-split:dry-run"]).toBe(
+      "node scripts/package-split-dry-run.mjs",
+    );
 
     for (const gate of [
       "npm run spec:audit",

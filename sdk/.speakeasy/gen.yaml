@@ -68,17 +68,23 @@ typescript:
       '@opentelemetry/api':
         optional: true
   additionalScripts:
+    verify: npm run verify:offline && npm run verify:live
+    verify:offline: npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke
+    verify:live: node scripts/verify-live.mjs
     spec:audit: node scripts/spec-quality-audit.mjs
     prebuild: node scripts/normalize-package.mjs
     test: vitest run
     test:arazzo: node scripts/run-arazzo-live.mjs
     test:arazzo:replay: node scripts/run-arazzo-live.mjs --replay arazzo-26-workflows
+    test:examples: vitest run tests/examples.test.ts
     test:fixtures:scan: node scripts/scan-fixtures.mjs
     test:live: vitest run tests/search-all.test.ts
     test:live:replay: PUMBLE_REPLAY=search-all-live NODE_OPTIONS="--import ./scripts/replayer.mjs" vitest run tests/search-all.test.ts
+    test:mcp:safety: vitest run tests/mcp-agent-safety.test.ts
     test:pack: node scripts/pack-smoke.mjs
     fixtures:minimize: node scripts/minimize-fixtures.mjs
     bench:smoke: node scripts/perf-smoke.mjs
+    package-split:dry-run: node scripts/package-split-dry-run.mjs
   alwaysIncludeInboundAndOutbound: false
   author: Pumble SDK Team
   baseErrorName: PumbleSDKError
