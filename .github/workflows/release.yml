@@ -51,6 +51,14 @@ jobs:
       - name: Lint OpenAPI spec
         run: speakeasy lint openapi -s PumbleOpenApi.yaml
 
+      - name: Install SDK deps
+        working-directory: sdk
+        run: npm ci --no-audit --no-fund
+
+      - name: Audit OpenAPI spec quality
+        working-directory: sdk
+        run: npm run spec:audit
+
       - name: Regenerate SDK from YAML
         # Releases always ship a fresh regen so we never publish stale
         # generated code that drifted from the spec.

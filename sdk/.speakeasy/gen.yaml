@@ -65,6 +65,7 @@ typescript:
       '@opentelemetry/api':
         optional: true
   additionalScripts:
+    spec:audit: node scripts/spec-quality-audit.mjs
     prebuild: node scripts/normalize-package.mjs
     test: vitest run
     test:arazzo: node scripts/run-arazzo-live.mjs

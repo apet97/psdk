@@ -31,6 +31,10 @@ jobs:
           curl -fsSL https://go.speakeasy.com/cli-install.sh | sh
           echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
 
+      - name: Install SDK deps
+        working-directory: sdk
+        run: npm ci --no-audit --no-fund
+
       - name: Lint OpenAPI spec (0 errors, 0 warnings required)
         run: |
           set -euo pipefail
@@ -40,6 +44,10 @@ jobs:
             echo "::error::speakeasy lint reported issues"
             exit 1
           }
+
+      - name: Audit OpenAPI spec quality
+        working-directory: sdk
+        run: npm run spec:audit
 
       - name: Regenerate SDK (sanity check — no source drift)
         # Catches schema drift that would silently break a downstream
@@ -76,10 +84,6 @@ jobs:
             echo "::error::regen touched hand-written paths"
             exit 1
           fi
-
-      - name: Install SDK deps
-        working-directory: sdk
-        run: npm install --no-audit --no-fund
 
       - name: Lint hand-written TypeScript
         working-directory: sdk
@@ -142,6 +146,14 @@ jobs:
         run: |
           curl -fsSL https://go.speakeasy.com/cli-install.sh | sh
           echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
+
+      - name: Install SDK deps
+        working-directory: sdk
+        run: npm ci --no-audit --no-fund
+
+      - name: Audit OpenAPI spec quality
+        working-directory: sdk
+        run: npm run spec:audit
 
       - name: Regenerate SDK
         run: speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y

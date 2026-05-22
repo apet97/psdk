@@ -879,14 +879,14 @@ paths:
                   description: |
                     Channel name. Pumble normalizes this server-side
                     (lower-cases, replaces spaces with `-`).
-                  example: sdk-livetest
+                  example: project-updates
                 type:
                   $ref: '#/components/schemas/ChannelType'
                 description:
                   type: string
                   description: Optional channel description.
             example:
-              name: sdk-livetest
+              name: project-updates
               type: PUBLIC
               description: integration testing channel - safe to delete
       responses:
@@ -1264,7 +1264,7 @@ paths:
                   format: int64
                   description: Restrict to messages with `timestampMilli` strictly greater than this value.
             example:
-              text: SDK livetest
+              text: project update
               limit: 10
       responses:
         "200":
