@@ -798,7 +798,10 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-          example: {}
+          example:
+            message: Not found
+            localizedMessage: Not found
+            code: 404100
 
 paths:
 
@@ -819,7 +822,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ChannelListEntry'
-              example: {}
+              example:
+                - channel:
+                    id: bbbbbbbbbbbbbbbbbbbb0001
+                    name: general
+                    channelType: PUBLIC
+                    workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                  pinnedMessages: []
+                  users: [aaaaaaaaaaaaaaaaaaaa0001, aaaaaaaaaaaaaaaaaaaa0002]
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -854,7 +864,21 @@ paths:
                 properties:
                   channel:
                     $ref: '#/components/schemas/Channel'
-              example: {}
+              example:
+                channel:
+                  id: bbbbbbbbbbbbbbbbbbbb0001
+                  name: general
+                  channelType: PUBLIC
+                  workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                  isArchived: false
+                  isHidden: false
+                  isMember: true
+                  isMuted: false
+                  isMain: true
+                  isInitial: true
+                  addedById: null
+                  desktopNotificationPreferences: EVERYTHING
+                  mobileNotificationPreferences: MENTIONS
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -896,7 +920,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ChannelRef'
-              example: {}
+              example:
+                id: bbbbbbbbbbbbbbbbbbbb0002
+                name: engineering
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -996,7 +1022,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageRef'
-              example: {}
+              example:
+                id: cccccccccccccccccccc0001
+                channelId: bbbbbbbbbbbbbbbbbbbb0002
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1038,7 +1066,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageRef'
-              example: {}
+              example:
+                id: cccccccccccccccccccc0001
+                channelId: bbbbbbbbbbbbbbbbbbbb0002
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1072,7 +1102,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageRef'
-              example: {}
+              example:
+                id: cccccccccccccccccccc0001
+                channelId: bbbbbbbbbbbbbbbbbbbb0002
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1108,7 +1140,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageRef'
-              example: {}
+              example:
+                id: cccccccccccccccccccc0001
+                channelId: bbbbbbbbbbbbbbbbbbbb0002
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1140,7 +1174,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Message'
-              example: {}
+              example:
+                id: cccccccccccccccccccc0001
+                channelId: bbbbbbbbbbbbbbbbbbbb0002
+                workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                author: aaaaaaaaaaaaaaaaaaaa0001
+                text: Hello world
+                timestamp: '2026-05-21T21:23:04Z'
+                timestampMilli: 1779398584000
+                deleted: false
+                edited: false
+                isFollowing: true
+                reactions: []
+                attachments: []
+                files: []
+                blocks:
+                  - type: rich_text
+                    elements:
+                      - type: rich_text_section
+                        elements:
+                          - type: text
+                            text: Hello world
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1196,7 +1250,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Message'
-              example: {}
+              example:
+                - id: cccccccccccccccccccc0001
+                  channelId: bbbbbbbbbbbbbbbbbbbb0002
+                  workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                  author: aaaaaaaaaaaaaaaaaaaa0001
+                  text: Hello world
+                  timestamp: '2026-05-21T21:23:04Z'
+                  timestampMilli: 1779398584000
+                  deleted: false
+                  edited: false
+                  isFollowing: true
+                  reactions: []
+                  attachments: []
+                  files: []
+                  blocks:
+                    - type: rich_text
+                      elements:
+                        - type: rich_text_section
+                          elements:
+                            - type: text
+                              text: Hello world
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1273,7 +1347,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SearchMessagesResult'
-              example: {}
+              example:
+                content: []
+                totalElements: 0
+                hasMore: false
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1358,7 +1435,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageList'
-              example: {}
+              example:
+                messages: []
+                hasMoreBefore: false
+                hasMoreAfter: null
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1405,7 +1485,8 @@ paths:
                   status:
                     type: string
                     example: ok
-              example: {}
+              example:
+                status: ok
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1447,7 +1528,8 @@ paths:
                   status:
                     type: string
                     example: ok
-              example: {}
+              example:
+                status: ok
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1526,7 +1608,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScheduledMessageRef'
-              example: {}
+              example:
+                id: dddddddddddddddddddd0001
+                channelId: bbbbbbbbbbbbbbbbbbbb0002
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1571,7 +1655,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScheduledMessageList'
-              example: {}
+              example:
+                scheduledMessages: []
+                hasMore: false
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1593,7 +1679,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScheduledMessage'
-              example: {}
+              example:
+                id: dddddddddddddddddddd0001
+                channelId: bbbbbbbbbbbbbbbbbbbb0002
+                workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                author: aaaaaaaaaaaaaaaaaaaa0001
+                text: Reminder
+                sendAt: 1893459600000
+                alsoSendToChannel: false
+                threadRootId: null
+                rootText: null
+                quotedMessage: null
+                recurrence: null
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1640,7 +1737,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScheduledMessage'
-              example: {}
+              example:
+                id: dddddddddddddddddddd0001
+                channelId: bbbbbbbbbbbbbbbbbbbb0002
+                workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                author: aaaaaaaaaaaaaaaaaaaa0001
+                text: Reminder
+                sendAt: 1893459600000
+                alsoSendToChannel: false
+                threadRootId: null
+                rootText: null
+                quotedMessage: null
+                recurrence: null
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1678,7 +1786,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-              example: {}
+              example:
+                - id: aaaaaaaaaaaaaaaaaaaa0001
+                  email: user-1@example.invalid
+                  name: Example User
+                  title: ""
+                  role: OWNER
+                  status: ACTIVATED
+                  workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                  timeZoneId: Europe/Belgrade
+                  automaticallyTimeZone: true
+                  activeUntil: 0
+                  isAddonBot: false
+                  isPumbleBot: false
+                  invitedBy: null
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1696,7 +1817,15 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/UserGroup'
-              example: {}
+              example:
+                - id: eeeeeeeeeeeeeeeeeeee0001
+                  name: engineering
+                  handle: eng
+                  description: null
+                  disabled: false
+                  createdBy: aaaaaaaaaaaaaaaaaaaa0001
+                  workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                  workspaceUserIds: [aaaaaaaaaaaaaaaaaaaa0001]
         "403":
           $ref: '#/components/responses/Error403'
 
@@ -1713,7 +1842,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-              example: {}
+              example:
+                id: aaaaaaaaaaaaaaaaaaaa0001
+                email: user-1@example.invalid
+                name: Example User
+                title: ""
+                role: OWNER
+                status: ACTIVATED
+                workspaceId: aaaaaaaaaaaaaaaaaaaa0000
+                timeZoneId: Europe/Belgrade
+                automaticallyTimeZone: true
+                activeUntil: 0
+                isAddonBot: false
+                isPumbleBot: false
+                invitedBy: null
         "403":
           $ref: '#/components/responses/Error403'
 
