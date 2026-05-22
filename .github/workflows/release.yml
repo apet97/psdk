@@ -99,39 +99,9 @@ jobs:
         working-directory: sdk
         run: npm install --no-audit --no-fund
 
-      - name: Lint hand-written TypeScript (gate)
+      - name: Offline verification (gate)
         working-directory: sdk
-        run: npm run lint
-
-      - name: Build
-        working-directory: sdk
-        run: npm run build
-
-      - name: Mocked vitest (gate)
-        working-directory: sdk
-        # Refuse to publish a release that doesn't pass the mocked
-        # extension test suite.
-        run: npm test
-
-      - name: Replay arazzo fixture (gate)
-        working-directory: sdk
-        run: npm run test:arazzo:replay
-
-      - name: Replay live vitest fixture (gate)
-        working-directory: sdk
-        run: npm run test:live:replay
-
-      - name: Scan replay fixtures for secrets and PII (gate)
-        working-directory: sdk
-        run: npm run test:fixtures:scan
-
-      - name: Pack/install/export smoke (gate)
-        working-directory: sdk
-        run: npm run test:pack -- --skip-build
-
-      - name: Bench smoke (gate)
-        working-directory: sdk
-        run: npm run bench:smoke
+        run: npm run verify:offline
 
       - name: Skip if version is already on npm
         id: check

@@ -21,6 +21,25 @@ describe("package metadata", () => {
     expect(pkg.engines).toEqual({ node: ">=20" });
   });
 
+  it("declares release parity verification scripts", () => {
+    expect(pkg.scripts.verify).toBe("npm run verify:offline && npm run verify:live");
+    expect(pkg.scripts["verify:live"]).toBe("node scripts/verify-live.mjs");
+
+    for (const gate of [
+      "npm run spec:audit",
+      "npm run build",
+      "npm run lint",
+      "npm test",
+      "npm run test:arazzo:replay",
+      "npm run test:live:replay",
+      "npm run test:fixtures:scan",
+      "npm run test:pack -- --skip-build",
+      "npm run bench:smoke",
+    ]) {
+      expect(pkg.scripts["verify:offline"]).toContain(gate);
+    }
+  });
+
   it("keeps the npm tarball allowlist explicit", () => {
     expect(pkg.files).toEqual([
       "bin/audit-log-shim.mjs",

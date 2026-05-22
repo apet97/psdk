@@ -85,52 +85,9 @@ jobs:
             exit 1
           fi
 
-      - name: Lint hand-written TypeScript
+      - name: Offline verification
         working-directory: sdk
-        run: npm run lint
-
-      - name: Build
-        working-directory: sdk
-        run: npm run build
-
-      - name: Mocked vitest
-        working-directory: sdk
-        # The live-only test suite (search-all live block) skips when
-        # PUMBLE_API_KEY is unset, so this run is safe in PR CI.
-        run: npm test
-
-      - name: MCP agent safety evals
-        working-directory: sdk
-        run: npm run test:mcp:safety
-
-      - name: Example tests
-        working-directory: sdk
-        run: npm run test:examples
-
-      - name: Replay arazzo fixture
-        working-directory: sdk
-        # Re-record locally with:
-        #   source /tmp/pumble-livetest.env && PUMBLE_RECORD=arazzo-26-workflows node scripts/run-arazzo-live.mjs
-        run: node scripts/run-arazzo-live.mjs --replay arazzo-26-workflows
-
-      - name: Replay live vitest fixture
-        working-directory: sdk
-        env:
-          PUMBLE_REPLAY: search-all-live
-          NODE_OPTIONS: --import ./scripts/replayer.mjs
-        run: ./node_modules/.bin/vitest run tests/search-all.test.ts
-
-      - name: Scan replay fixtures for secrets and PII
-        working-directory: sdk
-        run: npm run test:fixtures:scan
-
-      - name: Pack/install/export smoke
-        working-directory: sdk
-        run: npm run test:pack -- --skip-build
-
-      - name: Bench smoke
-        working-directory: sdk
-        run: npm run bench:smoke
+        run: npm run verify:offline
 
   live-arazzo:
     # Optional nightly job that runs the live arazzo runner against the
@@ -159,21 +116,15 @@ jobs:
         working-directory: sdk
         run: npm ci --no-audit --no-fund
 
-      - name: Audit OpenAPI spec quality
-        working-directory: sdk
-        run: npm run spec:audit
-
       - name: Regenerate SDK
         run: speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
 
       - name: Normalize generated package metadata
         run: node sdk/scripts/normalize-package.mjs
 
-      - name: Install & build
+      - name: Offline verification
         working-directory: sdk
-        run: |
-          npm install --no-audit --no-fund
-          npm run build
+        run: npm run verify:offline
 
       - name: Run live arazzo against sacrificial workspace
         working-directory: sdk
