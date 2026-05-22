@@ -597,6 +597,45 @@ handler failures return 500 so Pumble can retry. Empty signing secrets are
 rejected at construction time. The SDK does not depend on Express at
 runtime — the helper accepts plain Node HTTP request/response objects.
 
+### Socket mode gate
+
+Pumble's official SDK source confirms socket mode uses a WebSocket URL lookup,
+`"ping"`/`"pong"` keepalive messages, and JSON frames shaped
+`{ payload, correlation_id }`. This SDK only implements the verified event
+dispatch subset for `PUMBLE_EVENT`/`APP_EVENT` payloads. Slash commands,
+shortcuts, dynamic menus, view actions, and block interactions need response
+frame semantics and currently fail closed with `PumbleSocketModeUnsupportedError`.
+
+The package intentionally does **not** bundle a WebSocket dependency. Inject a
+transport only after you have selected a verified implementation for your app:
+
+```typescript
+import {
+  createPumbleEventRouter,
+  createPumbleSocketModeReceiver,
+} from "pumble-sdk/extensions/app/index.js";
+
+const router = createPumbleEventRouter()
+  .on("NEW_MESSAGE", async (event) => {
+    console.log(event.workspaceId, event.body.cId, event.body.tx);
+  });
+
+const receiver = createPumbleSocketModeReceiver({
+  getWebSocketUrl: async () => {
+    // Fetch the Pumble-provided socket URL using your app id and app key.
+    // Keep this app credential server-side.
+    return process.env["PUMBLE_SOCKET_URL"]!;
+  },
+  createSocket: (url) => new YourVerifiedWebSocket(url),
+  router,
+});
+
+await receiver.connect();
+```
+
+If `createSocket` is omitted, `connect()` throws. That guard is deliberate:
+without an injected, reviewed WebSocket transport, socket mode is not enabled.
+
 ### App routing and OAuth install helpers
 
 `PumbleApp` and `createWebhookHandler` are available for signed webhook/app

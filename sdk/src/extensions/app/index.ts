@@ -19,6 +19,18 @@ export {
 } from "./http-receiver.js";
 
 export {
+  PUMBLE_SOCKET_MODE_PROTOCOL_EVIDENCE,
+  PumbleSocketModeUnsupportedError,
+  createPumbleSocketModeReceiver,
+  type CreatePumbleSocketModeReceiverOptions,
+  type PumbleSocketModeDispatchResult,
+  type PumbleSocketModeFrame,
+  type PumbleSocketModeRawMessage,
+  type PumbleSocketModeReceiver,
+  type PumbleSocketModeSocket,
+} from "./socket-mode.js";
+
+export {
   PUMBLE_OAUTH_ACCESS_TOKEN_URL,
   PUMBLE_OAUTH_CONSENT_URL,
   createPumbleOAuthAccessTokenRequest,
