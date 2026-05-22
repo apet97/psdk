@@ -35,3 +35,23 @@ All gates must pass before creating separate packages:
 Do not split packages yet. Revisit extraction only after the gates above are
 proven in the release checklist and the dry-run mapper shows docs and tests for
 every future package.
+
+## Current Gate Result
+
+Latest dry-run gate: package split is blocked.
+
+Evidence recorded for this decision:
+
+- `npm run verify:offline` passes.
+- `npm run package-split:dry-run` maps source, docs, and tests for all five
+  future packages without moving files.
+
+Blocking evidence still required before extraction:
+
+- Two live verification runs must be recorded for the same candidate commit.
+- Compatibility tests must prove existing `pumble-sdk` import paths keep
+  working through any transitional package.
+- Migration docs must state the exact replacement import paths for every
+  extracted public API.
+
+Until those are proven, keep publishing `pumble-sdk` as the single package.

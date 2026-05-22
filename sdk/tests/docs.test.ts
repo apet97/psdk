@@ -211,6 +211,9 @@ describe("docs", () => {
     }
 
     expect(packageSplit).toContain("Do not split packages yet.");
+    expect(packageSplit).toContain("Latest dry-run gate: package split is blocked.");
+    expect(packageSplit).toContain("Two live verification runs must be recorded");
+    expect(packageSplit).toContain("Compatibility tests must prove existing `pumble-sdk` import paths");
     expect(packageSplit).not.toMatch(/will split|is split into|now publishes/i);
   });
 });
