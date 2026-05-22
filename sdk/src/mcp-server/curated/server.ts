@@ -1,6 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SDK_METADATA } from "../../lib/config.js";
 import { PumbleSDK } from "../../sdk/sdk.js";
+import { registerCuratedPrompts } from "./prompts.js";
+import { registerCuratedResources } from "./resources.js";
 import { registerCuratedTools } from "./tools.js";
 import type { CuratedServerOptions } from "./types.js";
 
@@ -19,6 +21,8 @@ export function createCuratedMcpServer(
   });
 
   registerCuratedTools(server, client);
+  registerCuratedResources(server, client);
+  registerCuratedPrompts(server);
 
   return server;
 }
