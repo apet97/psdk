@@ -128,6 +128,38 @@ const sent = await client.messages.send({
 console.log("message id:", sent.id);
 ```
 
+### Thread context and replies
+
+Use the facade when an app or agent needs the current shape of a thread
+without pulling bulky message fields or inventing a summary:
+
+```typescript
+const context = await client.threads.getContext({
+  channelId: general.id,
+  messageId: sent.id,
+  replyLimit: 10,
+});
+
+console.log(context.root.text);
+console.log("participants:", context.participants);
+console.log("visible replies:", context.replies.length, "of", context.replyCount);
+```
+
+`getContext` returns `{ root, replies, participants, replyCount }`, where
+`root` and each reply keep the original text verbatim. To write back to the
+same thread, prefer the explicit wrapper:
+
+```typescript
+await client.threads.replyToThread({
+  channelId: general.id,
+  messageId: sent.id,
+  text: "Replying in thread.",
+});
+```
+
+The generated thread methods are still available as `client.threads.reply`
+and `client.threads.listReplies` when you need the raw SDK surface.
+
 ## 7. Set up the MCP server (Claude Desktop)
 
 The same SDK is also an MCP server, so any tool that speaks MCP (Claude

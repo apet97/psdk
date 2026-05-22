@@ -13,6 +13,14 @@ import {
   resolveUser,
   type ResolveOptions,
 } from "./resolve.js";
+import {
+  getThreadContext,
+  replyToThread,
+  type ReplyToThreadOptions,
+  type ReplyToThreadRequest,
+  type ThreadContextOptions,
+  type ThreadContextRequest,
+} from "./thread-context.js";
 
 type MethodArgs<T, K extends keyof T> =
   T[K] extends (...args: infer Args) => unknown ? Args : never;
@@ -78,6 +86,14 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
         raw.messages.dmGroup(...args),
     },
     threads: {
+      getContext: (
+        request: ThreadContextRequest,
+        options?: ThreadContextOptions,
+      ) => getThreadContext(raw, request, options),
+      replyToThread: (
+        request: ReplyToThreadRequest,
+        options?: ReplyToThreadOptions,
+      ) => replyToThread(raw, request, options),
       reply: (...args: MethodArgs<Messages, "sendReply">) =>
         raw.messages.sendReply(...args),
       listReplies: (...args: MethodArgs<Messages, "fetchThreadReplies">) =>

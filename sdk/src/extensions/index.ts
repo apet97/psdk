@@ -22,6 +22,19 @@ export {
 } from "./list-all-messages.js";
 
 export {
+  getThreadContext,
+  replyToThread,
+  type ReplyToThreadClient,
+  type ReplyToThreadOptions,
+  type ReplyToThreadRequest,
+  type ThreadContext,
+  type ThreadContextClient,
+  type ThreadContextMessage,
+  type ThreadContextOptions,
+  type ThreadContextRequest,
+} from "./thread-context.js";
+
+export {
   findUserByEmail,
   findChannelByName,
   type FindClient,
