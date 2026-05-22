@@ -65,8 +65,8 @@ function safetyClient() {
         channelId: fixture.sendRequest.channelId,
       }),
       sendReply: vi.fn(),
-      addReaction: vi.fn(),
-      removeReaction: vi.fn(),
+      addReaction: vi.fn().mockResolvedValue({ status: "ok" }),
+      removeReaction: vi.fn().mockResolvedValue({ status: "ok" }),
     },
   };
 }
@@ -160,6 +160,32 @@ describe("MCP agent safety evals", () => {
 
     expect(errorText(result)).toMatch(/confirmation/i);
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it("allows only exact-id low-risk reaction writes without preview text", async () => {
+    const client = safetyClient();
+    const server = register(client);
+    const addReaction = server.tools.get("add_reaction");
+
+    expect(addReaction).toBeDefined();
+    expect(() => parseArgs(addReaction as CapturedTool, {
+      channel: "#support-eng",
+      messageId: "message-1",
+      reaction: "white_check_mark",
+    })).toThrow();
+
+    const result = await invoke(server, "add_reaction", {
+      channelId: "channel-support-eng",
+      messageId: "message-1",
+      reaction: "white_check_mark",
+    });
+
+    expect(jsonContent(result)).toEqual({ status: "ok" });
+    expect(client.messages.addReaction).toHaveBeenCalledWith({
+      channelId: "channel-support-eng",
+      messageId: "message-1",
+      reaction: "white_check_mark",
+    }, undefined);
   });
 
   it("uses the curated profile by default and keeps delete/edit out of the advertised surface", () => {

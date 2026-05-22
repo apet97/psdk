@@ -48,8 +48,15 @@ jobs:
           curl -fsSL https://go.speakeasy.com/cli-install.sh | sh
           echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
 
-      - name: Lint OpenAPI spec
-        run: speakeasy lint openapi -s PumbleOpenApi.yaml
+      - name: Lint OpenAPI spec (0 errors, 0 warnings required)
+        run: |
+          set -euo pipefail
+          out=$(speakeasy lint openapi -s PumbleOpenApi.yaml 2>&1)
+          echo "$out"
+          echo "$out" | grep -qE '0 errors, 0 warnings' || {
+            echo "::error::speakeasy lint reported issues"
+            exit 1
+          }
 
       - name: Install SDK deps
         working-directory: sdk
@@ -71,10 +78,21 @@ jobs:
         run: git diff --check
 
       - name: Verify regen left hand-written paths untouched
+        env:
+          GUARDED_PATHS: >-
+            sdk/src/extensions
+            sdk/tests
+            sdk/scripts
+            sdk/bin/pumble-cli.mjs
+            sdk/bin/pumble-mcp.mjs
+            sdk/bin/pumble-mcp-args.mjs
+            sdk/bin/dry-run-shim.mjs
+            sdk/bin/audit-log-shim.mjs
+            sdk/package.json
+            sdk/package-lock.json
         run: |
-          guarded="sdk/src/extensions sdk/tests sdk/scripts sdk/bin/pumble-cli.mjs sdk/bin/pumble-mcp.mjs sdk/bin/pumble-mcp-args.mjs sdk/bin/dry-run-shim.mjs sdk/bin/audit-log-shim.mjs"
-          if ! git diff --quiet -- $guarded; then
-            git diff --stat -- $guarded
+          if ! git diff --quiet -- $GUARDED_PATHS; then
+            git diff --stat -- $GUARDED_PATHS
             echo "::error::regen touched hand-written paths"
             exit 1
           fi

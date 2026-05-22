@@ -191,6 +191,10 @@ Curated message writes are two-step:
 * `preview_send_message` -> `send_message_confirmed`
 * `preview_reply_to_thread` -> `reply_to_thread_confirmed`
 
+The only direct write exceptions in the curated profile are `add_reaction` and
+`remove_reaction`. They require exact `channelId`, `messageId`, and `reaction`
+values and are treated as low-risk reaction-only operations.
+
 Preview tools do not call Pumble. They return `{ request, preview,
 confirmationToken }`. Pass that payload to the confirmed tool to perform the
 SDK write. The token is process-local integrity data for the pending preview;

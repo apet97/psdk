@@ -86,6 +86,7 @@ try {
     "docs/llms.txt",
     "bin/mcp-server.js",
     "bin/pumble-cli.mjs",
+    "bin/pumble-mcp-curated.js",
     "bin/pumble-mcp.mjs",
     "esm/index.js",
     "src/index.ts",
@@ -96,6 +97,7 @@ try {
   assertNoTarEntry(tarFiles, /^package\/examples\//, "examples directory");
   assertNoTarEntry(tarFiles, /^package\/package-lock\.json$/, "package lock");
   assertNoTarEntry(tarFiles, /^package\/bin\/mcp-server\.js\.map$/, "MCP source map");
+  assertNoTarEntry(tarFiles, /^package\/bin\/pumble-mcp-curated\.js\.map$/, "curated MCP source map");
   assertNoTarEntry(tarFiles, /^package\/esm\/.+\.map$/, "compiled source map");
 
   await writeFile(
@@ -140,6 +142,13 @@ console.log("documented exports ok");
   if (!/Usage:/i.test(mcpHelp.stdout)) throw new Error("pumble-mcp --help did not print usage");
   const generatedMcpHelp = await run(binPath(consumer, "pumble-mcp"), ["start", "--help"], { cwd: consumer, capture: true });
   if (!/transport/i.test(generatedMcpHelp.stdout)) throw new Error("pumble-mcp start --help did not reach generated server");
+  const curatedHelp = await run("node", [join(consumer, "node_modules/pumble-sdk/bin/pumble-mcp-curated.js"), "--help"], {
+    cwd: consumer,
+    capture: true,
+  });
+  if (!/workflow-first Pumble MCP server/i.test(curatedHelp.stdout)) {
+    throw new Error("pumble-mcp-curated --help did not run from installed package");
+  }
   assertNoBin(consumer, "mcp");
 
   console.log(`pack smoke passed: ${tarballName}`);

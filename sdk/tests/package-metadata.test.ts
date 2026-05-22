@@ -50,6 +50,7 @@ describe("package metadata", () => {
       "bin/mcp-server.js",
       "bin/pumble-cli.mjs",
       "bin/pumble-mcp-args.mjs",
+      "bin/pumble-mcp-curated.js",
       "bin/pumble-mcp.mjs",
       "docs/INTEGRATION-USAGE.md",
       "docs/PACKAGE-SPLIT.md",

@@ -13,6 +13,8 @@
 /core.*
 /bin/mcp-server.js
 /bin/mcp-server.js.map
+/bin/pumble-mcp-curated.js
+/bin/pumble-mcp-curated.js.map
 /cjs
 /esm
 /dist

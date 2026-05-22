@@ -182,6 +182,9 @@ describe("docs", () => {
     expect(integrationUsage).toContain("pumble-mcp start` defaults to the curated profile");
     expect(integrationUsage).toContain("preview_reply_to_thread");
     expect(integrationUsage).toContain("reply_to_thread_confirmed");
+    expect(integrationUsage).toContain("only direct curated write");
+    expect(integrationUsage).toContain("low-risk exact-ID operations");
+    expect(quickstart).toContain("The only direct write exceptions in the curated profile");
     expect(integrationUsage).not.toMatch(/\bOAuth\b/i);
     expect(integrationUsage).not.toMatch(/\bsocket mode\b/i);
   });

@@ -41,6 +41,10 @@ for application and agent workflows.
   `send_message_confirmed` only with the unchanged payload after approval.
 - For thread replies, use `preview_reply_to_thread` followed by
   `reply_to_thread_confirmed` in the same way.
+- `add_reaction` and `remove_reaction` are the only direct curated write
+  exceptions. They are low-risk exact-ID operations and require
+  `channelId`, `messageId`, and `reaction`; they do not accept channel names,
+  user names, message text, or destructive edit/delete requests.
 - The confirmation token is process-local integrity data. It is not a Pumble
   credential or server-side approval record.
 - Do not put API keys, access tokens, webhook signing secrets, or private
