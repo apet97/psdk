@@ -35,6 +35,15 @@ class FakeServer {
   }
 }
 
+const generalChannel = {
+  id: "channel-1",
+  name: "general",
+  channelType: "PUBLIC",
+  workspaceId: "workspace-1",
+  isMember: true,
+  isArchived: false,
+};
+
 function message(overrides: Partial<Message> = {}): Message {
   return {
     id: "message-1",
@@ -73,7 +82,7 @@ async function invoke(
   return tool.handler(parseArgs(tool, args), {});
 }
 
-function jsonContent(result: CallToolResult): unknown {
+function jsonContent(result: CallToolResult): any {
   expect(result.isError).toBeUndefined();
   expect(result.content).toHaveLength(1);
   const [content] = result.content;
@@ -85,29 +94,68 @@ function jsonContent(result: CallToolResult): unknown {
   return JSON.parse(text);
 }
 
-describe("curated read workflow tools", () => {
-  it("registers the read tools on the public curated profile", () => {
-    const client = {
-      users: { myInfo: vi.fn() },
-      channels: {},
-      messages: {},
-    };
-    const server = register(client);
+function readClient(overrides: Record<string, unknown> = {}) {
+  return {
+    users: { myInfo: vi.fn() },
+    channels: {
+      listChannels: vi.fn().mockResolvedValue([
+        { channel: generalChannel, pinnedMessages: [], users: ["user-1"] },
+      ]),
+    },
+    messages: {
+      searchMessages: vi.fn(),
+      listMessages: vi.fn(),
+      fetchMessage: vi.fn(),
+      fetchThreadReplies: vi.fn(),
+      ...overrides,
+    },
+  };
+}
 
-    expect(CURATED_TOOL_NAMES).toEqual(expect.arrayContaining([
+describe("curated read workflow tools", () => {
+  it("registers the task-oriented curated profile without old raw-style names", () => {
+    const server = register(readClient());
+
+    expect(CURATED_TOOL_NAMES).toEqual([
+      "whoami",
+      "find_channel",
+      "find_user",
+      "list_channels",
       "search_messages",
-      "get_message",
-      "list_channel_messages",
-      "list_thread_replies",
+      "get_channel_context",
       "get_thread_context",
-    ]));
-    expect([...server.tools.keys()]).toEqual(expect.arrayContaining([
-      "search_messages",
-      "get_message",
-      "list_channel_messages",
-      "list_thread_replies",
-      "get_thread_context",
-    ]));
+      "send_message_preview",
+      "send_message_confirmed",
+      "reply_to_thread_preview",
+      "reply_to_thread_confirmed",
+    ]);
+    expect([...server.tools.keys()]).toEqual(CURATED_TOOL_NAMES);
+    expect(server.tools.has("messages-send-message")).toBe(false);
+    expect(server.tools.has("get_message")).toBe(false);
+    expect(server.tools.has("list_thread_replies")).toBe(false);
+  });
+
+  it("lists channels in a clean MCP envelope", async () => {
+    const server = register(readClient());
+
+    const payload = jsonContent(await invoke(server, "list_channels", {}));
+
+    expect(payload).toEqual({
+      ok: true,
+      summary: "Found 1 channel.",
+      ids: { channelIds: ["channel-1"] },
+      data: {
+        channels: [{
+          id: "channel-1",
+          name: "general",
+          channelType: "PUBLIC",
+          isMember: true,
+          isArchived: false,
+        }],
+        page: { limit: 10, totalReturned: 1 },
+      },
+      nextActions: [],
+    });
   });
 
   it("searches messages with a small default limit and compact identity-rich output", async () => {
@@ -128,11 +176,7 @@ describe("curated read workflow tools", () => {
         hasMore: false,
       },
     });
-    const server = register({
-      users: { myInfo: vi.fn() },
-      channels: {},
-      messages: { searchMessages },
-    });
+    const server = register(readClient({ searchMessages }));
 
     const payload = jsonContent(await invoke(server, "search_messages", {
       text: "release",
@@ -144,52 +188,24 @@ describe("curated read workflow tools", () => {
       in: ["channel-1"],
       limit: 10,
     }, undefined);
-    expect(payload).toEqual({
-      messages: [{
-        id: "hit-1",
-        text: "Release is ready",
-        timestamp: "2026-05-22T10:00:00.000Z",
-        timestampMilli: 1779444000000,
-        actor: { id: "user-1", appId: "app-1" },
-        target: { channelId: "channel-1", workspaceId: "workspace-1" },
-        thread: { replyCount: 2 },
-      }],
-      page: { limit: 10, totalElements: 1, hasMore: false },
+    expect(payload).toMatchObject({
+      ok: true,
+      summary: "Found 1 message.",
+      ids: { messageIds: ["hit-1"], channelIds: ["channel-1"] },
+      data: {
+        messages: [{
+          id: "hit-1",
+          text: "Release is ready",
+          actor: { id: "user-1", appId: "app-1" },
+          target: { channelId: "channel-1", workspaceId: "workspace-1" },
+          thread: { replyCount: 2 },
+        }],
+        page: { limit: 10, totalElements: 1, hasMore: false },
+      },
     });
   });
 
-  it("fetches a single message without returning bulky generated fields", async () => {
-    const fetchMessage = vi.fn().mockResolvedValue(message({
-      id: "message-2",
-      text: "Can you confirm this?",
-      author: "user-2",
-    }));
-    const server = register({
-      users: { myInfo: vi.fn() },
-      channels: {},
-      messages: { fetchMessage },
-    });
-
-    const payload = jsonContent(await invoke(server, "get_message", {
-      channelId: "channel-1",
-      messageId: "message-2",
-    }));
-
-    expect(fetchMessage).toHaveBeenCalledWith({
-      channelId: "channel-1",
-      messageId: "message-2",
-    }, undefined);
-    expect(payload).toEqual({
-      id: "message-2",
-      text: "Can you confirm this?",
-      timestamp: "2026-05-22T10:00:00.000Z",
-      timestampMilli: 1779444000000,
-      actor: { id: "user-2" },
-      target: { channelId: "channel-1", workspaceId: "workspace-1" },
-    });
-  });
-
-  it("lists channel messages and thread replies with bounded default page sizes", async () => {
+  it("gets channel context by resolving a human channel name first", async () => {
     const listMessages = vi.fn().mockResolvedValue({
       result: {
         messages: [message({ id: "listed-1" })],
@@ -197,52 +213,26 @@ describe("curated read workflow tools", () => {
         hasMoreAfter: null,
       },
     });
-    const fetchThreadReplies = vi.fn().mockResolvedValue({
-      result: [message({ id: "reply-1", author: "user-reply" })],
-    });
-    const server = register({
-      users: { myInfo: vi.fn() },
-      channels: {},
-      messages: { listMessages, fetchThreadReplies },
-    });
+    const server = register(readClient({ listMessages }));
 
-    expect(jsonContent(await invoke(server, "list_channel_messages", {
-      channelId: "channel-1",
-    }))).toEqual({
-      messages: [{
-        id: "listed-1",
-        text: "message text",
-        timestamp: "2026-05-22T10:00:00.000Z",
-        timestampMilli: 1779444000000,
-        actor: { id: "user-1" },
-        target: { channelId: "channel-1", workspaceId: "workspace-1" },
-      }],
-      page: { limit: 10, hasMoreBefore: true, hasMoreAfter: null },
-    });
+    const payload = jsonContent(await invoke(server, "get_channel_context", {
+      channel: "#general",
+    }));
+
     expect(listMessages).toHaveBeenCalledWith({ channelId: "channel-1", limit: 10 }, undefined);
-
-    expect(jsonContent(await invoke(server, "list_thread_replies", {
-      channelId: "channel-1",
-      rootMessageId: "root-1",
-    }))).toEqual({
-      replies: [{
-        id: "reply-1",
-        text: "message text",
-        timestamp: "2026-05-22T10:00:00.000Z",
-        timestampMilli: 1779444000000,
-        actor: { id: "user-reply" },
-        target: { channelId: "channel-1", workspaceId: "workspace-1" },
-      }],
-      page: { limit: 10 },
+    expect(payload).toMatchObject({
+      ok: true,
+      summary: "Loaded 1 message from #general.",
+      ids: { channelId: "channel-1", messageIds: ["listed-1"] },
+      data: {
+        channel: { id: "channel-1", name: "general" },
+        page: { limit: 10, hasMoreBefore: true, hasMoreAfter: null },
+      },
+      nextActions: ["Use get_thread_context with a message id to inspect a thread."],
     });
-    expect(fetchThreadReplies).toHaveBeenCalledWith({
-      channelId: "channel-1",
-      rootMessageId: "root-1",
-      limit: 10,
-    }, undefined);
   });
 
-  it("returns thread context through the existing extension helper with a bounded reply limit", async () => {
+  it("returns thread context through the existing extension helper after channel resolution", async () => {
     const fetchMessage = vi.fn().mockResolvedValue(message({
       id: "root-1",
       text: "Root text",
@@ -252,14 +242,10 @@ describe("curated read workflow tools", () => {
     const fetchThreadReplies = vi.fn().mockResolvedValue({
       result: [message({ id: "reply-1", text: "Reply text", author: "user-reply" })],
     });
-    const server = register({
-      users: { myInfo: vi.fn() },
-      channels: {},
-      messages: { fetchMessage, fetchThreadReplies },
-    });
+    const server = register(readClient({ fetchMessage, fetchThreadReplies }));
 
     const payload = jsonContent(await invoke(server, "get_thread_context", {
-      channelId: "channel-1",
+      channel: "#general",
       messageId: "root-1",
     }));
 
@@ -272,26 +258,19 @@ describe("curated read workflow tools", () => {
       rootMessageId: "root-1",
       limit: 10,
     }, undefined);
-    expect(payload).toEqual({
-      root: {
-        id: "root-1",
-        text: "Root text",
-        timestamp: "2026-05-22T10:00:00.000Z",
-        timestampMilli: 1779444000000,
-        actor: { id: "user-root" },
-        target: { channelId: "channel-1" },
+    expect(payload).toMatchObject({
+      ok: true,
+      summary: "Loaded thread root-1 with 1 reply.",
+      ids: {
+        channelId: "channel-1",
+        rootMessageId: "root-1",
+        replyMessageIds: ["reply-1"],
       },
-      replies: [{
-        id: "reply-1",
-        text: "Reply text",
-        timestamp: "2026-05-22T10:00:00.000Z",
-        timestampMilli: 1779444000000,
-        actor: { id: "user-reply" },
-        target: { channelId: "channel-1" },
-      }],
-      participants: ["user-root", "user-reply"],
-      replyCount: 1,
-      page: { replyLimit: 10 },
+      data: {
+        participants: ["user-root", "user-reply"],
+        replyCount: 1,
+        page: { replyLimit: 10 },
+      },
     });
   });
 
@@ -299,17 +278,13 @@ describe("curated read workflow tools", () => {
     const searchMessages = vi.fn();
     const listMessages = vi.fn();
     const fetchThreadReplies = vi.fn();
-    const server = register({
-      users: { myInfo: vi.fn() },
-      channels: {},
-      messages: { searchMessages, listMessages, fetchThreadReplies },
-    });
+    const server = register(readClient({ searchMessages, listMessages, fetchThreadReplies }));
 
     for (const [toolName, args] of [
       ["search_messages", { text: "release", limit: 0 }],
-      ["list_channel_messages", { channelId: "channel-1", limit: 51 }],
-      ["list_thread_replies", { channelId: "channel-1", rootMessageId: "root-1", limit: 1.5 }],
-      ["get_thread_context", { channelId: "channel-1", messageId: "root-1", replyLimit: 51 }],
+      ["list_channels", { limit: 51 }],
+      ["get_channel_context", { channelId: "channel-1", limit: 51 }],
+      ["get_thread_context", { channelId: "channel-1", messageId: "root-1", replyLimit: 1.5 }],
     ] as const) {
       const tool = server.tools.get(toolName);
       expect(tool, toolName).toBeDefined();

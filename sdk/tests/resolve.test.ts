@@ -72,6 +72,13 @@ const client = {
 };
 
 describe("resolveUser", () => {
+  it("resolves an exact user id before human-name matching", async () => {
+    await expect(resolveUser(client, "u2")).resolves.toEqual({
+      ok: true,
+      value: users[1],
+    });
+  });
+
   it("resolves an exact user email", async () => {
     await expect(resolveUser(client, "ALICE@example.com")).resolves.toEqual({
       ok: true,
@@ -107,6 +114,13 @@ describe("resolveUser", () => {
 });
 
 describe("resolveChannel", () => {
+  it("resolves an exact channel id before human-name matching", async () => {
+    await expect(resolveChannel(client, "c2")).resolves.toEqual({
+      ok: true,
+      value: channels[1].channel,
+    });
+  });
+
   it("resolves an exact channel name with a leading #", async () => {
     await expect(resolveChannel(client, " #general ")).resolves.toEqual({
       ok: true,

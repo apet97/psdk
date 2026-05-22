@@ -31,9 +31,17 @@ Options:
   -h, --help              Show this help.
 
 Curated tools:
-  get_current_user
-  resolve_user
-  resolve_channel
+  whoami
+  find_channel
+  find_user
+  list_channels
+  search_messages
+  get_channel_context
+  get_thread_context
+  send_message_preview
+  send_message_confirmed
+  reply_to_thread_preview
+  reply_to_thread_confirmed
 `);
 }
 

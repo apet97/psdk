@@ -1,12 +1,12 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
-  CallToolResult,
   ServerNotification,
   ServerRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as z from "zod/v3";
 import { resolveChannel, resolveUser } from "../../extensions/index.js";
+import { jsonTool, okPayload, resolveFailurePayload } from "./payloads.js";
 import { registerCuratedReadTools } from "./read-tools.js";
 import type { CuratedClient } from "./types.js";
 import {
@@ -16,13 +16,12 @@ import {
 } from "./write-tools.js";
 
 export const CURATED_TOOL_NAMES = [
-  "get_current_user",
-  "resolve_user",
-  "resolve_channel",
+  "whoami",
+  "find_channel",
+  "find_user",
+  "list_channels",
   "search_messages",
-  "get_message",
-  "list_channel_messages",
-  "list_thread_replies",
+  "get_channel_context",
   "get_thread_context",
   ...CURATED_WRITE_TOOL_NAMES,
 ] as const;
@@ -31,28 +30,17 @@ export type CuratedToolOptions = CuratedWriteToolOptions;
 
 type ToolExtra = RequestHandlerExtra<ServerRequest, ServerNotification>;
 
-function jsonResult(value: unknown): CallToolResult {
-  return {
-    content: [{ type: "text", text: JSON.stringify(value) }],
-  };
-}
+type ResolvePayloadResult =
+  | Awaited<ReturnType<typeof resolveChannel>>
+  | Awaited<ReturnType<typeof resolveUser>>;
 
-function errorResult(error: unknown): CallToolResult {
-  const message = error instanceof Error ? error.message : String(error);
-  return {
-    content: [{ type: "text", text: message }],
-    isError: true,
-  };
-}
-
-async function jsonTool(
-  run: () => Promise<unknown>,
-): Promise<CallToolResult> {
-  try {
-    return jsonResult(await run());
-  } catch (error) {
-    return errorResult(error);
+function resolvePayload(kind: "channel" | "user", query: string, result: ResolvePayloadResult) {
+  if (result.ok) {
+    const value = result.value;
+    const label = "email" in value ? value.email : `#${value.name}`;
+    return okPayload(`Found ${kind} ${label}.`, value, { [`${kind}Id`]: value.id });
   }
+  return resolveFailurePayload(kind === "channel" ? "Channel" : "User", query, result);
 }
 
 export function registerCuratedTools(
@@ -61,28 +49,37 @@ export function registerCuratedTools(
   options: CuratedToolOptions = {},
 ): void {
   server.tool(
-    "get_current_user",
+    "whoami",
     "Get the authenticated Pumble user for the configured API key.",
     async (ctx: ToolExtra) =>
-      jsonTool(() => client.users.myInfo({ signal: ctx.signal })),
+      jsonTool(async () => {
+        const user = await client.users.myInfo({ signal: ctx.signal });
+        return okPayload(`Authenticated as ${user.name} <${user.email}>.`, user, {
+          userId: user.id,
+        });
+      }),
   );
 
   server.tool(
-    "resolve_user",
-    "Resolve a user by exact email, exact name, or partial name.",
-    {
-      query: z.string().min(1).describe("User email, name, or partial name."),
-    },
-    async ({ query }) => jsonTool(() => resolveUser(client, query)),
-  );
-
-  server.tool(
-    "resolve_channel",
-    "Resolve a channel by exact name or partial name. A leading # is accepted.",
+    "find_channel",
+    "Resolve a channel by exact id, exact name, or partial name. A leading # is accepted.",
     {
       query: z.string().min(1).describe("Channel name, with or without #."),
     },
-    async ({ query }) => jsonTool(() => resolveChannel(client, query)),
+    async ({ query }) => jsonTool(async () =>
+      resolvePayload("channel", query, await resolveChannel(client, query))
+    ),
+  );
+
+  server.tool(
+    "find_user",
+    "Resolve a user by exact id, email, exact name, or partial name.",
+    {
+      query: z.string().min(1).describe("User email, name, or partial name."),
+    },
+    async ({ query }) => jsonTool(async () =>
+      resolvePayload("user", query, await resolveUser(client, query))
+    ),
   );
 
   registerCuratedReadTools(server, client);

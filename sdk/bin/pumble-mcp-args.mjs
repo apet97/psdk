@@ -32,20 +32,17 @@ export const READWRITE_TOOLS = [
 ];
 
 export const CURATED_TOOLS = [
-  "get_current_user",
-  "resolve_user",
-  "resolve_channel",
+  "whoami",
+  "find_channel",
+  "find_user",
+  "list_channels",
   "search_messages",
-  "get_message",
-  "list_channel_messages",
-  "list_thread_replies",
+  "get_channel_context",
   "get_thread_context",
-  "preview_send_message",
+  "send_message_preview",
   "send_message_confirmed",
-  "preview_reply_to_thread",
+  "reply_to_thread_preview",
   "reply_to_thread_confirmed",
-  "add_reaction",
-  "remove_reaction",
 ];
 
 export class WrapperUsageError extends Error {

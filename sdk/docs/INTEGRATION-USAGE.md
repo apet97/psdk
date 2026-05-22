@@ -19,8 +19,12 @@ for application and MCP workflows.
 - Use `client.raw` or `PumbleSDK` when you need a generated method not yet
   wrapped by the facade.
 - Resolve before act: call `resolveChannel`, `resolveUser`, or the facade
-  `client.channels.resolve` / `client.users.resolve` before writes based on
-  human input.
+  `client.channels.find` / `client.users.find` before writes based on human
+  input.
+- Prefer facade writes such as `client.messages.send({ channel, text })`,
+  `client.messages.dm({ user, text })`, and
+  `client.threads.reply({ channel, messageId, text })`; they resolve names and
+  emails before calling generated write endpoints.
 - Treat ambiguous and not-found resolve results as stop conditions until a
   user or policy selects the exact target ID.
 
@@ -32,19 +36,16 @@ for application and MCP workflows.
   configuration.
 - `--profile readwrite` exposes the raw generated tool surface and should be
   used only when that broad surface is intentional.
+- Curated normal results use `{ ok, summary, ids, data, nextActions }`.
 
 ## Curated Write Safety
 
 - Curated message writes require preview and confirmation.
-- For channel messages, call `preview_send_message`, show the returned
+- For channel messages, call `send_message_preview`, show the returned
   `{ request, preview, confirmationToken }`, then call
   `send_message_confirmed` only with the unchanged payload after approval.
-- For thread replies, use `preview_reply_to_thread` followed by
+- For thread replies, use `reply_to_thread_preview` followed by
   `reply_to_thread_confirmed` in the same way.
-- `add_reaction` and `remove_reaction` are the only direct curated write
-  exceptions. They are low-risk exact-ID operations and require
-  `channelId`, `messageId`, and `reaction`; they do not accept channel names,
-  user names, message text, or destructive edit/delete requests.
 - The confirmation token is process-local integrity data. It is not a Pumble
   credential or server-side approval record.
 - Do not put API keys, access tokens, webhook signing secrets, or private

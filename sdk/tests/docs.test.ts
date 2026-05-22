@@ -170,17 +170,17 @@ describe("docs", () => {
 
   test("integration usage states MCP write contracts without unsupported modes", () => {
     for (const phrase of requiredIntegrationUsagePhrases) {
-      expect(integrationUsage).toContain(phrase);
-    }
-    expect(integrationUsage).toContain("pumble-mcp start` defaults to the curated profile");
-    expect(integrationUsage).toContain("preview_reply_to_thread");
-    expect(integrationUsage).toContain("reply_to_thread_confirmed");
-    expect(integrationUsage).toContain("only direct curated write");
-    expect(integrationUsage).toContain("low-risk exact-ID operations");
-    expect(quickstart).toContain("The only direct write exceptions in the curated profile");
-    expect(integrationUsage).not.toMatch(/\bOAuth\b/i);
-    expect(integrationUsage).not.toMatch(/\bsocket mode\b/i);
-  });
+    expect(integrationUsage).toContain(phrase);
+  }
+  expect(integrationUsage).toContain("pumble-mcp start` defaults to the curated profile");
+  expect(integrationUsage).toContain("send_message_preview");
+  expect(integrationUsage).toContain("reply_to_thread_preview");
+  expect(integrationUsage).toContain("reply_to_thread_confirmed");
+  expect(integrationUsage).toContain("{ ok, summary, ids, data, nextActions }");
+  expect(quickstart).toContain("Curated read tools return clean envelopes");
+  expect(integrationUsage).not.toMatch(/\bOAuth\b/i);
+  expect(integrationUsage).not.toMatch(/\bsocket mode\b/i);
+});
 
   test("package split policy documents extraction gates without promising a split", () => {
     expect(readme).toContain("docs/PACKAGE-SPLIT.md");

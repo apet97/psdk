@@ -24,8 +24,18 @@ Build the parent SDK once, then run an example:
 
 ```bash
 npm run build
-npx tsx list-channels.ts
+npx tsx send-channel-by-name.ts
 ```
+
+## Facade Examples
+
+These examples use `createPumbleClient`, which resolves names and emails to exact
+IDs before writes:
+
+- `send-channel-by-name.ts` sends to `PUMBLE_CHANNEL` such as `#general`.
+- `dm-by-email.ts` sends a DM to `PUMBLE_USER_EMAIL`.
+- `search-and-reply.ts` searches recent messages and replies to the first hit.
+- `webhook-server.ts` runs an Express webhook receiver.
 
 ## Testing Fixtures Example
 
@@ -57,9 +67,10 @@ without live credentials.
 
 ## Curated MCP Preview
 
-`curated-mcp-preview.md` shows the safe MCP write flow:
-`preview_reply_to_thread` before `reply_to_thread_confirmed`, and
-`preview_send_message` before `send_message_confirmed`.
+`mcp-readonly.md` shows the read-only curated tool flow. `mcp-curated-write.md`
+shows the safe write flow: `reply_to_thread_preview` before
+`reply_to_thread_confirmed`, and `send_message_preview` before
+`send_message_confirmed`.
 
 Examples are intentionally excluded from the published npm tarball; they are
 repo-local recipes, not package runtime files.

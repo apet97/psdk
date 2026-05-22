@@ -56,7 +56,7 @@ async function invoke(
   return tool.handler(parseArgs(tool, args), {});
 }
 
-function jsonContent<T = Record<string, unknown>>(result: CallToolResult): T {
+function jsonContent<T = Record<string, any>>(result: CallToolResult): T {
   expect(result.isError).toBeUndefined();
   expect(result.content).toHaveLength(1);
   const [content] = result.content;
@@ -75,40 +75,42 @@ function errorText(result: CallToolResult): string {
 function writeClient() {
   return {
     users: { myInfo: vi.fn() },
-    channels: {},
+    channels: {
+      listChannels: vi.fn().mockResolvedValue([
+        {
+          channel: {
+            id: "channel-1",
+            name: "ops",
+            channelType: "PUBLIC",
+            workspaceId: "workspace-1",
+          },
+          pinnedMessages: [],
+          users: [],
+        },
+      ]),
+    },
     messages: {
       sendMessage: vi.fn().mockResolvedValue({ id: "sent-1", channelId: "channel-1" }),
       sendReply: vi.fn().mockResolvedValue({ id: "reply-1", channelId: "channel-1" }),
-      addReaction: vi.fn().mockResolvedValue({ status: "ok" }),
-      removeReaction: vi.fn().mockResolvedValue({ status: "ok" }),
     },
   };
 }
 
 describe("curated write workflow tools", () => {
-  it("registers confirmed write and exact reaction tools without unconfirmed or destructive writes", () => {
+  it("registers only preview/confirmed writes on the curated profile", () => {
     const server = register(writeClient());
 
     expect(CURATED_TOOL_NAMES).toEqual(expect.arrayContaining([
-      "preview_send_message",
+      "send_message_preview",
       "send_message_confirmed",
-      "preview_reply_to_thread",
+      "reply_to_thread_preview",
       "reply_to_thread_confirmed",
-      "add_reaction",
-      "remove_reaction",
     ]));
-    expect([...server.tools.keys()]).toEqual(expect.arrayContaining([
-      "preview_send_message",
-      "send_message_confirmed",
-      "preview_reply_to_thread",
-      "reply_to_thread_confirmed",
-      "add_reaction",
-      "remove_reaction",
-    ]));
+    expect([...server.tools.keys()]).toEqual(CURATED_TOOL_NAMES);
     expect(server.tools.has("send_message")).toBe(false);
     expect(server.tools.has("reply_to_thread")).toBe(false);
     expect(server.tools.has("delete_message")).toBe(false);
-    expect(server.tools.has("edit_message")).toBe(false);
+    expect(server.tools.has("add_reaction")).toBe(false);
   });
 
   it("rejects send without the preview payload and confirmation token before SDK calls", () => {
@@ -123,31 +125,65 @@ describe("curated write workflow tools", () => {
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
   });
 
-  it("previews a send target and risk without calling the SDK", async () => {
+  it("requires resolved channel IDs in confirmed write schemas", () => {
+    const server = register(writeClient());
+    const sendTool = server.tools.get("send_message_confirmed");
+    const replyTool = server.tools.get("reply_to_thread_confirmed");
+    const preview = {
+      actionType: "send_message",
+      targetKind: "channel",
+      targetId: "channel-1",
+      textExcerpt: "ship it",
+      riskLevel: "medium",
+    };
+
+    expect(() => parseArgs(sendTool as CapturedTool, {
+      request: { channel: "#ops", text: "ship it" },
+      preview,
+      confirmationToken: "token",
+    })).toThrow();
+    expect(() => parseArgs(replyTool as CapturedTool, {
+      request: { channel: "#ops", messageId: "root-1", text: "ship it" },
+      preview: {
+        ...preview,
+        actionType: "reply_to_thread",
+        targetKind: "thread",
+        targetId: "channel-1/root-1",
+      },
+      confirmationToken: "token",
+    })).toThrow();
+  });
+
+  it("previews a send target by resolving channel names without calling the write SDK", async () => {
     const client = writeClient();
     const server = register(client);
 
-    const payload = jsonContent(await invoke(server, "preview_send_message", {
-      channelId: "channel-1",
+    const payload = jsonContent(await invoke(server, "send_message_preview", {
       channel: "#ops",
       text: "Ship this after approval.",
     }));
 
-    expect(payload).toEqual({
-      request: {
-        channelId: "channel-1",
-        channel: "#ops",
-        text: "Ship this after approval.",
+    expect(payload).toMatchObject({
+      ok: true,
+      summary: "Preview ready to send a message to ops.",
+      ids: { channelId: "channel-1" },
+      data: {
+        request: {
+          channelId: "channel-1",
+          channel: "ops",
+          text: "Ship this after approval.",
+        },
+        preview: {
+          actionType: "send_message",
+          targetKind: "channel",
+          targetId: "channel-1",
+          targetName: "ops",
+          textExcerpt: "Ship this after approval.",
+          riskLevel: "medium",
+        },
+        confirmationToken: expect.stringMatching(/^pumble-write-plan-v1\./),
       },
-      preview: {
-        actionType: "send_message",
-        targetKind: "channel",
-        targetId: "channel-1",
-        targetName: "#ops",
-        textExcerpt: "Ship this after approval.",
-        riskLevel: "medium",
-      },
-      confirmationToken: expect.stringMatching(/^pumble-write-plan-v1\./),
+      nextActions: ["Call send_message_confirmed with this request, preview, and confirmationToken."],
     });
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
   });
@@ -155,58 +191,42 @@ describe("curated write workflow tools", () => {
   it("rejects a tampered send preview before SDK calls", async () => {
     const client = writeClient();
     const server = register(client);
-    const payload = jsonContent(await invoke(server, "preview_send_message", {
+    const payload = jsonContent(await invoke(server, "send_message_preview", {
       channelId: "channel-1",
       text: "Ship this after approval.",
     }));
 
     const result = await invoke(server, "send_message_confirmed", {
-      request: payload.request,
+      ...(payload.data as Record<string, unknown>),
       preview: {
-        ...(payload.preview as Record<string, unknown>),
+        ...((payload.data as any).preview as Record<string, unknown>),
         targetId: "channel-2",
       },
-      confirmationToken: payload.confirmationToken,
     });
 
     expect(errorText(result)).toMatch(/confirmation/i);
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
   });
 
-  it("rejects a tampered send token before SDK calls", async () => {
+  it("confirmed send calls the generated SDK once with the resolved request", async () => {
     const client = writeClient();
     const server = register(client);
-    const payload = jsonContent(await invoke(server, "preview_send_message", {
-      channelId: "channel-1",
-      text: "Ship this after approval.",
-    }));
-
-    const result = await invoke(server, "send_message_confirmed", {
-      request: payload.request,
-      preview: payload.preview,
-      confirmationToken: "pumble-write-plan-v1.not-the-right-digest",
-    });
-
-    expect(errorText(result)).toMatch(/confirmation/i);
-    expect(client.messages.sendMessage).not.toHaveBeenCalled();
-  });
-
-  it("confirmed send calls the generated SDK once with the exact request", async () => {
-    const client = writeClient();
-    const server = register(client);
-    const payload = jsonContent(await invoke(server, "preview_send_message", {
-      channelId: "channel-1",
+    const payload = jsonContent(await invoke(server, "send_message_preview", {
+      channel: "#ops",
       text: "Ship this after approval.",
       asBot: true,
     }));
 
-    expect(jsonContent(await invoke(server, "send_message_confirmed", payload))).toEqual({
-      id: "sent-1",
-      channelId: "channel-1",
+    expect(jsonContent(await invoke(server, "send_message_confirmed", payload.data))).toMatchObject({
+      ok: true,
+      summary: "Sent message sent-1.",
+      ids: { channelId: "channel-1", messageId: "sent-1" },
+      data: { id: "sent-1", channelId: "channel-1" },
     });
     expect(client.messages.sendMessage).toHaveBeenCalledTimes(1);
     expect(client.messages.sendMessage).toHaveBeenCalledWith({
       channelId: "channel-1",
+      channel: "ops",
       text: "Ship this after approval.",
       asBot: true,
     }, undefined);
@@ -215,79 +235,53 @@ describe("curated write workflow tools", () => {
   it("confirmed thread reply verifies the preview before calling the generated SDK", async () => {
     const client = writeClient();
     const server = register(client);
-    const payload = jsonContent(await invoke(server, "preview_reply_to_thread", {
-      channelId: "channel-1",
+    const payload = jsonContent(await invoke(server, "reply_to_thread_preview", {
+      channel: "#ops",
       messageId: "root-1",
       text: "Reply after approval.",
       alsoSendToChannel: true,
     }));
 
     expect(payload).toMatchObject({
-      request: {
-        channelId: "channel-1",
-        messageId: "root-1",
-        text: "Reply after approval.",
-        alsoSendToChannel: true,
+      ok: true,
+      ids: { channelId: "channel-1", rootMessageId: "root-1" },
+      data: {
+        request: {
+          channelId: "channel-1",
+          channel: "ops",
+          messageId: "root-1",
+          text: "Reply after approval.",
+          alsoSendToChannel: true,
+        },
+        preview: {
+          actionType: "reply_to_thread",
+          targetKind: "thread",
+          targetId: "channel-1/root-1",
+          targetName: "ops",
+          textExcerpt: "Reply after approval.",
+          riskLevel: "medium",
+        },
+        confirmationToken: expect.stringMatching(/^pumble-write-plan-v1\./),
       },
-      preview: {
-        actionType: "reply_to_thread",
-        targetKind: "thread",
-        targetId: "channel-1/root-1",
-        textExcerpt: "Reply after approval.",
-        riskLevel: "medium",
-      },
-      confirmationToken: expect.stringMatching(/^pumble-write-plan-v1\./),
     });
 
-    expect(jsonContent(await invoke(server, "reply_to_thread_confirmed", payload))).toEqual({
-      id: "reply-1",
-      channelId: "channel-1",
+    expect(jsonContent(await invoke(server, "reply_to_thread_confirmed", payload.data))).toMatchObject({
+      ok: true,
+      summary: "Sent reply reply-1.",
+      ids: {
+        channelId: "channel-1",
+        messageId: "reply-1",
+        rootMessageId: "root-1",
+      },
+      data: { id: "reply-1", channelId: "channel-1" },
     });
     expect(client.messages.sendReply).toHaveBeenCalledTimes(1);
     expect(client.messages.sendReply).toHaveBeenCalledWith({
       channelId: "channel-1",
+      channel: "ops",
       messageId: "root-1",
       text: "Reply after approval.",
       alsoSendToChannel: true,
-    }, undefined);
-  });
-
-  it("reaction tools require exact channel, message, and reaction identifiers", async () => {
-    const client = writeClient();
-    const server = register(client);
-    const addReaction = server.tools.get("add_reaction");
-    const removeReaction = server.tools.get("remove_reaction");
-
-    expect(addReaction).toBeDefined();
-    expect(removeReaction).toBeDefined();
-    expect(() => parseArgs(addReaction as CapturedTool, {
-      messageId: "message-1",
-      reaction: ":eyes:",
-    })).toThrow();
-    expect(() => parseArgs(removeReaction as CapturedTool, {
-      channelId: "channel-1",
-      reaction: ":eyes:",
-    })).toThrow();
-
-    expect(jsonContent(await invoke(server, "add_reaction", {
-      channelId: "channel-1",
-      messageId: "message-1",
-      reaction: ":eyes:",
-    }))).toEqual({ status: "ok" });
-    expect(jsonContent(await invoke(server, "remove_reaction", {
-      channelId: "channel-1",
-      messageId: "message-1",
-      reaction: ":eyes:",
-    }))).toEqual({ status: "ok" });
-    expect(client.messages.addReaction).toHaveBeenCalledWith({
-      channelId: "channel-1",
-      messageId: "message-1",
-      reaction: ":eyes:",
-    }, undefined);
-    expect(client.messages.removeReaction).toHaveBeenCalledWith({
-      channelId: "channel-1",
-      messageId: "message-1",
-      reaction: ":eyes:",
     }, undefined);
   });
 });

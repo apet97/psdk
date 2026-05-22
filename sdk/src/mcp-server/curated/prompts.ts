@@ -72,7 +72,7 @@ export function registerCuratedPrompts(server: McpServer): void {
         `Read ${threadUri(args.channelId, args.messageId)} before drafting.`,
         `Draft a thread reply that satisfies this goal: ${goal}.`,
         "Do not send the reply yourself.",
-        "If the user chooses to send, call preview_reply_to_thread first, show the preview and confirmation token, and only after explicit user confirmation call reply_to_thread_confirmed with the unchanged request, preview, and token.",
+        "If the user chooses to send, call reply_to_thread_preview first, show the preview and confirmation token, and only after explicit user confirmation call reply_to_thread_confirmed with the unchanged request, preview, and token.",
       ].join("\n"));
     },
   );

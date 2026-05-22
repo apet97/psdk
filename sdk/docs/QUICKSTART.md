@@ -49,23 +49,19 @@ The facade groups common operations under `identity`, `channels`, `users`,
 Resolve names and emails before writes so the write call uses exact IDs:
 
 ```typescript
-import {
-  createPumbleClient,
-  findChannelByName,
-  findUserByEmail,
-} from "pumble-sdk/extensions/index.js";
+const channel = await pumble.channels.find("#general");
+if (!channel.ok) {
+  console.log(channel.summary, channel.choices);
+  process.exit(1);
+}
 
-const pumble = createPumbleClient({
-  apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
-});
+const reviewer = await pumble.users.find("ada@example.com");
+if (!reviewer.ok) {
+  console.log(reviewer.summary, reviewer.choices);
+  process.exit(1);
+}
 
-const channel = await findChannelByName(pumble.raw, "general");
-if (!channel) throw new Error("Could not find #general");
-
-const reviewer = await findUserByEmail(pumble.raw, "ada@example.com");
-if (!reviewer) throw new Error("Could not find ada@example.com");
-
-console.log(channel.id, reviewer.id);
+console.log(channel.channel.id, reviewer.user.id);
 ```
 
 Pumble does not provide server-side channel-name or user-email search for
@@ -75,11 +71,16 @@ these calls; the helpers list once and match client-side.
 
 ```typescript
 const sent = await pumble.messages.send({
-  channelId: channel.id,
+  channel: "#general",
   text: "Hello from pumble-sdk.",
 });
 
-console.log("message id:", sent.id);
+if (!sent.ok) {
+  console.log(sent.summary, sent.choices);
+  process.exit(1);
+}
+
+console.log("message id:", sent.ids.messageId);
 ```
 
 Keep the returned message ID if you need to fetch, reply, or audit the
@@ -88,15 +89,15 @@ message later.
 ## Reply To Thread
 
 ```typescript
-await pumble.threads.replyToThread({
-  channelId: channel.id,
-  messageId: sent.id,
+const reply = await pumble.threads.reply({
+  channel: "#general",
+  messageId: sent.ids.messageId,
   text: "Thread reply from pumble-sdk.",
 });
 
 const thread = await pumble.threads.getContext({
-  channelId: channel.id,
-  messageId: sent.id,
+  channelId: sent.ids.channelId,
+  messageId: sent.ids.messageId,
   replyLimit: 10,
 });
 
@@ -188,17 +189,16 @@ npx -y --package pumble-sdk -- pumble-mcp start \
 
 Curated message writes are two-step:
 
-* `preview_send_message` -> `send_message_confirmed`
-* `preview_reply_to_thread` -> `reply_to_thread_confirmed`
-
-The only direct write exceptions in the curated profile are `add_reaction` and
-`remove_reaction`. They require exact `channelId`, `messageId`, and `reaction`
-values and are treated as low-risk reaction-only operations.
+* `send_message_preview` -> `send_message_confirmed`
+* `reply_to_thread_preview` -> `reply_to_thread_confirmed`
 
 Preview tools do not call Pumble. They return `{ request, preview,
 confirmationToken }`. Pass that payload to the confirmed tool to perform the
 SDK write. The token is process-local integrity data for the pending preview;
 it is not a Pumble credential or a server-side approval record.
+
+Curated read tools return clean envelopes with `{ ok, summary, ids, data,
+nextActions }`.
 
 Use `--profile readwrite` only when you intentionally want the raw generated
 write surface.

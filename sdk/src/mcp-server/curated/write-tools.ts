@@ -2,11 +2,11 @@ import { randomBytes } from "node:crypto";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
-  CallToolResult,
   ServerNotification,
   ServerRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as z from "zod/v3";
+import { resolveChannel } from "../../extensions/index.js";
 import {
   createConfirmationToken,
   createWritePreview,
@@ -16,19 +16,20 @@ import {
   type WritePreview,
 } from "../../extensions/write-plan.js";
 import type { RequestOptions } from "../../lib/sdks.js";
-import type {
-  AddReactionRequest,
-  RemoveReactionRequest,
-} from "../../models/operations/index.js";
+import {
+  isFailurePayload,
+  jsonTool,
+  okPayload,
+  resolveFailurePayload,
+  type CuratedFailurePayload,
+} from "./payloads.js";
 import type { CuratedClient } from "./types.js";
 
 export const CURATED_WRITE_TOOL_NAMES = [
-  "preview_send_message",
+  "send_message_preview",
   "send_message_confirmed",
-  "preview_reply_to_thread",
+  "reply_to_thread_preview",
   "reply_to_thread_confirmed",
-  "add_reaction",
-  "remove_reaction",
 ] as const;
 
 export interface CuratedWriteToolOptions {
@@ -51,14 +52,14 @@ const writePreviewSchema = z.object({
 }).strict();
 
 const sendMessageRequestSchema = z.object({
-  channelId: nonBlank,
+  channelId: nonBlank.optional(),
   channel: nonBlank.optional(),
   text: nonBlank,
   asBot: z.boolean().optional(),
 }).strict();
 
 const sendReplyRequestSchema = z.object({
-  channelId: nonBlank,
+  channelId: nonBlank.optional(),
   channel: nonBlank.optional(),
   messageId: nonBlank,
   text: nonBlank,
@@ -66,68 +67,55 @@ const sendReplyRequestSchema = z.object({
   asBot: z.boolean().optional(),
 }).strict();
 
-const addReactionRequestSchema = z.object({
+const confirmedSendMessageRequestSchema = sendMessageRequestSchema.extend({
   channelId: nonBlank,
-  messageId: nonBlank,
-  reaction: nonBlank,
 }).strict();
 
-const removeReactionRequestSchema = z.object({
+const confirmedSendReplyRequestSchema = sendReplyRequestSchema.extend({
   channelId: nonBlank,
-  messageId: nonBlank,
-  reaction: nonBlank,
 }).strict();
 
 const previewSendMessageSchema = sendMessageRequestSchema.shape satisfies z.ZodRawShape;
 const previewReplyToThreadSchema = sendReplyRequestSchema.shape satisfies z.ZodRawShape;
 const sendMessageConfirmedSchema = {
-  request: sendMessageRequestSchema,
+  request: confirmedSendMessageRequestSchema,
   preview: writePreviewSchema,
   confirmationToken: nonBlank,
 } satisfies z.ZodRawShape;
 const replyToThreadConfirmedSchema = {
-  request: sendReplyRequestSchema,
+  request: confirmedSendReplyRequestSchema,
   preview: writePreviewSchema,
   confirmationToken: nonBlank,
 } satisfies z.ZodRawShape;
-const addReactionSchema = addReactionRequestSchema.shape satisfies z.ZodRawShape;
-const removeReactionSchema = removeReactionRequestSchema.shape satisfies z.ZodRawShape;
 
 type PreviewSendMessageArgs = z.infer<typeof sendMessageRequestSchema>;
 type PreviewReplyToThreadArgs = z.infer<typeof sendReplyRequestSchema>;
 type ParsedWritePreview = z.infer<typeof writePreviewSchema>;
 type SendMessageConfirmedArgs = z.infer<z.ZodObject<typeof sendMessageConfirmedSchema>>;
 type ReplyToThreadConfirmedArgs = z.infer<z.ZodObject<typeof replyToThreadConfirmedSchema>>;
-type AddReactionArgs = z.infer<typeof addReactionRequestSchema>;
-type RemoveReactionArgs = z.infer<typeof removeReactionRequestSchema>;
-
-function jsonResult(value: unknown): CallToolResult {
-  return {
-    content: [{ type: "text", text: JSON.stringify(value) }],
-  };
-}
-
-function errorResult(error: unknown): CallToolResult {
-  const message = error instanceof Error ? error.message : String(error);
-  return {
-    content: [{ type: "text", text: message }],
-    isError: true,
-  };
-}
-
-async function jsonTool(run: () => Promise<unknown>): Promise<CallToolResult> {
-  try {
-    return jsonResult(await run());
-  } catch (error) {
-    return errorResult(error);
-  }
-}
 
 function requestOptions(ctx: ToolExtra): RequestOptions | undefined {
   return ctx.signal === undefined ? undefined : { signal: ctx.signal };
 }
 
-function sendMessagePreview(request: PreviewSendMessageArgs): WritePreview {
+async function resolveWriteChannel<T extends { channelId?: string | undefined; channel?: string | undefined }>(
+  client: CuratedClient,
+  toolName: string,
+  args: T,
+): Promise<
+  | (T & { channelId: string; channel?: string | undefined })
+  | CuratedFailurePayload
+> {
+  if (args.channelId !== undefined) return args as T & { channelId: string };
+  if (args.channel === undefined) {
+    throw new Error(`${toolName}: channelId or channel is required`);
+  }
+  const result = await resolveChannel(client, args.channel);
+  if (!result.ok) return resolveFailurePayload("Channel", args.channel, result);
+  return { ...args, channelId: result.value.id, channel: result.value.name };
+}
+
+function sendMessagePreview(request: PreviewSendMessageArgs & { channelId: string }): WritePreview {
   const action: WriteAction = {
     type: "send_message",
     targetKind: "channel",
@@ -139,7 +127,7 @@ function sendMessagePreview(request: PreviewSendMessageArgs): WritePreview {
   return createWritePreview(action);
 }
 
-function replyToThreadPreview(request: PreviewReplyToThreadArgs): WritePreview {
+function replyToThreadPreview(request: PreviewReplyToThreadArgs & { channelId: string }): WritePreview {
   const action: WriteAction = {
     type: "reply_to_thread",
     targetKind: "thread",
@@ -208,13 +196,20 @@ export function registerCuratedWriteTools(
   const confirmationSecret = options.confirmationSecret ?? defaultConfirmationSecret;
 
   server.tool(
-    "preview_send_message",
+    "send_message_preview",
     "Preview a channel message and return a local confirmation token.",
     previewSendMessageSchema,
     async (args: PreviewSendMessageArgs) =>
       jsonTool(async () => {
-        const request = args;
-        return previewPayload(request, sendMessagePreview(request), confirmationSecret);
+        const request = await resolveWriteChannel(client, "send_message_preview", args);
+        if (isFailurePayload(request)) return request;
+        const preview = sendMessagePreview(request);
+        return okPayload(
+          `Preview ready to send a message to ${request.channel ?? request.channelId}.`,
+          previewPayload(request, preview, confirmationSecret),
+          { channelId: request.channelId },
+          ["Call send_message_confirmed with this request, preview, and confirmationToken."],
+        );
       }),
   );
 
@@ -232,18 +227,29 @@ export function registerCuratedWriteTools(
           sendMessagePreview(request),
           confirmationSecret,
         );
-        return client.messages.sendMessage(request, requestOptions(ctx));
+        const message = await client.messages.sendMessage(request, requestOptions(ctx));
+        return okPayload(`Sent message ${message.id}.`, message, {
+          channelId: message.channelId,
+          messageId: message.id,
+        });
       }),
   );
 
   server.tool(
-    "preview_reply_to_thread",
+    "reply_to_thread_preview",
     "Preview a thread reply and return a local confirmation token.",
     previewReplyToThreadSchema,
     async (args: PreviewReplyToThreadArgs) =>
       jsonTool(async () => {
-        const request = args;
-        return previewPayload(request, replyToThreadPreview(request), confirmationSecret);
+        const request = await resolveWriteChannel(client, "reply_to_thread_preview", args);
+        if (isFailurePayload(request)) return request;
+        const preview = replyToThreadPreview(request);
+        return okPayload(
+          `Preview ready to reply to thread ${request.messageId}.`,
+          previewPayload(request, preview, confirmationSecret),
+          { channelId: request.channelId, rootMessageId: request.messageId },
+          ["Call reply_to_thread_confirmed with this request, preview, and confirmationToken."],
+        );
       }),
   );
 
@@ -261,29 +267,12 @@ export function registerCuratedWriteTools(
           replyToThreadPreview(request),
           confirmationSecret,
         );
-        return client.messages.sendReply(request, requestOptions(ctx));
-      }),
-  );
-
-  server.tool(
-    "add_reaction",
-    "Add a reaction using exact channel, message, and reaction identifiers.",
-    addReactionSchema,
-    async (args: AddReactionArgs, ctx: ToolExtra) =>
-      jsonTool(async () => {
-        const request: AddReactionRequest = args;
-        return client.messages.addReaction(request, requestOptions(ctx));
-      }),
-  );
-
-  server.tool(
-    "remove_reaction",
-    "Remove a reaction using exact channel, message, and reaction identifiers.",
-    removeReactionSchema,
-    async (args: RemoveReactionArgs, ctx: ToolExtra) =>
-      jsonTool(async () => {
-        const request: RemoveReactionRequest = args;
-        return client.messages.removeReaction(request, requestOptions(ctx));
+        const message = await client.messages.sendReply(request, requestOptions(ctx));
+        return okPayload(`Sent reply ${message.id}.`, message, {
+          channelId: message.channelId,
+          messageId: message.id,
+          rootMessageId: request.messageId,
+        });
       }),
   );
 }

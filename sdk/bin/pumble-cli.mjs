@@ -6,7 +6,7 @@
 
 import { parseArgs } from "node:util";
 import { PumbleSDK } from "../esm/index.js";
-import { findChannelByName, findUserByEmail } from "../esm/extensions/find.js";
+import { resolveChannel, resolveUser } from "../esm/extensions/resolve.js";
 
 const ID_RE = /^[a-f0-9]{24}$/i;
 const DEFAULT_BASE_URL = "https://pumble-api-keys.addons.marketplace.cake.com";
@@ -40,6 +40,8 @@ async function main(argv) {
       return cmdWhoami(sdk, rest);
     case "channels":
       return cmdChannels(sdk, rest, globals);
+    case "users":
+      return cmdUsers(sdk, rest);
     case "send":
       return cmdSend(sdk, rest, globals);
     case "dm":
@@ -48,6 +50,8 @@ async function main(argv) {
       return cmdSearch(sdk, rest);
     case "messages":
       return cmdMessages(sdk, rest);
+    case "thread":
+      return cmdThread(sdk, rest);
     case "status":
       return cmdStatus(sdk, rest, globals);
     case "schedule":
@@ -171,8 +175,44 @@ async function cmdChannels(sdk, args, globals) {
       );
       return;
     }
+    case "find": {
+      const parsed = parseCommandArgs(rest, {
+        json: { type: "boolean", default: false },
+      });
+      const [query, ...extra] = parsed.positionals;
+      if (!query || extra.length > 0) {
+        throw new UsageError("usage: pumble channels find <name-or-id> [--json]");
+      }
+      const result = await resolveChannel(sdk, query);
+      if (!result.ok) throw resolveCliError("channel", query, result);
+      if (parsed.values.json) printJson(result.value);
+      else printLine(formatChannel(result.value));
+      return;
+    }
     default:
-      throw new UsageError("usage: pumble channels list|create ...");
+      throw new UsageError("usage: pumble channels list|find|create ...");
+  }
+}
+
+async function cmdUsers(sdk, args) {
+  const [subcommand, ...rest] = args;
+  switch (subcommand) {
+    case "find": {
+      const parsed = parseCommandArgs(rest, {
+        json: { type: "boolean", default: false },
+      });
+      const [query, ...extra] = parsed.positionals;
+      if (!query || extra.length > 0) {
+        throw new UsageError("usage: pumble users find <email-or-id> [--json]");
+      }
+      const result = await resolveUser(sdk, query);
+      if (!result.ok) throw resolveCliError("user", query, result);
+      if (parsed.values.json) printJson(result.value);
+      else printLine(formatUser(result.value));
+      return;
+    }
+    default:
+      throw new UsageError("usage: pumble users find ...");
   }
 }
 
@@ -239,6 +279,31 @@ async function cmdMessages(sdk, args) {
   const messages = (page.result?.messages ?? []).slice(0, limit);
   if (parsed.values.json) printJson(messages);
   else messages.forEach((message) => printLine(formatMessageLike(message)));
+}
+
+async function cmdThread(sdk, args) {
+  const parsed = parseCommandArgs(args, {
+    channel: { type: "string" },
+    limit: { type: "string", default: "10" },
+    json: { type: "boolean", default: false },
+  });
+  const [messageId, ...extra] = parsed.positionals;
+  if (!messageId || extra.length > 0 || !parsed.values.channel) {
+    throw new UsageError("usage: pumble thread <message-id> --channel <channel> [--limit N] [--json]");
+  }
+  const limit = parsePositiveInt(parsed.values.limit, "--limit");
+  const channelId = await resolveChannelId(sdk, parsed.values.channel);
+  const [root, repliesPage] = await Promise.all([
+    sdk.messages.fetchMessage({ channelId, messageId }),
+    sdk.messages.fetchThreadReplies({ channelId, rootMessageId: messageId, limit }),
+  ]);
+  const replies = (repliesPage.result ?? []).slice(0, limit);
+  const context = { root, replies };
+  if (parsed.values.json) printJson(context);
+  else {
+    printLine(formatMessageLike(root));
+    replies.forEach((reply) => printLine(formatMessageLike(reply)));
+  }
 }
 
 async function cmdStatus(sdk, args, globals) {
@@ -326,16 +391,28 @@ async function cmdSchedule(sdk, args, globals) {
 async function resolveChannelId(sdk, input) {
   const value = input.startsWith("#") ? input.slice(1) : input;
   if (ID_RE.test(value)) return value;
-  const channel = await findChannelByName(sdk, value);
-  if (!channel) throw new CliError(`channel not found: ${input}`);
-  return channel.id;
+  const result = await resolveChannel(sdk, input);
+  if (!result.ok) throw resolveCliError("channel", input, result);
+  return result.value.id;
 }
 
 async function resolveUserId(sdk, input) {
   if (ID_RE.test(input)) return input;
-  const user = await findUserByEmail(sdk, input);
-  if (!user) throw new CliError(`user not found: ${input}`);
-  return user.id;
+  const result = await resolveUser(sdk, input);
+  if (!result.ok) throw resolveCliError("user", input, result);
+  return result.value.id;
+}
+
+function resolveCliError(kind, input, result) {
+  if (result.reason === "ambiguous") {
+    const choices = result.candidates
+      .map((choice) => "email" in choice
+        ? `${choice.name} <${choice.email}> (${choice.id})`
+        : `#${choice.name} (${choice.id})`)
+      .join(", ");
+    return new CliError(`${kind} is ambiguous: ${input}. Choices: ${choices}`);
+  }
+  return new CliError(`${kind} not found: ${input}`);
 }
 
 function parseCommandArgs(args, options) {
@@ -369,6 +446,10 @@ function printLine(line) {
 function formatChannel(channel) {
   const prefix = channel.channelType === "PRIVATE" ? "private" : "public";
   return `#${channel.name}\t${channel.id}\t${channel.channelType ?? prefix}`;
+}
+
+function formatUser(user) {
+  return `${user.name} <${user.email}>\t${user.id}`;
 }
 
 function formatMessageLike(message) {
@@ -432,11 +513,14 @@ pumble — one-shot CLI for the Pumble API-Keys SDK
 Usage:
   pumble [global options] whoami [--json]
   pumble [global options] channels list [--json]
+  pumble [global options] channels find <name-or-id> [--json]
   pumble [global options] channels create <name> [--private] [--json]
+  pumble [global options] users find <email-or-id> [--json]
   pumble [global options] send <channel-id|#name> <text> [--json]
   pumble [global options] dm <user-id|email> <text> [--json]
   pumble [global options] search <query> [--limit N] [--json]
   pumble [global options] messages <channel-id|#name> [--limit N] [--json]
+  pumble [global options] thread <message-id> --channel <channel-id|#name> [--limit N] [--json]
   pumble [global options] status set <emoji> <text> [--expires-at <ms>]
   pumble [global options] status clear
   pumble [global options] schedule list [--channel X] [--limit N] [--json]
@@ -452,6 +536,8 @@ Global options:
 Examples:
   pumble whoami
   pumble channels list --json
+  pumble channels find general
+  pumble users find ada@example.com
   pumble send '#general' "deploy finished"
   pumble search "incident" --limit 5
 `);

@@ -87,6 +87,27 @@ describe("createPumbleClient", () => {
     );
   });
 
+  it("exposes channels.find as the human-friendly channel resolver", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const result = {
+      ok: true,
+      value: { id: "c1", name: "general", channelType: "PUBLIC" },
+    };
+    delegates.resolveChannel.mockResolvedValue(result);
+
+    await expect(client.channels.find("#general")).resolves.toEqual({
+      ok: true,
+      summary: "Found channel #general.",
+      ids: { channelId: "c1" },
+      channel: { id: "c1", name: "general", channelType: "PUBLIC" },
+    });
+    expect(delegates.resolveChannel).toHaveBeenCalledWith(
+      client.raw,
+      "#general",
+      undefined,
+    );
+  });
+
   it("delegates users.resolve through resolveUser", async () => {
     const client = createPumbleClient({ apiKeyAuth: "x" });
     const result = { ok: true, value: { id: "u1", email: "u@example.invalid" } };
@@ -98,5 +119,184 @@ describe("createPumbleClient", () => {
       "u@example.invalid",
       undefined,
     );
+  });
+
+  it("exposes users.find as the human-friendly user resolver", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const result = {
+      ok: true,
+      value: { id: "u1", email: "u@example.invalid", name: "Ada" },
+    };
+    delegates.resolveUser.mockResolvedValue(result);
+
+    await expect(client.users.find("u@example.invalid")).resolves.toEqual({
+      ok: true,
+      summary: "Found user Ada.",
+      ids: { userId: "u1" },
+      user: { id: "u1", email: "u@example.invalid", name: "Ada" },
+    });
+    expect(delegates.resolveUser).toHaveBeenCalledWith(
+      client.raw,
+      "u@example.invalid",
+      undefined,
+    );
+  });
+
+  it("messages.send resolves channel names before writing and returns a structured receipt", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveChannel.mockResolvedValue({
+      ok: true,
+      value: { id: "c1", name: "general", channelType: "PUBLIC" },
+    });
+    const sendMessage = vi.spyOn(client.raw.messages, "sendMessage")
+      .mockResolvedValue({ id: "m1", channelId: "c1" } as any);
+
+    await expect(client.messages.send({
+      channel: "#general",
+      text: "hello from facade",
+    })).resolves.toEqual({
+      ok: true,
+      summary: "Sent message m1 to #general.",
+      ids: { channelId: "c1", messageId: "m1" },
+      channel: { id: "c1", name: "general", channelType: "PUBLIC" },
+      message: { id: "m1", channelId: "c1" },
+    });
+    expect(sendMessage).toHaveBeenCalledWith({
+      channelId: "c1",
+      text: "hello from facade",
+    }, undefined);
+  });
+
+  it("messages.send resolves channel IDs before writing and returns truthful channel metadata", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveChannel.mockResolvedValue({
+      ok: true,
+      value: { id: "c2", name: "ops-private", channelType: "PRIVATE" },
+    });
+    const sendMessage = vi.spyOn(client.raw.messages, "sendMessage")
+      .mockResolvedValue({ id: "m2", channelId: "c2" } as any);
+
+    await expect(client.messages.send({
+      channelId: "c2",
+      text: "private note",
+    })).resolves.toEqual({
+      ok: true,
+      summary: "Sent message m2 to #ops-private.",
+      ids: { channelId: "c2", messageId: "m2" },
+      channel: { id: "c2", name: "ops-private", channelType: "PRIVATE" },
+      message: { id: "m2", channelId: "c2" },
+    });
+    expect(delegates.resolveChannel).toHaveBeenCalledWith(client.raw, "c2", undefined);
+    expect(sendMessage).toHaveBeenCalledWith({
+      channelId: "c2",
+      text: "private note",
+    }, undefined);
+  });
+
+  it("messages.send returns channel choices instead of guessing on ambiguity", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveChannel.mockResolvedValue({
+      ok: false,
+      reason: "ambiguous",
+      candidates: [
+        { id: "c1", name: "general", channelType: "PUBLIC" },
+        { id: "c2", name: "general-team", channelType: "PRIVATE" },
+      ],
+    });
+    const sendMessage = vi.spyOn(client.raw.messages, "sendMessage");
+
+    await expect(client.messages.send({
+      channel: "gen",
+      text: "hello from facade",
+    })).resolves.toEqual({
+      ok: false,
+      reason: "ambiguous",
+      summary: "Channel \"gen\" is ambiguous.",
+      choices: [
+        { id: "c1", name: "general", channelType: "PUBLIC" },
+        { id: "c2", name: "general-team", channelType: "PRIVATE" },
+      ],
+    });
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it("messages.dm resolves user emails before writing and returns a structured receipt", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveUser.mockResolvedValue({
+      ok: true,
+      value: { id: "u1", email: "ada@example.invalid", name: "Ada" },
+    });
+    const dmUser = vi.spyOn(client.raw.messages, "dmUser")
+      .mockResolvedValue({ id: "m1", channelId: "dm1" } as any);
+
+    await expect(client.messages.dm({
+      user: "ada@example.invalid",
+      text: "hello Ada",
+    })).resolves.toEqual({
+      ok: true,
+      summary: "Sent DM m1 to Ada.",
+      ids: { userId: "u1", messageId: "m1", channelId: "dm1" },
+      user: { id: "u1", email: "ada@example.invalid", name: "Ada" },
+      message: { id: "m1", channelId: "dm1" },
+    });
+    expect(dmUser).toHaveBeenCalledWith({
+      userId: "u1",
+      text: "hello Ada",
+    }, undefined);
+  });
+
+  it("threads.reply resolves channel names before writing thread replies", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveChannel.mockResolvedValue({
+      ok: true,
+      value: { id: "c1", name: "general", channelType: "PUBLIC" },
+    });
+    const sendReply = vi.spyOn(client.raw.messages, "sendReply")
+      .mockResolvedValue({ id: "r1", channelId: "c1" } as any);
+
+    await expect(client.threads.reply({
+      channel: "#general",
+      messageId: "root1",
+      text: "thread reply",
+    })).resolves.toEqual({
+      ok: true,
+      summary: "Replied with r1 in #general.",
+      ids: { channelId: "c1", messageId: "r1", rootMessageId: "root1" },
+      channel: { id: "c1", name: "general", channelType: "PUBLIC" },
+      message: { id: "r1", channelId: "c1" },
+    });
+    expect(sendReply).toHaveBeenCalledWith({
+      channelId: "c1",
+      messageId: "root1",
+      text: "thread reply",
+    }, undefined);
+  });
+
+  it("threads.reply resolves channel IDs before writing thread replies", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveChannel.mockResolvedValue({
+      ok: true,
+      value: { id: "c2", name: "ops-private", channelType: "PRIVATE" },
+    });
+    const sendReply = vi.spyOn(client.raw.messages, "sendReply")
+      .mockResolvedValue({ id: "r2", channelId: "c2" } as any);
+
+    await expect(client.threads.reply({
+      channelId: "c2",
+      messageId: "root2",
+      text: "private reply",
+    })).resolves.toEqual({
+      ok: true,
+      summary: "Replied with r2 in #ops-private.",
+      ids: { channelId: "c2", messageId: "r2", rootMessageId: "root2" },
+      channel: { id: "c2", name: "ops-private", channelType: "PRIVATE" },
+      message: { id: "r2", channelId: "c2" },
+    });
+    expect(delegates.resolveChannel).toHaveBeenCalledWith(client.raw, "c2", undefined);
+    expect(sendReply).toHaveBeenCalledWith({
+      channelId: "c2",
+      messageId: "root2",
+      text: "private reply",
+    }, undefined);
   });
 });

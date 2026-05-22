@@ -97,13 +97,23 @@ describe("examples", () => {
   });
 
   it("documents the curated MCP preview recipe without embedding secrets", async () => {
-    const recipe = await readFile(join(examplesDir, "curated-mcp-preview.md"), "utf8");
+    const recipe = await readFile(join(examplesDir, "mcp-curated-write.md"), "utf8");
+
+    expect(recipe).toContain("send_message_preview");
+    expect(recipe).toContain("send_message_confirmed");
+    expect(recipe).toContain("reply_to_thread_preview");
+    expect(recipe).toContain("reply_to_thread_confirmed");
+    expect(recipe).not.toMatch(/PUMBLE_API_KEY=(?!<your-api-key>)[^\s`]+/);
+    expect(recipe).not.toMatch(/\bpmb_[A-Za-z0-9_-]+\b/);
+  });
+
+  it("documents the curated MCP readonly recipe with task-oriented tools", async () => {
+    const recipe = await readFile(join(examplesDir, "mcp-readonly.md"), "utf8");
 
     expect(recipe).toContain("PUMBLE_API_KEY=<your-api-key>");
-    expect(recipe).toContain("pumble://thread/{channelId}/{messageId}");
-    expect(recipe).toContain("preview_reply_to_thread");
-    expect(recipe).toContain("reply_to_thread_confirmed");
-    expect(recipe).toContain("The examples directory is intentionally excluded from the npm tarball");
+    expect(recipe).toContain("whoami");
+    expect(recipe).toContain("find_channel");
+    expect(recipe).toContain("get_channel_context");
     expect(recipe).not.toMatch(/PUMBLE_API_KEY=(?!<your-api-key>)[^\s`]+/);
     expect(recipe).not.toMatch(/\bpmb_[A-Za-z0-9_-]+\b/);
   });

@@ -59,6 +59,26 @@ describe("pumble CLI", () => {
     expect(stdout).toContain("PUBLIC");
   });
 
+  it("finds a channel by human name", async () => {
+    const { stdout } = await runCli(["channels", "find", "general", "--json"]);
+    expect(JSON.parse(stdout)).toMatchObject({
+      id: "bbbbbbbbbbbbbbbbbbbb0001",
+      name: "general",
+      channelType: "PUBLIC",
+    });
+    expect(readRequests().at(-1)).toMatchObject({ method: "GET", path: "/listChannels" });
+  });
+
+  it("finds a user by email", async () => {
+    const { stdout } = await runCli(["users", "find", "grace@example.com", "--json"]);
+    expect(JSON.parse(stdout)).toMatchObject({
+      id: "aaaaaaaaaaaaaaaaaaaa0002",
+      email: "grace@example.com",
+      name: "Grace Hopper",
+    });
+    expect(readRequests().at(-1)).toMatchObject({ method: "GET", path: "/listUsers" });
+  });
+
   it("resolves channel names before dry-run sending a message", async () => {
     const { stdout } = await runCliDryRun(["send", "#general", "hello from cli"]);
     expect(stdout).toBe("");
@@ -151,6 +171,32 @@ describe("pumble CLI", () => {
         limit: "1",
       },
     });
+  });
+
+  it("prints thread context as JSON after resolving a channel name", async () => {
+    const { stdout } = await runCli([
+      "thread",
+      "cccccccccccccccccccc1001",
+      "--channel",
+      "#general",
+      "--json",
+    ]);
+    const context = JSON.parse(stdout);
+    expect(context).toMatchObject({
+      root: {
+        id: "cccccccccccccccccccc1001",
+        text: "thread root",
+      },
+      replies: [{
+        id: "cccccccccccccccccccc2001",
+        text: "thread reply",
+      }],
+    });
+    expect(readRequests().map((r) => r.path)).toEqual(expect.arrayContaining([
+      "/listChannels",
+      "/fetchMessage",
+      "/fetchThreadReplies",
+    ]));
   });
 
   it("lists scheduled messages and dry-run cancels by id", async () => {
@@ -259,6 +305,12 @@ globalThis.fetch = async function pumbleCliMockFetch(input, init) {
     hasMoreBefore: false,
     hasMoreAfter: null,
   });
+  if (method === "GET" && path === "/fetchMessage") return json(
+    message(query.messageId ?? "cccccccccccccccccccc1001", "thread root", query.channelId ?? general.id)
+  );
+  if (method === "GET" && path === "/fetchThreadReplies") return json([
+    message("cccccccccccccccccccc2001", "thread reply", query.channelId ?? general.id),
+  ]);
   if (method === "GET" && path === "/fetchScheduledMessages") return json({
     scheduledMessages: [
       {

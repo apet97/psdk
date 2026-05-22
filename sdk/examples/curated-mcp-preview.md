@@ -19,12 +19,12 @@ pumble://thread/{channelId}/{messageId}
 
 For a thread reply, use the two-step write flow:
 
-1. Call `preview_reply_to_thread` with `channelId`, `messageId`, and `text`.
+1. Call `reply_to_thread_preview` with `channelId`, `messageId`, and `text`.
 2. Show the returned `{ request, preview, confirmationToken }` to the user.
 3. Only after explicit approval, call `reply_to_thread_confirmed` with the
    unchanged payload.
 
-For a channel message, use `preview_send_message` followed by
+For a channel message, use `send_message_preview` followed by
 `send_message_confirmed` in the same way.
 
 The confirmation token is process-local integrity data for the preview. It is

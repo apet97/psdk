@@ -1,21 +1,21 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
-  CallToolResult,
   ServerNotification,
   ServerRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as z from "zod/v3";
+import { resolveChannel } from "../../extensions/index.js";
 import { getThreadContext as fetchThreadContext } from "../../extensions/thread-context.js";
 import type { RequestOptions } from "../../lib/sdks.js";
 import type { Message } from "../../models/message.js";
+import type { ListMessagesRequest, SearchMessagesRequest } from "../../models/operations/index.js";
 import type { SearchHit } from "../../models/search-hit.js";
-import type {
-  FetchMessageRequest,
-  FetchThreadRepliesRequest,
-  ListMessagesRequest,
-  SearchMessagesRequest,
-} from "../../models/operations/index.js";
+import {
+  okPayload,
+  jsonTool,
+  resolveFailurePayload,
+} from "./payloads.js";
 import type { CuratedClient } from "./types.js";
 
 const DEFAULT_READ_LIMIT = 10;
@@ -71,6 +71,10 @@ const nonBlank = z.string().trim().min(1);
 const boundedLimit = z.number().int().min(1).max(MAX_READ_LIMIT)
   .default(DEFAULT_READ_LIMIT);
 
+const listChannelsSchema = {
+  limit: boundedLimit,
+} satisfies z.ZodRawShape;
+
 const searchMessagesSchema = {
   text: nonBlank.optional(),
   from: z.array(nonBlank).min(1).optional(),
@@ -81,13 +85,7 @@ const searchMessagesSchema = {
   afterTs: z.number().int().optional(),
 } satisfies z.ZodRawShape;
 
-const getMessageSchema = {
-  channelId: nonBlank.optional(),
-  channel: nonBlank.optional(),
-  messageId: nonBlank,
-} satisfies z.ZodRawShape;
-
-const listChannelMessagesSchema = {
+const getChannelContextSchema = {
   channelId: nonBlank.optional(),
   channel: nonBlank.optional(),
   cursor: nonBlank.optional(),
@@ -95,59 +93,39 @@ const listChannelMessagesSchema = {
   strategy: z.enum(["BEFORE", "AFTER", "AROUND"]).optional(),
 } satisfies z.ZodRawShape;
 
-const listThreadRepliesSchema = {
+const getThreadContextSchema = {
   channelId: nonBlank.optional(),
   channel: nonBlank.optional(),
-  cursor: nonBlank.optional(),
-  limit: boundedLimit,
-  rootMessageId: nonBlank,
-} satisfies z.ZodRawShape;
-
-const getThreadContextSchema = {
-  channelId: nonBlank,
   messageId: nonBlank,
   replyLimit: boundedLimit,
 } satisfies z.ZodRawShape;
 
+type ListChannelsArgs = z.infer<z.ZodObject<typeof listChannelsSchema>>;
 type SearchMessagesArgs = z.infer<z.ZodObject<typeof searchMessagesSchema>>;
-type GetMessageArgs = z.infer<z.ZodObject<typeof getMessageSchema>>;
-type ListChannelMessagesArgs = z.infer<z.ZodObject<typeof listChannelMessagesSchema>>;
-type ListThreadRepliesArgs = z.infer<z.ZodObject<typeof listThreadRepliesSchema>>;
+type GetChannelContextArgs = z.infer<z.ZodObject<typeof getChannelContextSchema>>;
 type GetThreadContextArgs = z.infer<z.ZodObject<typeof getThreadContextSchema>>;
-
-function jsonResult(value: unknown): CallToolResult {
-  return {
-    content: [{ type: "text", text: JSON.stringify(value) }],
-  };
-}
-
-function errorResult(error: unknown): CallToolResult {
-  const message = error instanceof Error ? error.message : String(error);
-  return {
-    content: [{ type: "text", text: message }],
-    isError: true,
-  };
-}
-
-async function jsonTool(run: () => Promise<unknown>): Promise<CallToolResult> {
-  try {
-    return jsonResult(await run());
-  } catch (error) {
-    return errorResult(error);
-  }
-}
 
 function requestOptions(ctx: ToolExtra): RequestOptions | undefined {
   return ctx.signal === undefined ? undefined : { signal: ctx.signal };
 }
 
-function requireTarget(
+async function resolveChannelTarget(
+  client: CuratedClient,
   toolName: string,
   args: { channel?: string | undefined; channelId?: string | undefined },
-): void {
-  if (args.channelId === undefined && args.channel === undefined) {
+): Promise<
+  | { ok: true; channelId: string; channelName?: string | undefined }
+  | ReturnType<typeof resolveFailurePayload>
+> {
+  if (args.channelId !== undefined) {
+    return { ok: true, channelId: args.channelId, channelName: args.channel };
+  }
+  if (args.channel === undefined) {
     throw new Error(`${toolName}: channelId or channel is required`);
   }
+  const result = await resolveChannel(client, args.channel);
+  if (!result.ok) return resolveFailurePayload("Channel", args.channel, result);
+  return { ok: true, channelId: result.value.id, channelName: result.value.name };
 }
 
 function compactActor(author: string, authorAppId: string | null | undefined): CompactActor {
@@ -229,36 +207,13 @@ function searchMessagesRequest(args: SearchMessagesArgs): SearchMessagesRequest 
   return request;
 }
 
-function getMessageRequest(args: GetMessageArgs): FetchMessageRequest {
-  requireTarget("get_message", args);
-
-  const request: FetchMessageRequest = { messageId: args.messageId };
-  if (args.channelId !== undefined) request.channelId = args.channelId;
-  if (args.channel !== undefined) request.channel = args.channel;
-  return request;
-}
-
-function listMessagesRequest(args: ListChannelMessagesArgs): ListMessagesRequest {
-  requireTarget("list_channel_messages", args);
-
-  const request: ListMessagesRequest = { limit: args.limit };
-  if (args.channelId !== undefined) request.channelId = args.channelId;
-  if (args.channel !== undefined) request.channel = args.channel;
+function listMessagesRequest(
+  args: GetChannelContextArgs,
+  channelId: string,
+): ListMessagesRequest {
+  const request: ListMessagesRequest = { channelId, limit: args.limit };
   if (args.cursor !== undefined) request.cursor = args.cursor;
   if (args.strategy !== undefined) request.strategy = args.strategy;
-  return request;
-}
-
-function threadRepliesRequest(args: ListThreadRepliesArgs): FetchThreadRepliesRequest {
-  requireTarget("list_thread_replies", args);
-
-  const request: FetchThreadRepliesRequest = {
-    limit: args.limit,
-    rootMessageId: args.rootMessageId,
-  };
-  if (args.channelId !== undefined) request.channelId = args.channelId;
-  if (args.channel !== undefined) request.channel = args.channel;
-  if (args.cursor !== undefined) request.cursor = args.cursor;
   return request;
 }
 
@@ -267,6 +222,28 @@ export function registerCuratedReadTools(
   client: CuratedClient,
 ): void {
   server.tool(
+    "list_channels",
+    "List channels with compact ids, names, and visibility.",
+    listChannelsSchema,
+    async (args: ListChannelsArgs, ctx: ToolExtra) =>
+      jsonTool(async () => {
+        const entries = await client.channels.listChannels(requestOptions(ctx));
+        const channels = entries.slice(0, args.limit).map((entry) => ({
+          id: entry.channel.id,
+          name: entry.channel.name,
+          channelType: entry.channel.channelType,
+          isMember: entry.channel.isMember,
+          isArchived: entry.channel.isArchived,
+        }));
+        return okPayload(
+          `Found ${channels.length} channel${channels.length === 1 ? "" : "s"}.`,
+          { channels, page: { limit: args.limit, totalReturned: channels.length } },
+          { channelIds: channels.map((channel) => channel.id) },
+        );
+      }),
+  );
+
+  server.tool(
     "search_messages",
     "Search messages by text, actor, channel, or bounded time window.",
     searchMessagesSchema,
@@ -274,86 +251,97 @@ export function registerCuratedReadTools(
       jsonTool(async () => {
         const request = searchMessagesRequest(args);
         const page = await client.messages.searchMessages(request, requestOptions(ctx));
-        return {
-          messages: page.result.content.map(compactMessage),
-          page: {
-            limit: request.limit,
-            totalElements: page.result.totalElements,
-            hasMore: page.result.hasMore,
+        const messages = page.result.content.map(compactMessage);
+        return okPayload(
+          `Found ${messages.length} message${messages.length === 1 ? "" : "s"}.`,
+          {
+            messages,
+            page: {
+              limit: request.limit,
+              totalElements: page.result.totalElements,
+              hasMore: page.result.hasMore,
+            },
           },
-        };
+          {
+            messageIds: messages.map((message) => message.id),
+            channelIds: [...new Set(messages.map((message) => message.target.channelId))],
+          },
+        );
       }),
   );
 
   server.tool(
-    "get_message",
-    "Fetch one message by message id and channel identity.",
-    getMessageSchema,
-    async (args: GetMessageArgs, ctx: ToolExtra) =>
-      jsonTool(async () =>
-        compactMessage(await client.messages.fetchMessage(
-          getMessageRequest(args),
-          requestOptions(ctx),
-        ))
-      ),
-  );
-
-  server.tool(
-    "list_channel_messages",
-    "List one bounded page of messages from a channel.",
-    listChannelMessagesSchema,
-    async (args: ListChannelMessagesArgs, ctx: ToolExtra) =>
+    "get_channel_context",
+    "Resolve a channel and list one bounded page of recent messages.",
+    getChannelContextSchema,
+    async (args: GetChannelContextArgs, ctx: ToolExtra) =>
       jsonTool(async () => {
-        const request = listMessagesRequest(args);
+        const target = await resolveChannelTarget(client, "get_channel_context", args);
+        if (!target.ok) return target;
+
+        const request = listMessagesRequest(args, target.channelId);
         const page = await client.messages.listMessages(request, requestOptions(ctx));
-        return {
-          messages: page.result.messages.map(compactMessage),
-          page: {
-            limit: request.limit,
-            hasMoreBefore: page.result.hasMoreBefore,
-            hasMoreAfter: page.result.hasMoreAfter,
+        const messages = page.result.messages.map(compactMessage);
+        const channelLabel = target.channelName === undefined
+          ? target.channelId
+          : `#${target.channelName}`;
+        return okPayload(
+          `Loaded ${messages.length} message${messages.length === 1 ? "" : "s"} from ${channelLabel}.`,
+          {
+            channel: { id: target.channelId, name: target.channelName },
+            messages,
+            page: {
+              limit: request.limit,
+              hasMoreBefore: page.result.hasMoreBefore,
+              hasMoreAfter: page.result.hasMoreAfter,
+            },
           },
-        };
-      }),
-  );
-
-  server.tool(
-    "list_thread_replies",
-    "List one bounded page of replies from a thread.",
-    listThreadRepliesSchema,
-    async (args: ListThreadRepliesArgs, ctx: ToolExtra) =>
-      jsonTool(async () => {
-        const request = threadRepliesRequest(args);
-        const page = await client.messages.fetchThreadReplies(request, requestOptions(ctx));
-        return {
-          replies: page.result.map(compactMessage),
-          page: { limit: request.limit },
-        };
+          {
+            channelId: target.channelId,
+            messageIds: messages.map((message) => message.id),
+          },
+          ["Use get_thread_context with a message id to inspect a thread."],
+        );
       }),
   );
 
   server.tool(
     "get_thread_context",
-    "Fetch a thread root and one bounded page of replies.",
+    "Resolve a channel and fetch a thread root with one bounded page of replies.",
     getThreadContextSchema,
     async (args: GetThreadContextArgs, ctx: ToolExtra) =>
       jsonTool(async () => {
+        const target = await resolveChannelTarget(client, "get_thread_context", args);
+        if (!target.ok) return target;
+
         const context = await fetchThreadContext(
           client,
           {
-            channelId: args.channelId,
+            channelId: target.channelId,
             messageId: args.messageId,
             replyLimit: args.replyLimit,
           },
           requestOptions(ctx),
         );
-        return {
-          root: compactThreadContextMessage(context.root),
-          replies: context.replies.map(compactThreadContextMessage),
-          participants: context.participants,
-          replyCount: context.replyCount,
-          page: { replyLimit: args.replyLimit },
-        };
+        const root = compactThreadContextMessage(context.root);
+        const replies = context.replies.map(compactThreadContextMessage);
+        return okPayload(
+          `Loaded thread ${args.messageId} with ${replies.length} repl${
+            replies.length === 1 ? "y" : "ies"
+          }.`,
+          {
+            root,
+            replies,
+            participants: context.participants,
+            replyCount: context.replyCount,
+            page: { replyLimit: args.replyLimit },
+          },
+          {
+            channelId: target.channelId,
+            rootMessageId: args.messageId,
+            replyMessageIds: replies.map((reply) => reply.id),
+          },
+        );
       }),
   );
 }

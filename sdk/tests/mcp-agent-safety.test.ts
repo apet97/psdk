@@ -112,27 +112,33 @@ function errorText(result: CallToolResult): string {
 }
 
 describe("MCP agent safety evals", () => {
-  it("forces resolve_channel before write previews when a channel name is ambiguous", async () => {
+  it("forces find_channel semantics before write previews when a channel name is ambiguous", async () => {
     const client = safetyClient();
     const server = register(client);
-    const resolution = jsonContent(await invoke(server, "resolve_channel", {
+    const resolution = jsonContent(await invoke(server, "find_channel", {
       query: fixture.ambiguousChannelQuery,
     }));
-    const previewSend = server.tools.get("preview_send_message");
+    const previewSend = server.tools.get("send_message_preview");
 
-    expect(resolution).toEqual({
+    expect(resolution).toMatchObject({
       ok: false,
-      reason: "ambiguous",
-      candidates: [
-        { id: "channel-support-eng", name: "support-eng", channelType: "PUBLIC" },
-        { id: "channel-support-ops", name: "support-ops", channelType: "PRIVATE" },
-      ],
+      data: {
+        reason: "ambiguous",
+        choices: [
+          { id: "channel-support-eng", name: "support-eng", channelType: "PUBLIC" },
+          { id: "channel-support-ops", name: "support-ops", channelType: "PRIVATE" },
+        ],
+      },
     });
     expect(previewSend).toBeDefined();
-    expect(() => parseArgs(previewSend as CapturedTool, {
+    const preview = await invoke(server, "send_message_preview", {
       channel: "#support",
       text: fixture.sendRequest.text,
-    })).toThrow();
+    });
+    expect(jsonContent(preview)).toMatchObject({
+      ok: false,
+      data: { reason: "ambiguous" },
+    });
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
   });
 
@@ -151,10 +157,10 @@ describe("MCP agent safety evals", () => {
   it("rejects wrong confirmation tokens before SDK writes", async () => {
     const client = safetyClient();
     const server = register(client);
-    const preview = jsonContent(await invoke(server, "preview_send_message", fixture.sendRequest));
+    const preview = jsonContent(await invoke(server, "send_message_preview", fixture.sendRequest));
 
     const result = await invoke(server, "send_message_confirmed", {
-      ...preview,
+      ...(preview as any).data,
       confirmationToken: fixture.wrongConfirmationToken,
     });
 
@@ -162,30 +168,13 @@ describe("MCP agent safety evals", () => {
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
   });
 
-  it("allows only exact-id low-risk reaction writes without preview text", async () => {
-    const client = safetyClient();
-    const server = register(client);
-    const addReaction = server.tools.get("add_reaction");
+  it("does not expose direct reaction writes in the curated profile", () => {
+    const server = register(safetyClient());
 
-    expect(addReaction).toBeDefined();
-    expect(() => parseArgs(addReaction as CapturedTool, {
-      channel: "#support-eng",
-      messageId: "message-1",
-      reaction: "white_check_mark",
-    })).toThrow();
-
-    const result = await invoke(server, "add_reaction", {
-      channelId: "channel-support-eng",
-      messageId: "message-1",
-      reaction: "white_check_mark",
-    });
-
-    expect(jsonContent(result)).toEqual({ status: "ok" });
-    expect(client.messages.addReaction).toHaveBeenCalledWith({
-      channelId: "channel-support-eng",
-      messageId: "message-1",
-      reaction: "white_check_mark",
-    }, undefined);
+    expect(server.tools.has("add_reaction")).toBe(false);
+    expect(server.tools.has("remove_reaction")).toBe(false);
+    expect(CURATED_TOOL_NAMES).not.toContain("add_reaction" as never);
+    expect(CURATED_TOOL_NAMES).not.toContain("remove_reaction" as never);
   });
 
   it("uses the curated profile by default and keeps delete/edit out of the advertised surface", () => {

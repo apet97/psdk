@@ -30,48 +30,49 @@ console.log(me.id, me.name);
 The generated client also accepts `serverURL` when you need to point at a
 different Pumble API-Keys base URL.
 
-## Basic SDK Usage
+## Facade-First SDK Usage
 
-Use the generated client for direct API coverage:
-
-```typescript
-const channels = await sdk.channels.listChannels();
-
-const sent = await sdk.messages.sendMessage({
-  channelId: channels[0].id,
-  text: "Hello from pumble-sdk.",
-});
-
-await sdk.messages.sendReply({
-  channelId: channels[0].id,
-  rootMessageId: sent.id,
-  text: "Thread reply from pumble-sdk.",
-});
-```
-
-Use the hand-written facade for common app flows and safer name/email
-resolution:
+Use the hand-written facade for normal application flows. It accepts human
+inputs, resolves them to exact IDs, and returns structured receipts instead of
+making callers stitch together raw endpoint responses:
 
 ```typescript
-import {
-  createPumbleClient,
-  findChannelByName,
-  findUserByEmail,
-} from "pumble-sdk/extensions/index.js";
+import { createPumbleClient } from "pumble-sdk/extensions/index.js";
 
 const pumble = createPumbleClient({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
 });
 
-const channel = await findChannelByName(pumble.raw, "general");
-if (!channel) throw new Error("Could not find #general");
+const sent = await pumble.messages.send({
+  channel: "#general",
+  text: "Hello from pumble-sdk.",
+});
 
-const reviewer = await findUserByEmail(pumble.raw, "ada@example.com");
-if (!reviewer) throw new Error("Could not find ada@example.com");
+const dm = await pumble.messages.dm({
+  user: "ada@example.com",
+  text: "Can you review this?",
+});
 
-await pumble.messages.send({
-  channelId: channel.id,
-  text: `Review requested from ${reviewer.name}.`,
+const search = await pumble.search.recent({
+  query: "incident",
+  limit: 5,
+});
+```
+
+If a name or email is ambiguous, write helpers return choices and do not call
+Pumble.
+
+## Raw SDK Usage
+
+Use `PumbleSDK` or `pumble.raw` when you need direct generated API coverage:
+
+```typescript
+const entries = await pumble.raw.channels.listChannels();
+const channelId = entries[0].channel.id;
+
+await pumble.raw.messages.sendMessage({
+  channelId,
+  text: "Raw endpoint call.",
 });
 ```
 
@@ -84,10 +85,13 @@ export PUMBLE_API_KEY="<pumble-api-key>"
 
 pumble whoami
 pumble channels list
+pumble channels find general
+pumble users find ada@example.com
 pumble send '#general' "deploy finished"
 pumble dm ada@example.com "can you review this?"
 pumble search "incident" --limit 5
 pumble messages '#general' --limit 10 --json
+pumble thread <message-id> --channel '#general' --json
 ```
 
 Text output is the default for read commands. Pass `--json` on commands that
@@ -97,7 +101,9 @@ support it for scripting. Mutating commands are quiet on success unless you pass
 ## MCP Server
 
 `pumble-mcp` starts an MCP server over stdio. The default `curated` profile
-keeps message writes behind preview/confirmation tools:
+exposes the task-oriented tools (`whoami`, `find_channel`, `find_user`,
+`list_channels`, `search_messages`, `get_channel_context`,
+`get_thread_context`) and keeps writes behind preview/confirmation tools:
 
 ```bash
 npx -y --package pumble-sdk -- pumble-mcp start \
@@ -113,7 +119,7 @@ npx -y --package pumble-sdk -- pumble-mcp start \
   --profile readonly
 ```
 
-Use `readwrite` only when you intentionally want the raw generated write
+Use `readwrite` only when you intentionally want the raw generated endpoint
 surface.
 
 Example MCP client config:

@@ -90,7 +90,7 @@ function channelCandidate(channel: Channel): ResolveChannelCandidate {
 }
 
 /**
- * Resolve a user by exact email, exact name, or partial name.
+ * Resolve a user by exact id, exact email, exact name, or partial name.
  *
  * Normal not-found and ambiguity outcomes are returned as result values
  * instead of thrown errors, so callers can resolve-before-act safely.
@@ -107,6 +107,13 @@ export async function resolveUser(
   }
 
   const users = await client.users.listUsers();
+  const exactId = users.filter(
+    (user) => normaliseMaybe(user.id, caseInsensitive) === target,
+  );
+  if (exactId.length > 0) {
+    return fromMatches(exactId, options, userCandidate);
+  }
+
   const exactEmail = users.filter(
     (user) => normaliseMaybe(user.email, caseInsensitive) === target,
   );
@@ -128,7 +135,7 @@ export async function resolveUser(
 }
 
 /**
- * Resolve a channel by exact name or partial name.
+ * Resolve a channel by exact id, exact name, or partial name.
  *
  * A leading `#` is accepted for human-friendly channel inputs.
  */
@@ -144,6 +151,13 @@ export async function resolveChannel(
   }
 
   const channels = (await client.channels.listChannels()).map((entry) => entry.channel);
+  const exactId = channels.filter(
+    (channel) => normaliseMaybe(channel.id, caseInsensitive) === target,
+  );
+  if (exactId.length > 0) {
+    return fromMatches(exactId, options, channelCandidate);
+  }
+
   const exactName = channels.filter(
     (channel) => normaliseMaybe(channel.name, caseInsensitive) === target,
   );

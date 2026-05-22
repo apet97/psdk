@@ -315,7 +315,7 @@ describe("curated MCP resources and prompts", () => {
     expect(draft).toContain("pumble://thread/channel-1/root-1");
     expect(draft).toContain("acknowledge and ask for ETA");
     expect(draft).toContain("Do not send");
-    expect(draft).toContain("preview_reply_to_thread");
+    expect(draft).toContain("reply_to_thread_preview");
     expect(draft).toContain("reply_to_thread_confirmed");
     expect(draft).toContain("explicit user confirmation");
   });

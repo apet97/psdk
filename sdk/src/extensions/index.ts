@@ -4,7 +4,21 @@
 export {
   createPumbleClient,
   type CreatePumbleClientOptions,
+  type ChannelSummary,
+  type FacadeDmReceipt,
+  type FacadeDmRequest,
+  type FacadeFailure,
+  type FacadeFailureReason,
+  type FacadeFindChannelResult,
+  type FacadeFindUserResult,
+  type FacadeSearchRecentRequest,
+  type FacadeSearchRecentResult,
+  type FacadeSendMessageRequest,
+  type FacadeSendReceipt,
+  type FacadeThreadReplyReceipt,
+  type FacadeThreadReplyRequest,
   type PumbleClient,
+  type UserSummary,
 } from "./client.js";
 
 export {
