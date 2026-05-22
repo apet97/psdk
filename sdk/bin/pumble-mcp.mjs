@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Friendly wrapper around the generated bin/mcp-server.js. Adds:
+// Friendly wrapper around the generated bin/mcp-server.js plus the
+// hand-written curated MCP server. Adds:
 //
+//   --profile curated              workflow-first curated MCP tools
 //   --profile readonly|readwrite   pre-set --tool whitelists (default: readwrite)
 //   --dry-run                      exposes all tools but intercepts mutating
 //                                  HTTP at the network layer via a fetch shim
@@ -29,6 +31,7 @@ import { spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, resolve } from "node:path";
 import {
+  CURATED_TOOLS,
   READONLY_TOOLS,
   READWRITE_TOOLS,
   WrapperUsageError,
@@ -39,6 +42,7 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const GENERATED_MCP = resolve(__dirname, "mcp-server.js");
+const CURATED_MCP = resolve(__dirname, "pumble-mcp-curated.js");
 const DRY_RUN_SHIM = resolve(__dirname, "dry-run-shim.mjs");
 const AUDIT_LOG_SHIM = resolve(__dirname, "audit-log-shim.mjs");
 
@@ -50,6 +54,10 @@ Usage:
   pumble-mcp [options]
 
 Wrapper-only options:
+  --profile curated       Launch workflow-first curated tools via the
+                          hand-written MCP server (${CURATED_TOOLS.length} tools) instead of
+                          the generated raw endpoint server. Exposes:
+                          ${CURATED_TOOLS.join(", ")}.
   --profile readonly      Expose only read-only tools (${READONLY_TOOLS.length} tools).
                           Mutating tools are hidden from the agent entirely.
   --profile readwrite     Expose all ${READWRITE_TOOLS.length} tools (default).
@@ -66,13 +74,15 @@ Wrapper-only options:
                           (failures log once to stderr).
   -h, --help              Show this help.
 
-All other arguments are forwarded verbatim to the generated mcp-server
-(see \`pumble-mcp start --help\` for transport/auth/tool flags).
+All other arguments are forwarded verbatim to the selected MCP server
+(see \`pumble-mcp start --help\` for transport/auth/tool flags on the
+generated raw server).
 If --api-key-auth is omitted, the wrapper reads PUMBLE_API_KEY and then
 PUMBLESDK_API_KEY_AUTH from the environment.
 
 Examples:
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio
+  PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile curated
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readonly
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio --dry-run
 `);
@@ -90,6 +100,7 @@ try {
     argv: process.argv.slice(2),
     env: process.env,
     generatedMcp: GENERATED_MCP,
+    curatedMcp: CURATED_MCP,
     dryRunShimUrl: pathToFileURL(DRY_RUN_SHIM).href,
     auditLogShimUrl: pathToFileURL(AUDIT_LOG_SHIM).href,
   });
@@ -103,6 +114,8 @@ try {
 
 if (invocation.dryRun) {
   console.error(`[pumble-mcp] DRY-RUN: all ${READWRITE_TOOLS.length} tools exposed; mutating HTTP intercepted at the fetch layer.`);
+} else if (invocation.effectiveProfile === "curated") {
+  console.error(`[pumble-mcp] Profile: curated (${CURATED_TOOLS.length} curated tools).`);
 } else if (invocation.profile) {
   console.error(`[pumble-mcp] Profile: ${invocation.effectiveProfile} (${invocation.tools.length} tools).`);
 }

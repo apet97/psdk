@@ -2,10 +2,7 @@
 
 import { build } from "bun";
 
-const entrypoint = "./src/mcp-server/mcp-server.ts";
-
-await build({
-  entrypoints: [entrypoint],
+const common = {
   outdir: "./bin",
   sourcemap: "linked",
   target: "node",
@@ -13,4 +10,15 @@ await build({
   minify: false,
   throw: true,
   banner: "#!/usr/bin/env node",
+} as const;
+
+await build({
+  ...common,
+  entrypoints: ["./src/mcp-server/mcp-server.ts"],
+});
+
+await build({
+  ...common,
+  entrypoints: ["./src/mcp-server/curated/cli.ts"],
+  naming: "pumble-mcp-curated.[ext]",
 });

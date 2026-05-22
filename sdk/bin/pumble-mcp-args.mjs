@@ -31,6 +31,12 @@ export const READWRITE_TOOLS = [
   "users-custom-status",
 ];
 
+export const CURATED_TOOLS = [
+  "get_current_user",
+  "resolve_user",
+  "resolve_channel",
+];
+
 export class WrapperUsageError extends Error {
   constructor(message) {
     super(message);
@@ -87,7 +93,7 @@ function envApiKey(env) {
   return env.PUMBLE_API_KEY ?? env.PUMBLESDK_API_KEY_AUTH ?? null;
 }
 
-export function buildMcpInvocation({ argv, env, generatedMcp, dryRunShimUrl, auditLogShimUrl }) {
+export function buildMcpInvocation({ argv, env, generatedMcp, curatedMcp, dryRunShimUrl, auditLogShimUrl }) {
   const parsed = parseWrapperArgs(argv);
   if (parsed.help) {
     return { ...parsed, args: [], nodeArgs: [], childEnv: { ...env }, tools: [] };
@@ -100,18 +106,19 @@ export function buildMcpInvocation({ argv, env, generatedMcp, dryRunShimUrl, aud
   }
 
   const effectiveProfile = parsed.profile ?? "readwrite";
-  if (effectiveProfile !== "readonly" && effectiveProfile !== "readwrite") {
-    throw new WrapperUsageError(`pumble-mcp: --profile must be 'readonly' or 'readwrite', got: ${effectiveProfile}`);
+  if (effectiveProfile !== "readonly" && effectiveProfile !== "readwrite" && effectiveProfile !== "curated") {
+    throw new WrapperUsageError(`pumble-mcp: --profile must be 'readonly', 'readwrite', or 'curated', got: ${effectiveProfile}`);
   }
 
-  const tools = effectiveProfile === "readonly" ? READONLY_TOOLS : READWRITE_TOOLS;
+  const usesCuratedServer = effectiveProfile === "curated";
+  const tools = usesCuratedServer ? [] : effectiveProfile === "readonly" ? READONLY_TOOLS : READWRITE_TOOLS;
   const callerSuppliedTool = parsed.passthrough.some((a) => a === "--tool" || a.startsWith("--tool="));
   const args = [...parsed.passthrough];
   if (!hasApiKeyAuth(args)) {
     const apiKey = envApiKey(env);
     if (apiKey) args.push("--api-key-auth", apiKey);
   }
-  if (!callerSuppliedTool) {
+  if (!usesCuratedServer && !callerSuppliedTool) {
     for (const tool of tools) args.push("--tool", tool);
   }
 
@@ -125,7 +132,8 @@ export function buildMcpInvocation({ argv, env, generatedMcp, dryRunShimUrl, aud
     nodeArgs.push("--import", auditLogShimUrl);
     childEnv.PUMBLE_AUDIT_LOG = parsed.auditLog;
   }
-  if (generatedMcp) nodeArgs.push(generatedMcp, ...args);
+  const serverEntrypoint = usesCuratedServer ? curatedMcp : generatedMcp;
+  if (serverEntrypoint) nodeArgs.push(serverEntrypoint, ...args);
 
   return {
     ...parsed,
