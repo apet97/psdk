@@ -69,6 +69,12 @@ describe("pumble CLI", () => {
     expect(readRequests().at(-1)).toMatchObject({ method: "GET", path: "/listChannels" });
   });
 
+  it("prints resolver candidate labels when a channel is ambiguous", async () => {
+    await expect(runCli(["channels", "find", "gen"])).rejects.toMatchObject({
+      stderr: expect.stringContaining("#general | PUBLIC | bbbbbbbbbbbbbbbbbbbb0001"),
+    });
+  });
+
   it("finds a user by email", async () => {
     const { stdout } = await runCli(["users", "find", "grace@example.com", "--json"]);
     expect(JSON.parse(stdout)).toMatchObject({
@@ -272,6 +278,7 @@ const workspaceId = "aaaaaaaaaaaaaaaaaaaa0000";
 const selfUser = user("aaaaaaaaaaaaaaaaaaaa0001", "ada@example.com", "Ada Lovelace");
 const graceUser = user("aaaaaaaaaaaaaaaaaaaa0002", "grace@example.com", "Grace Hopper");
 const general = channel("bbbbbbbbbbbbbbbbbbbb0001", "general", "PUBLIC");
+const generalTeam = channel("bbbbbbbbbbbbbbbbbbbb0003", "general-team", "PRIVATE");
 const ops = channel("bbbbbbbbbbbbbbbbbbbb0002", "ops", "PRIVATE");
 
 globalThis.fetch = async function pumbleCliMockFetch(input, init) {
@@ -287,6 +294,7 @@ globalThis.fetch = async function pumbleCliMockFetch(input, init) {
   if (method === "GET" && path === "/listUsers") return json([selfUser, graceUser]);
   if (method === "GET" && path === "/listChannels") return json([
     { channel: general, pinnedMessages: [], users: [selfUser.id, graceUser.id] },
+    { channel: generalTeam, pinnedMessages: [], users: [selfUser.id] },
     { channel: ops, pinnedMessages: [], users: [selfUser.id] },
   ]);
   if (method === "POST" && path === "/searchMessages") return json({

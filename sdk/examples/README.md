@@ -37,6 +37,10 @@ IDs before writes:
 - `search-and-reply.ts` searches recent messages and replies to the first hit.
 - `webhook-server.ts` runs an Express webhook receiver.
 
+Facade examples export small helpers for config parsing and injected-client
+execution. Importing them is safe in tests; live network calls happen only when
+the file is run directly.
+
 ## Testing Fixtures Example
 
 `testing-fixtures.ts` runs entirely against in-memory fixture data. It shows how

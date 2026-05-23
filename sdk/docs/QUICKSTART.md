@@ -222,6 +222,9 @@ cd sdk
 source /tmp/pumble-livetest.env
 npm run test:arazzo
 npm run test:live
+npm run test:facade:live
+npm run test:mcp:live
+npm run verify:live
 ```
 
 `npm run test:pack` builds, packs, installs into a temporary app, and checks

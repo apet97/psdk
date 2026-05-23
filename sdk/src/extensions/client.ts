@@ -2,6 +2,7 @@ import type { SDKOptions } from "../lib/config.js";
 import type { RequestOptions } from "../lib/sdks.js";
 import type { Channel } from "../models/channel.js";
 import type { MessageRef } from "../models/message-ref.js";
+import type { ChannelListEntry } from "../models/channel-list-entry.js";
 import type {
   DmUserRequest,
   SearchMessagesRequest,
@@ -22,7 +23,9 @@ import {
 import {
   resolveChannel,
   resolveUser,
+  type ResolveChannelCandidate,
   type ResolveOptions,
+  type ResolveUserCandidate,
 } from "./resolve.js";
 import {
   getThreadContext,
@@ -36,7 +39,9 @@ import {
 type MethodArgs<T, K extends keyof T> =
   T[K] extends (...args: infer Args) => unknown ? Args : never;
 
-export type CreatePumbleClientOptions = SDKOptions;
+export type CreatePumbleClientOptions = SDKOptions & {
+  resolverCache?: boolean | undefined;
+};
 
 export type FacadeFailureReason = "not_found" | "ambiguous";
 
@@ -45,6 +50,7 @@ export interface FacadeFailure<TChoice> {
   reason: FacadeFailureReason;
   summary: string;
   choices: TChoice[];
+  nextActions: string[];
 }
 
 export interface ChannelSummary {
@@ -166,24 +172,79 @@ function targetFailure<TChoice>(
   input: string,
   result: { ok: false; reason: FacadeFailureReason; candidates: TChoice[] },
 ): FacadeFailure<TChoice> {
+  const target = targetKind.toLowerCase();
   return {
     ok: false,
     reason: result.reason,
     summary: `${targetKind} ${JSON.stringify(input)} is ${
       result.reason === "ambiguous" ? "ambiguous" : "not found"
     }.`,
-    choices: result.candidates,
+    choices: result.candidates.map((choice) => candidateWithLabel(targetKind, choice)),
+    nextActions: result.reason === "ambiguous"
+      ? [`Use a more exact ${targetKind} value or pass one returned ${target} id.`]
+      : [`Check the ${target} name, email, or id and try again.`],
   };
 }
 
+function candidateWithLabel<TChoice>(targetKind: "Channel" | "User", choice: TChoice): TChoice {
+  if (typeof choice !== "object" || choice === null || "label" in choice) return choice;
+  if (targetKind === "Channel" && "id" in choice && "name" in choice && "channelType" in choice) {
+    const channel = choice as TChoice & ResolveChannelCandidate;
+    return {
+      ...choice,
+      label: `#${channel.name} | ${channel.channelType} | ${channel.id}`,
+    };
+  }
+  if (targetKind === "User" && "id" in choice && "email" in choice && "name" in choice) {
+    const user = choice as TChoice & ResolveUserCandidate;
+    const name = user.name.trim();
+    return {
+      ...choice,
+      label: name.length > 0 ? `${name} ${user.email} | ${user.id}` : `${user.email} | ${user.id}`,
+    };
+  }
+  return choice;
+}
+
 export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
-  const raw = new PumbleSDK(options);
+  const { resolverCache = false, ...sdkOptions } = options;
+  const raw = new PumbleSDK(sdkOptions);
+  let channelCache: Promise<ChannelListEntry[]> | undefined;
+  let userCache: Promise<User[]> | undefined;
+
+  const cachedResolverClient = {
+    channels: {
+      listChannels() {
+        channelCache ??= raw.channels.listChannels();
+        return channelCache;
+      },
+    },
+    users: {
+      listUsers() {
+        userCache ??= raw.users.listUsers();
+        return userCache;
+      },
+    },
+  };
+
+  const resolverClient = resolverCache ? cachedResolverClient : raw;
+  const resolvers = {
+    clearCache() {
+      channelCache = undefined;
+      userCache = undefined;
+    },
+    async refresh() {
+      channelCache = raw.channels.listChannels();
+      userCache = raw.users.listUsers();
+      await Promise.all([channelCache, userCache]);
+    },
+  };
 
   async function resolveFacadeChannel(
     input: string,
     options?: ResolveOptions,
   ): Promise<FacadeFindChannelResult> {
-    const result = await resolveChannel(raw, input, options);
+    const result = await resolveChannel(resolverClient, input, options);
     if (!result.ok) return targetFailure("Channel", input, result);
     const channel = channelSummary(result.value);
     return {
@@ -198,7 +259,7 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
     input: string,
     options?: ResolveOptions,
   ): Promise<FacadeFindUserResult> {
-    const result = await resolveUser(raw, input, options);
+    const result = await resolveUser(resolverClient, input, options);
     if (!result.ok) return targetFailure("User", input, result);
     const user = userSummary(result.value);
     return {
@@ -307,6 +368,7 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
 
   return {
     raw,
+    resolvers,
     identity: {
       me: (...args: MethodArgs<Users, "myInfo">) => raw.users.myInfo(...args),
     },

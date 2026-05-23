@@ -62,6 +62,19 @@ const search = await pumble.search.recent({
 If a name or email is ambiguous, write helpers return choices and do not call
 Pumble.
 
+Resolver lists are uncached by default. Opt in per client when repeated facade
+calls should reuse one channel list and one user list:
+
+```typescript
+const pumble = createPumbleClient({
+  apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
+  resolverCache: true,
+});
+
+await pumble.resolvers.refresh();
+pumble.resolvers.clearCache();
+```
+
 ## Raw SDK Usage
 
 Use `PumbleSDK` or `pumble.raw` when you need direct generated API coverage:
@@ -186,6 +199,10 @@ cd sdk
 source /tmp/pumble-livetest.env
 npm run verify:live
 ```
+
+`verify:live` runs `npm run build`, Arazzo live tests, search live tests, the
+direct facade live smoke, and the curated MCP live smoke. The individual live
+smokes are available as `npm run test:facade:live` and `npm run test:mcp:live`.
 
 `npm run test:pack` builds the SDK, runs `npm pack`, installs the tarball into a
 temporary app, and checks the exported package surface and bins.

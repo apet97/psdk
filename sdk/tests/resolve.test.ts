@@ -106,8 +106,18 @@ describe("resolveUser", () => {
       ok: false,
       reason: "ambiguous",
       candidates: [
-        { id: "u2", email: "alex@example.com", name: "Alex Stone" },
-        { id: "u3", email: "alexis@example.com", name: "Alexis Stone" },
+        {
+          id: "u2",
+          email: "alex@example.com",
+          name: "Alex Stone",
+          label: "Alex Stone alex@example.com | u2",
+        },
+        {
+          id: "u3",
+          email: "alexis@example.com",
+          name: "Alexis Stone",
+          label: "Alexis Stone alexis@example.com | u3",
+        },
       ],
     });
   });
@@ -146,8 +156,18 @@ describe("resolveChannel", () => {
       ok: false,
       reason: "ambiguous",
       candidates: [
-        { id: "c2", name: "engineering", channelType: "PRIVATE" },
-        { id: "c3", name: "engineering-support", channelType: "PUBLIC" },
+        {
+          id: "c2",
+          name: "engineering",
+          channelType: "PRIVATE",
+          label: "#engineering | PRIVATE | c2",
+        },
+        {
+          id: "c3",
+          name: "engineering-support",
+          channelType: "PUBLIC",
+          label: "#engineering-support | PUBLIC | c3",
+        },
       ],
     });
   });

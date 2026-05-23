@@ -52,8 +52,11 @@ describe("verify-live script", () => {
 
       expect(output).not.toContain(fakeKey);
       expect(readFileSync(npmLog, "utf8").trim().split(/\n/)).toEqual([
+        "run build",
         "run test:arazzo",
         "run test:live",
+        "run test:facade:live",
+        "run test:mcp:live",
       ]);
     } finally {
       rmSync(temp, { recursive: true, force: true });

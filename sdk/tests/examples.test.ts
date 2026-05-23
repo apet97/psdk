@@ -96,6 +96,83 @@ describe("examples", () => {
     }
   });
 
+  it("imports facade examples without live credentials and runs helpers with injected clients", async () => {
+    const previousApiKey = process.env["PUMBLE_API_KEY"];
+    delete process.env["PUMBLE_API_KEY"];
+    const liveFetch = vi.fn(() => {
+      throw new Error("example attempted to use live fetch");
+    });
+    vi.stubGlobal("fetch", liveFetch);
+
+    try {
+      const sendRecipe = await import("../examples/send-channel-by-name.js");
+      const dmRecipe = await import("../examples/dm-by-email.js");
+      const searchRecipe = await import("../examples/search-and-reply.js");
+
+      expect(sendRecipe.sendChannelRequiredEnv).toEqual(["PUMBLE_API_KEY"]);
+      expect(sendRecipe.buildSendChannelRequest({
+        channel: " #general ",
+        text: " Hello channel. ",
+      })).toEqual({ channel: "#general", text: "Hello channel." });
+      expect(sendRecipe.readSendChannelConfig({
+        PUMBLE_API_KEY: "fixture-key",
+        PUMBLE_CHANNEL: "#ops",
+      })).toEqual({
+        apiKeyAuth: "fixture-key",
+        request: { channel: "#ops", text: "Hello from pumble-sdk." },
+      });
+      const send = vi.fn().mockResolvedValue({ ok: true, ids: { messageId: "m1" } });
+      await expect(sendRecipe.sendChannelMessage({ messages: { send } }, {
+        channel: "#general",
+        text: "Hello channel.",
+      })).resolves.toEqual({ ok: true, ids: { messageId: "m1" } });
+
+      expect(dmRecipe.dmByEmailRequiredEnv).toEqual(["PUMBLE_API_KEY", "PUMBLE_USER_EMAIL"]);
+      expect(dmRecipe.buildDmByEmailRequest({
+        user: " ada@example.invalid ",
+        text: " Hello Ada. ",
+      })).toEqual({ user: "ada@example.invalid", text: "Hello Ada." });
+      const dm = vi.fn().mockResolvedValue({ ok: true, ids: { messageId: "dm1" } });
+      await expect(dmRecipe.sendDmByEmail({ messages: { dm } }, {
+        user: "ada@example.invalid",
+        text: "Hello Ada.",
+      })).resolves.toEqual({ ok: true, ids: { messageId: "dm1" } });
+
+      expect(searchRecipe.searchAndReplyRequiredEnv).toEqual(["PUMBLE_API_KEY"]);
+      expect(searchRecipe.readSearchAndReplyConfig({
+        PUMBLE_API_KEY: "fixture-key",
+        PUMBLE_SEARCH_QUERY: " release ",
+        PUMBLE_REPLY_TEXT: " Looks good. ",
+      })).toEqual({
+        apiKeyAuth: "fixture-key",
+        query: "release",
+        replyText: "Looks good.",
+      });
+      const search = vi.fn().mockResolvedValue({
+        ok: true,
+        data: [{ id: "hit1", channelId: "c1", threadReplyInfo: { rootId: "root1" } }],
+      });
+      const reply = vi.fn().mockResolvedValue({ ok: true, ids: { messageId: "r1" } });
+      await expect(searchRecipe.searchAndReply({ search: { recent: search }, threads: { reply } }, {
+        query: "release",
+        replyText: "Looks good.",
+      })).resolves.toEqual({
+        ok: true,
+        search: { ok: true, data: [{ id: "hit1", channelId: "c1", threadReplyInfo: { rootId: "root1" } }] },
+        reply: { ok: true, ids: { messageId: "r1" } },
+      });
+
+      expect(liveFetch).not.toHaveBeenCalled();
+    } finally {
+      if (previousApiKey === undefined) {
+        delete process.env["PUMBLE_API_KEY"];
+      } else {
+        process.env["PUMBLE_API_KEY"] = previousApiKey;
+      }
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("documents the curated MCP preview recipe without embedding secrets", async () => {
     const recipe = await readFile(join(examplesDir, "mcp-curated-write.md"), "utf8");
 

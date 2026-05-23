@@ -29,8 +29,12 @@ export type ResolveResult<TValue, TCandidate> =
   | { ok: true; value: TValue }
   | { ok: false; reason: ResolveFailureReason; candidates: TCandidate[] };
 
-export type ResolveUserCandidate = Pick<User, "id" | "email" | "name">;
-export type ResolveChannelCandidate = Pick<Channel, "id" | "name" | "channelType">;
+export type ResolveUserCandidate = Pick<User, "id" | "email" | "name"> & {
+  label: string;
+};
+export type ResolveChannelCandidate = Pick<Channel, "id" | "name" | "channelType"> & {
+  label: string;
+};
 
 export type ResolveUserResult = ResolveResult<User, ResolveUserCandidate>;
 export type ResolveChannelResult = ResolveResult<Channel, ResolveChannelCandidate>;
@@ -78,7 +82,13 @@ function fromMatches<TValue, TCandidate>(
 }
 
 function userCandidate(user: User): ResolveUserCandidate {
-  return { id: user.id, email: user.email, name: user.name };
+  const name = user.name.trim();
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    label: name.length > 0 ? `${name} ${user.email} | ${user.id}` : `${user.email} | ${user.id}`,
+  };
 }
 
 function channelCandidate(channel: Channel): ResolveChannelCandidate {
@@ -86,6 +96,7 @@ function channelCandidate(channel: Channel): ResolveChannelCandidate {
     id: channel.id,
     name: channel.name,
     channelType: channel.channelType,
+    label: `#${channel.name} | ${channel.channelType} | ${channel.id}`,
   };
 }
 

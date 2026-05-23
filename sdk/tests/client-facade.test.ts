@@ -212,9 +212,15 @@ describe("createPumbleClient", () => {
       ok: false,
       reason: "ambiguous",
       summary: "Channel \"gen\" is ambiguous.",
+      nextActions: ["Use a more exact Channel value or pass one returned channel id."],
       choices: [
-        { id: "c1", name: "general", channelType: "PUBLIC" },
-        { id: "c2", name: "general-team", channelType: "PRIVATE" },
+        { id: "c1", name: "general", channelType: "PUBLIC", label: "#general | PUBLIC | c1" },
+        {
+          id: "c2",
+          name: "general-team",
+          channelType: "PRIVATE",
+          label: "#general-team | PRIVATE | c2",
+        },
       ],
     });
     expect(sendMessage).not.toHaveBeenCalled();

@@ -406,9 +406,9 @@ async function resolveUserId(sdk, input) {
 function resolveCliError(kind, input, result) {
   if (result.reason === "ambiguous") {
     const choices = result.candidates
-      .map((choice) => "email" in choice
+      .map((choice) => choice.label ?? ("email" in choice
         ? `${choice.name} <${choice.email}> (${choice.id})`
-        : `#${choice.name} (${choice.id})`)
+        : `#${choice.name} (${choice.id})`))
       .join(", ");
     return new CliError(`${kind} is ambiguous: ${input}. Choices: ${choices}`);
   }

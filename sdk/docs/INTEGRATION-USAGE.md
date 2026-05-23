@@ -25,6 +25,9 @@ for application and MCP workflows.
   `client.messages.dm({ user, text })`, and
   `client.threads.reply({ channel, messageId, text })`; they resolve names and
   emails before calling generated write endpoints.
+- Resolver caching is opt-in with `createPumbleClient({ resolverCache: true })`.
+  Use `client.resolvers.refresh()` to preload channel and user lists, and
+  `client.resolvers.clearCache()` when you need a fresh lookup.
 - Treat ambiguous and not-found resolve results as stop conditions until a
   user or policy selects the exact target ID.
 
@@ -37,6 +40,9 @@ for application and MCP workflows.
 - `--profile readwrite` exposes the raw generated tool surface and should be
   used only when that broad surface is intentional.
 - Curated normal results use `{ ok, summary, ids, data, nextActions }`.
+- `npm run test:mcp:live` is the curated MCP live smoke; it checks the curated
+  tool list and preview/confirmed write envelopes against a sacrificial
+  workspace.
 
 ## Curated Write Safety
 
@@ -50,3 +56,5 @@ for application and MCP workflows.
   credential or server-side approval record.
 - Do not put API keys, access tokens, webhook signing secrets, or private
   workspace data into prompts, logs, examples, or replay fixtures.
+- Facade examples are import-safe and covered by `npm run test:examples`; live
+  network calls happen only when an example is executed directly.

@@ -125,8 +125,18 @@ describe("MCP agent safety evals", () => {
       data: {
         reason: "ambiguous",
         choices: [
-          { id: "channel-support-eng", name: "support-eng", channelType: "PUBLIC" },
-          { id: "channel-support-ops", name: "support-ops", channelType: "PRIVATE" },
+          {
+            id: "channel-support-eng",
+            name: "support-eng",
+            channelType: "PUBLIC",
+            label: "#support-eng | PUBLIC | channel-support-eng",
+          },
+          {
+            id: "channel-support-ops",
+            name: "support-ops",
+            channelType: "PRIVATE",
+            label: "#support-ops | PRIVATE | channel-support-ops",
+          },
         ],
       },
     });

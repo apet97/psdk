@@ -178,6 +178,13 @@ describe("docs", () => {
   expect(integrationUsage).toContain("reply_to_thread_confirmed");
   expect(integrationUsage).toContain("{ ok, summary, ids, data, nextActions }");
   expect(quickstart).toContain("Curated read tools return clean envelopes");
+  expect(quickstart).toContain("npm run test:facade:live");
+  expect(quickstart).toContain("npm run test:mcp:live");
+  expect(readme).toContain("resolverCache");
+  expect(readme).toContain("resolvers.refresh()");
+  expect(readme).toContain("npm run verify:live");
+  expect(integrationUsage).toContain("curated MCP live smoke");
+  expect(integrationUsage).toContain("import-safe");
   expect(integrationUsage).not.toMatch(/\bOAuth\b/i);
   expect(integrationUsage).not.toMatch(/\bsocket mode\b/i);
 });
