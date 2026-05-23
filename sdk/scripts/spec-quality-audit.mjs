@@ -225,6 +225,55 @@ function runCli() {
   console.log(formatted);
 }
 
+export function runAudit({ specPath = DEFAULT_SPEC_PATH } = {}) {
+  const doc = parse(readFileSync(specPath, "utf8"));
+  const report = {
+    findings: auditOpenApiDocument(doc),
+    missingDescription: [],
+    unsafeWriteRetries: [],
+    missingPaginationMetadata: [],
+    leakedSecrets: [],
+  };
+
+  for (const { path, method, operation } of listOperations(doc)) {
+    const where = `${method.toUpperCase()} ${path}`;
+    const description =
+      typeof operation.description === "string" ? operation.description.trim() : "";
+    const summary =
+      typeof operation.summary === "string" ? operation.summary.trim() : "";
+    if (!description && !summary) {
+      report.missingDescription.push(where);
+    }
+
+    const isWrite = ["post", "put", "delete", "patch"].includes(method);
+    if (isWrite) {
+      const retries = operation["x-speakeasy-retries"];
+      // A write op must declare its retry posture: either strategy:none
+      // (non-idempotent) or an explicit safe-read backoff (idempotent
+      // read-shaped POST like searchMessages).
+      if (!isRecord(retries)) {
+        report.unsafeWriteRetries.push(where);
+      }
+    }
+
+    const pagination = operation["x-speakeasy-pagination"];
+    if (pagination) {
+      const okResponse = isRecord(operation.responses?.["200"]) ? operation.responses["200"] : null;
+      if (!okResponse || !isRecord(okResponse.content)) {
+        report.missingPaginationMetadata.push(where);
+      }
+    }
+  }
+
+  for (const finding of report.findings) {
+    if (finding.code === "examples/real-email" || finding.code === "examples/live-id") {
+      report.leakedSecrets.push(`${finding.location}: ${finding.code}`);
+    }
+  }
+
+  return report;
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   runCli();
 }

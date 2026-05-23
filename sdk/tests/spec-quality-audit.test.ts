@@ -174,3 +174,27 @@ describe("spec quality audit", () => {
     ).toBe("Spec quality audit failed with 1 finding(s):\n- [responses/missing] GET /broken: Operation must document at least one response.");
   });
 });
+
+import { resolve } from "node:path";
+// eslint-disable-next-line import/no-unresolved
+import { runAudit } from "../scripts/spec-quality-audit.mjs";
+
+describe("spec quality audit (extended)", () => {
+  const report = runAudit({ specPath: resolve(__dirname, "..", "..", "PumbleOpenApi.yaml") });
+
+  it("every operation has a description or summary", () => {
+    expect(report.missingDescription).toEqual([]);
+  });
+
+  it("write operations declare x-speakeasy-retries strategy:none", () => {
+    expect(report.unsafeWriteRetries).toEqual([]);
+  });
+
+  it("paginated operations carry pagination metadata", () => {
+    expect(report.missingPaginationMetadata).toEqual([]);
+  });
+
+  it("no live emails or 24-char IDs leak into examples", () => {
+    expect(report.leakedSecrets).toEqual([]);
+  });
+});
