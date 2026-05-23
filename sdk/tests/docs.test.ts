@@ -16,6 +16,7 @@ const integrationUsage = readFileSync(
 const packageSplit = readFileSync(new URL("../docs/PACKAGE-SPLIT.md", import.meta.url), "utf8");
 const stability = readFileSync(new URL("../docs/STABILITY.md", import.meta.url), "utf8");
 const errorsGuide = readFileSync(new URL("../docs/ERRORS.md", import.meta.url), "utf8");
+const apiReference = readFileSync(new URL("../docs/API-REFERENCE.md", import.meta.url), "utf8");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const context = readFileSync(new URL("../../CONTEXT.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
@@ -72,6 +73,48 @@ const requiredIntegrationUsagePhrases = [
   "Resolve before act",
   "Curated message writes require preview and confirmation",
   "Do not put API keys",
+];
+
+const requiredApiReferenceHeadings = [
+  "raw sdk",
+  "facade",
+  "errors",
+  "pagination",
+  "mcp",
+  "cli",
+  "webhooks",
+  "stability",
+];
+
+const requiredApiReferencePhrases = [
+  'import { PumbleSDK } from "pumble-sdk";',
+  "channels",
+  "messages",
+  "scheduledMessages",
+  "users",
+  'import { createPumbleClient } from "pumble-sdk/extensions/index.js";',
+  "messages.send",
+  "messages.dm",
+  "threads.reply",
+  "search.recent",
+  "resolvers.preflight",
+  "resolvers.clearCache",
+  "resolvers.refresh",
+  "resolvers.cacheInfo",
+  "type FacadeResult<T>",
+  "Raw SDK methods throw SDK errors",
+  "facade operations return value failures",
+  "searchAllMessages",
+  "timestamp cursors",
+  "same-second boundaries",
+  "pumble-mcp start --profile curated",
+  "stdio",
+  "localhost",
+  "bearer auth",
+  "`pumble`",
+  "`pumble-mcp`",
+  "signature verification",
+  "event handler/router",
 ];
 
 function markdownHeadings(markdown: string): string[] {
@@ -354,10 +397,19 @@ describe("docs", () => {
     expect(security).toContain("Do not report secrets");
     expect(security).toContain("Pumble API keys");
 
-    const apiReference = readFileSync(resolve(sdkRoot, "docs/API-REFERENCE.md"), "utf8");
     expect(apiReference).toContain("Raw SDK");
     expect(apiReference).toContain("Facade");
     expect(apiReference).toContain("MCP");
+  });
+
+  test("api reference covers the supported sdk surfaces", () => {
+    expect(markdownHeadings(apiReference)).toEqual(
+      expect.arrayContaining(requiredApiReferenceHeadings),
+    );
+
+    for (const phrase of requiredApiReferencePhrases) {
+      expect(apiReference).toContain(phrase);
+    }
   });
 
   test("docs describe resolver performance and cache boundaries", () => {
