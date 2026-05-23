@@ -1,0 +1,36 @@
+id: G07
+title: Public surface stability tiers + audit
+priority: P2
+status: done
+why: "Every published export must declare its tier so users can rely on the contract; CI must fail loudly when a new export ships without a tier."
+scope:
+  allowed:
+    - sdk/scripts/public-surface-audit.mjs
+    - sdk/docs/STABILITY.md
+    - sdk/tests/package-metadata.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "scripts/public-surface-audit.mjs runs as CLI and exports runSurfaceAudit()."
+  - "docs/STABILITY.md lists every package.json export with its tier."
+  - "tests/package-metadata.test.ts asserts missingTier and experimentalLeaksInReadme are both empty."
+commands:
+  - "cd sdk && npm test -- tests/package-metadata.test.ts"
+  - "cd sdk && node scripts/public-surface-audit.mjs"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Adding a new export without updating STABILITY.md fails the audit."
+  - "Mentioning an experimental export in the README headline fails the leak check."
+links:
+  docs:
+    - sdk/docs/STABILITY.md
+  tests:
+    - sdk/tests/package-metadata.test.ts
+rollback: "Revert this commit; existing STABILITY.md content remains as before."

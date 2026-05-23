@@ -1,0 +1,35 @@
+id: G00
+title: Lock product identity as Pumble TypeScript SDK / Developer Toolkit
+priority: P0
+status: done
+why: |
+  The repo must read in 30 seconds as a Pumble-specific SDK/toolkit, not a
+  general OpenAPI generator. Confusion here drains every later improvement.
+scope:
+  allowed:
+    - README.md
+    - sdk/README.md
+    - sdk/docs/API-REFERENCE.md
+    - docs/product/sdk-generator-product-boundary.md
+    - sdk/tests/docs.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+acceptance:
+  - "Root and sdk READMEs each contain a 'What this is / what this is not' section."
+  - "Forbidden phrases (see manifest) appear only inside the boundary doc."
+  - "tests/docs.test.ts fails if any forbidden phrase appears elsewhere."
+commands:
+  - "cd sdk && npm test -- tests/docs.test.ts"
+adversarial_checks:
+  - "Could a new visitor read root README and still mistake this for a generator platform? It must not."
+  - "Does the boundary doc still exist and remain linked from README? It must."
+links:
+  docs:
+    - docs/product/sdk-generator-product-boundary.md
+    - README.md
+    - sdk/README.md
+  tests:
+    - sdk/tests/docs.test.ts
+rollback: "Revert the docs commit; manifest entry stays."

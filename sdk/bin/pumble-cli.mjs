@@ -28,13 +28,28 @@ class CliError extends Error {
 
 async function main(argv) {
   const { globals, args } = parseGlobalOptions(argv);
+  if (globals.version) {
+    const pkg = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    );
+    process.stdout.write(`${pkg.version}\n`);
+    return;
+  }
   if (globals.help || args.length === 0) {
     printHelp();
     return;
   }
 
-  const sdk = createClient(globals);
   const [command, ...rest] = args;
+  if (command === "doctor") {
+    return cmdDoctor(globals);
+  }
+  if (command === "help") {
+    printHelp();
+    return;
+  }
+
+  const sdk = createClient(globals);
 
   switch (command) {
     case "whoami":
@@ -57,12 +72,18 @@ async function main(argv) {
       return cmdStatus(sdk, rest, globals);
     case "schedule":
       return cmdSchedule(sdk, rest, globals);
-    case "help":
-      printHelp();
-      return;
     default:
       throw new UsageError(`unknown command: ${command}`);
   }
+}
+
+async function cmdDoctor(globals) {
+  const key = resolveApiKey(globals);
+  const masked = key.length >= 4
+    ? "*".repeat(Math.max(0, key.length - 4)) + key.slice(-4)
+    : "(none)";
+  process.stdout.write(`api key: ${masked}\n`);
+  process.stdout.write(`base url: ${globals.baseURL}\n`);
 }
 
 function parseGlobalOptions(argv) {
@@ -73,7 +94,9 @@ function parseGlobalOptions(argv) {
     baseURL: process.env.PUMBLE_BASE_URL ?? process.env.PUMBLESDK_SERVER_URL ?? DEFAULT_BASE_URL,
     timeoutMs: undefined,
     verbose: false,
+    quiet: false,
     help: false,
+    version: false,
   };
   const args = [];
 
@@ -123,8 +146,16 @@ function parseGlobalOptions(argv) {
       globals.verbose = true;
       continue;
     }
+    if (arg === "--quiet" || arg === "-q") {
+      globals.quiet = true;
+      continue;
+    }
     if (arg === "-h" || arg === "--help") {
       globals.help = true;
+      continue;
+    }
+    if (arg === "--version") {
+      globals.version = true;
       continue;
     }
     args.push(arg);
@@ -199,7 +230,7 @@ async function cmdChannels(sdk, args, globals) {
         name,
         type: parsed.values.private ? "PRIVATE" : "PUBLIC",
       });
-      printMutation(created, parsed.values.json, globals.verbose, (c) =>
+      printMutation(created, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, (c) =>
         `created #${c.name ?? name} (${c.id})`
       );
       return;
@@ -256,7 +287,7 @@ async function cmdSend(sdk, args, globals) {
   }
   const channelId = await resolveChannelId(sdk, channelArg);
   const sent = await sdk.messages.sendMessage({ channelId, text });
-  printMutation(sent, parsed.values.json, globals.verbose, (m) =>
+  printMutation(sent, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, (m) =>
     `sent ${m.id} in ${m.channelId}`
   );
 }
@@ -272,7 +303,7 @@ async function cmdDm(sdk, args, globals) {
   }
   const userId = await resolveUserId(sdk, userArg);
   const sent = await sdk.messages.dmUser({ userId, text });
-  printMutation(sent, parsed.values.json, globals.verbose, (m) =>
+  printMutation(sent, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, (m) =>
     `sent DM ${m.id} in ${m.channelId}`
   );
 }
@@ -355,7 +386,7 @@ async function cmdStatus(sdk, args, globals) {
         status,
         expiresAt: parseNonNegativeInt(parsed.values["expires-at"], "--expires-at"),
       });
-      printMutation(result, parsed.values.json, globals.verbose, () => "status updated");
+      printMutation(result, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, () => "status updated");
       return;
     }
     case "clear": {
@@ -368,7 +399,7 @@ async function cmdStatus(sdk, args, globals) {
         status: "",
         expiresAt: Date.now() - 1,
       });
-      printMutation(result, parsed.values.json, globals.verbose, () => "status cleared");
+      printMutation(result, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, () => "status cleared");
       return;
     }
     default:
@@ -407,7 +438,7 @@ async function cmdSchedule(sdk, args, globals) {
       const result = await sdk.scheduledMessages.deleteScheduledMessage({
         scheduledMessageId,
       });
-      printMutation(result, parsed.values.json, globals.verbose, () =>
+      printMutation(result, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, () =>
         `cancelled scheduled message ${scheduledMessageId}`
       );
       return;
@@ -459,9 +490,19 @@ function ensureNoPositionals(parsed, command) {
   }
 }
 
-function printMutation(value, json, verbose, message) {
-  if (json) printJson(value ?? { ok: true });
-  else if (verbose) printLine(message(value));
+function printMutation(value, json, quietOrVerbose, message) {
+  if (json) {
+    printJson(value ?? { ok: true });
+    return;
+  }
+  // Backwards-compatible second-positional accepts a boolean (verbose flag)
+  // or an options object { quiet, verbose }. Default behaviour: print the
+  // one-line success message unless quiet is set.
+  const opts = typeof quietOrVerbose === "object" && quietOrVerbose !== null
+    ? quietOrVerbose
+    : { verbose: quietOrVerbose === true, quiet: false };
+  if (opts.quiet) return;
+  printLine(message(value));
 }
 
 function printJson(value) {

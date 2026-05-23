@@ -4,6 +4,16 @@ This path gets one useful result at a time: read your identity, resolve a
 target, write a message, reply in thread, verify a webhook, and run the MCP
 server without exposing unchecked writes.
 
+## Which API should I use?
+
+| Goal | Use |
+| --- | --- |
+| Application code, safer ergonomics, structured failures | **facade** (`createPumbleClient`) |
+| Direct endpoint parity, generated types, raw thrown errors | **raw SDK** (`PumbleSDK`) |
+| Shell automation, one-shot commands | **CLI** (`pumble ...`) |
+| Agents and assistants | **curated MCP** (`pumble-mcp`) |
+| Receive Pumble events | **webhooks** (`pumble-sdk/extensions/webhooks.js`) |
+
 ## Prerequisites
 
 * Node 20 or newer.
@@ -125,6 +135,18 @@ if (!preflight.ok) {
   if (preflight.channel && !preflight.channel.ok) console.error(preflight.channel.summary);
   if (preflight.user && !preflight.user.ok) console.error(preflight.user.summary);
   process.exit(1);
+}
+```
+
+## Walk The Full Search Result Set
+
+`searchAllMessages` (exposed as `pumble.search.all`) is the recommended way to
+walk a full result set — it caps page count, respects an `AbortSignal`, and
+dedupes overlapping timestamps.
+
+```typescript
+for await (const hit of pumble.search.all({ text: "release notes", limit: 50 })) {
+  console.log(hit.id, hit.text);
 }
 ```
 

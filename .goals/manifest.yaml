@@ -1,0 +1,50 @@
+version: 1
+product:
+  name: pumble-sdk
+  positioning: "Pumble TypeScript SDK / Developer Toolkit"
+  not: "general SDK generator, multi-language code generator, Stainless/Speakeasy competitor"
+guardrails:
+  generated_paths:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+  forbidden_phrases:
+    - "SDK generator platform"
+    - "Stainless competitor"
+    - "multi-language generator"
+    - "production-grade"
+    - "industrial-strength"
+    - "world-class"
+    - "best-in-class"
+goals:
+  - { id: G00, file: G00-product-identity.yaml }
+  - { id: G01, file: G01-goal-system.yaml }
+  - { id: G02, file: G02-patch-burndown.yaml }
+  - { id: G03, file: G03-safe-search-pagination.yaml }
+  - { id: G04, file: G04-cli-write-output.yaml }
+  - { id: G05, file: G05-release-evidence.yaml }
+  - { id: G06, file: G06-ci-gate-matrix.yaml }
+  - { id: G07, file: G07-package-boundaries.yaml }
+  - { id: G08, file: G08-app-helpers-decision.yaml }
+  - { id: G09, file: G09-facade-first.yaml }
+  - { id: G10, file: G10-error-model.yaml }
+  - { id: G11, file: G11-resolver-performance.yaml }
+  - { id: G12, file: G12-mcp-safety.yaml }
+  - { id: G13, file: G13-cli-polish.yaml }
+  - { id: G14, file: G14-webhook-examples.yaml }
+  - { id: G15, file: G15-realtime-boundary.yaml }
+  - { id: G16, file: G16-retry-rate-limit-contract.yaml }
+  - { id: G17, file: G17-spec-contract.yaml }
+  - { id: G18, file: G18-docs-ia.yaml }
+  - { id: G19, file: G19-examples-catalog.yaml }
+  - { id: G20, file: G20-test-taxonomy.yaml }
+  - { id: G21, file: G21-package-hardening.yaml }
+  - { id: G22, file: G22-security-scans.yaml }
+  - { id: G23, file: G23-telemetry.yaml }
+  - { id: G24, file: G24-versioning-migration.yaml }
+  - { id: G25, file: G25-operations-checklist.yaml }

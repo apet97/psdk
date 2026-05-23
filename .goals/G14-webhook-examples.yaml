@@ -1,0 +1,35 @@
+id: G14
+title: Webhook framework examples + tests
+priority: P1
+status: done
+why: "Webhook integration paths vary by framework; users need copy-pastable recipes for express, fastify, Next.js routes, and plain node http."
+scope:
+  allowed:
+    - sdk/examples/**
+    - sdk/docs/API-REFERENCE.md
+    - sdk/tests/webhook-examples.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "examples/webhooks/{express,fastify,next-route,node-http}.ts each export a function."
+  - "tests/webhook-examples.test.ts smoke-imports every example."
+  - "docs/API-REFERENCE.md links every recipe and states the raw-body rule."
+commands:
+  - "cd sdk && npm test -- tests/webhook-examples.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Renaming any exported function fails the smoke-import test."
+  - "Removing a recipe from API-REFERENCE.md leaves the example undiscovered."
+links:
+  docs:
+    - sdk/docs/API-REFERENCE.md
+  tests:
+    - sdk/tests/webhook-examples.test.ts
+rollback: "Revert this commit; existing webhook-server.ts example still ships."

@@ -9,6 +9,12 @@ export interface ResolverCacheInfo {
   users: ResolverCacheState;
 }
 
+export interface ResolverCacheMetrics {
+  hits: number;
+  misses: number;
+  evictions: number;
+}
+
 type ResolverSource = ResolveChannelClient & ResolveUserClient;
 
 export interface ResolverCacheConfig {
@@ -31,8 +37,12 @@ export function createResolverCache(
 ) {
   let channelCache: CacheEntry<ChannelListEntry[]> | undefined;
   let userCache: CacheEntry<User[]> | undefined;
+  let hits = 0;
+  let misses = 0;
+  let evictions = 0;
 
   function loadChannels() {
+    misses++;
     const entry: CacheEntry<ChannelListEntry[]> = {
       loadedAt: Date.now(),
       promise: source.channels.listChannels().catch((error: unknown) => {
@@ -45,6 +55,7 @@ export function createResolverCache(
   }
 
   function loadUsers() {
+    misses++;
     const entry: CacheEntry<User[]> = {
       loadedAt: Date.now(),
       promise: source.users.listUsers().catch((error: unknown) => {
@@ -59,8 +70,14 @@ export function createResolverCache(
   function cachedChannels() {
     const cached = channelCache;
     if (cached !== undefined) {
-      if (isFresh(cached, config.ttlMs)) return cached.promise;
-      if (config.refreshOnMiss === false) return cached.promise;
+      if (isFresh(cached, config.ttlMs)) {
+        hits++;
+        return cached.promise;
+      }
+      if (config.refreshOnMiss === false) {
+        hits++;
+        return cached.promise;
+      }
     }
     return loadChannels();
   }
@@ -68,8 +85,14 @@ export function createResolverCache(
   function cachedUsers() {
     const cached = userCache;
     if (cached !== undefined) {
-      if (isFresh(cached, config.ttlMs)) return cached.promise;
-      if (config.refreshOnMiss === false) return cached.promise;
+      if (isFresh(cached, config.ttlMs)) {
+        hits++;
+        return cached.promise;
+      }
+      if (config.refreshOnMiss === false) {
+        hits++;
+        return cached.promise;
+      }
     }
     return loadUsers();
   }
@@ -88,6 +111,8 @@ export function createResolverCache(
       },
     },
     clearCache() {
+      if (channelCache !== undefined) evictions++;
+      if (userCache !== undefined) evictions++;
       channelCache = undefined;
       userCache = undefined;
     },
@@ -101,6 +126,9 @@ export function createResolverCache(
         channels: channelCache === undefined ? "empty" : "loaded",
         users: userCache === undefined ? "empty" : "loaded",
       };
+    },
+    metrics(): ResolverCacheMetrics {
+      return { hits, misses, evictions };
     },
   };
 }

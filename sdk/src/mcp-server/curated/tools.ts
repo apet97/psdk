@@ -26,6 +26,36 @@ export const CURATED_TOOL_NAMES = [
   ...CURATED_WRITE_TOOL_NAMES,
 ] as const;
 
+const CURATED_READ_TOOL_NAMES = [
+  "whoami",
+  "find_channel",
+  "find_user",
+  "list_channels",
+  "search_messages",
+  "get_channel_context",
+  "get_thread_context",
+] as const;
+
+export interface CuratedToolInfo {
+  readonly name: string;
+  readonly kind: "read" | "write";
+  readonly requiresConfirmation: boolean;
+}
+
+export function listCuratedTools(): CuratedToolInfo[] {
+  const reads: CuratedToolInfo[] = CURATED_READ_TOOL_NAMES.map((name) => ({
+    name,
+    kind: "read",
+    requiresConfirmation: false,
+  }));
+  const writes: CuratedToolInfo[] = CURATED_WRITE_TOOL_NAMES.map((name) => ({
+    name,
+    kind: "write",
+    requiresConfirmation: true,
+  }));
+  return [...reads, ...writes];
+}
+
 export type CuratedToolOptions = CuratedWriteToolOptions;
 
 type ToolExtra = RequestHandlerExtra<ServerRequest, ServerNotification>;

@@ -1,0 +1,31 @@
+id: G01
+title: Add repo-internal goal registry and validation
+priority: P0
+status: done
+why: |
+  Without scoped goals, AI changes drift across files and grow unreviewable.
+  Each scoped goal becomes one commit set with explicit guardrails.
+scope:
+  allowed:
+    - .goals/**
+    - sdk/scripts/goal-check.mjs
+    - sdk/tests/goal-registry.test.ts
+    - sdk/package.json
+  forbidden:
+    - sdk/src/**
+acceptance:
+  - "`npm run goals:check` exits non-zero if any goal lacks scope, acceptance, or commands."
+  - "`verify:offline` runs goals:check."
+  - "All 26 goals exist as Gxx-*.yaml files."
+commands:
+  - "cd sdk && npm run goals:check"
+  - "cd sdk && npm test -- tests/goal-registry.test.ts"
+adversarial_checks:
+  - "Can a goal pass validation without listing tests? It must not."
+  - "Can goals:check pass with zero goals? It must not (manifest count enforced)."
+links:
+  docs:
+    - .goals/README.md
+  tests:
+    - sdk/tests/goal-registry.test.ts
+rollback: "Remove .goals/ and the npm script; suite returns to prior state."

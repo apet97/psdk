@@ -1,0 +1,37 @@
+id: G17
+title: Spec contract doc + extended audit
+priority: P1
+status: done
+why: "The OpenAPI document is the source of truth for the generated SDK; every operation must declare its retry/pagination posture and avoid leaking real workspace data in examples."
+scope:
+  allowed:
+    - sdk/scripts/spec-quality-audit.mjs
+    - sdk/docs/SPEC-CONTRACT.md
+    - sdk/tests/spec-quality-audit.test.ts
+    - PumbleOpenApi.yaml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "runAudit() returns categorized lists for missingDescription, unsafeWriteRetries, missingPaginationMetadata, leakedSecrets."
+  - "Every write operation in PumbleOpenApi.yaml declares an x-speakeasy-retries posture (none for mutating writes; safeReadRetries for read-shaped POSTs)."
+  - "docs/SPEC-CONTRACT.md captures the per-operation required fields and forbidden example content."
+commands:
+  - "cd sdk && npm test -- tests/spec-quality-audit.test.ts"
+  - "cd sdk && npm run spec:audit"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Adding a new write op without retries flags it via runAudit().unsafeWriteRetries."
+  - "Leaking a real email or live ID into an example flags it via runAudit().leakedSecrets."
+links:
+  docs:
+    - sdk/docs/SPEC-CONTRACT.md
+  tests:
+    - sdk/tests/spec-quality-audit.test.ts
+rollback: "Revert this commit; PumbleOpenApi.yaml changes only add explicit retry markers."

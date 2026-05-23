@@ -1,0 +1,36 @@
+id: G04
+title: CLI prints write success by default
+priority: P1
+status: done
+why: "Silent writes hide that they happened; agents and humans both want a confirmation line by default with --quiet to opt out."
+scope:
+  allowed:
+    - sdk/bin/**
+    - sdk/docs/CLI-REFERENCE.md
+    - sdk/tests/cli-quiet.test.ts
+    - sdk/tests/cli.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "Default write commands print a one-line success message."
+  - "--quiet suppresses the default success line."
+  - "--json still emits structured output."
+commands:
+  - "cd sdk && npm test -- tests/cli-quiet.test.ts tests/cli.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Removing --quiet handling fails the suppression test."
+  - "Reverting printMutation to verbose-only fails the default-output test."
+links:
+  docs:
+    - sdk/docs/CLI-REFERENCE.md
+  tests:
+    - sdk/tests/cli-quiet.test.ts
+rollback: "Revert this commit; CLI again silent for writes."

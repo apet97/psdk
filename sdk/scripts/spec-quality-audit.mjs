@@ -16,6 +16,15 @@ const DEFAULT_SPEC_PATH = resolve(__dirname, "../../PumbleOpenApi.yaml");
 export function auditOpenApiDocument(doc) {
   const findings = [];
 
+  if (isRecord(doc) && isRecord(doc["x-speakeasy-retries"]) && !hasNonEmptyStatusCodes(doc["x-speakeasy-retries"])) {
+    findings.push({
+      code: "retries/missing-statuscodes",
+      location: "<document>",
+      message:
+        "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
+    });
+  }
+
   for (const { path, method, operation, pathItem } of listOperations(doc)) {
     const location = `${method.toUpperCase()} ${path}`;
     const operationId = typeof operation.operationId === "string" ? operation.operationId.trim() : "";
@@ -49,6 +58,18 @@ export function auditOpenApiDocument(doc) {
     }
 
     if (
+      isRecord(operation["x-speakeasy-retries"]) &&
+      !hasNonEmptyStatusCodes(operation["x-speakeasy-retries"])
+    ) {
+      findings.push({
+        code: "retries/missing-statuscodes",
+        location,
+        message:
+          "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
+      });
+    }
+
+    if (
       isMessageCreatingOperation(path, method, operation) &&
       hasRetryConfig(operation, doc) &&
       !hasIdempotencyKeySupport(pathItem.parameters, operation.parameters, operation.requestBody) &&
@@ -65,6 +86,10 @@ export function auditOpenApiDocument(doc) {
 
   scanExamples(doc, "$", findings, false);
   return findings;
+}
+
+function hasNonEmptyStatusCodes(retries) {
+  return Array.isArray(retries.statusCodes) && retries.statusCodes.length > 0;
 }
 
 export function formatAuditFindings(findings) {
@@ -211,18 +236,99 @@ function isRecord(value) {
 }
 
 function runCli() {
-  const source = readFileSync(DEFAULT_SPEC_PATH, "utf8");
-  const doc = parse(source);
-  const findings = auditOpenApiDocument(doc);
-  const formatted = formatAuditFindings(findings);
-
-  if (findings.length > 0) {
-    console.error(formatted);
+  const result = auditSpec(DEFAULT_SPEC_PATH);
+  if (!result.ok) {
+    console.error(result.message);
     process.exitCode = 1;
     return;
   }
+  console.log(result.message);
+}
 
-  console.log(formatted);
+export function auditSpec(specPath) {
+  const report = runAudit({ specPath });
+  const sections = [];
+
+  if (report.findings.length > 0) {
+    sections.push(formatAuditFindings(report.findings));
+  }
+  if (report.missingDescription.length > 0) {
+    sections.push(formatBucket("Operations missing description/summary", report.missingDescription));
+  }
+  if (report.unsafeWriteRetries.length > 0) {
+    sections.push(
+      formatBucket(
+        "Write operations missing x-speakeasy-retries declaration",
+        report.unsafeWriteRetries,
+      ),
+    );
+  }
+  if (report.missingPaginationMetadata.length > 0) {
+    sections.push(
+      formatBucket("Paginated operations missing 200 response metadata", report.missingPaginationMetadata),
+    );
+  }
+  if (report.leakedSecrets.length > 0) {
+    sections.push(formatBucket("Example values leaking real IDs or emails", report.leakedSecrets));
+  }
+
+  if (sections.length === 0) {
+    return { ok: true, message: "Spec quality audit passed." };
+  }
+  return { ok: false, message: sections.join("\n\n") };
+}
+
+function formatBucket(title, items) {
+  return [`${title} (${items.length}):`, ...items.map((entry) => `  - ${entry}`)].join("\n");
+}
+
+export function runAudit({ specPath = DEFAULT_SPEC_PATH } = {}) {
+  const doc = parse(readFileSync(specPath, "utf8"));
+  const report = {
+    findings: auditOpenApiDocument(doc),
+    missingDescription: [],
+    unsafeWriteRetries: [],
+    missingPaginationMetadata: [],
+    leakedSecrets: [],
+  };
+
+  for (const { path, method, operation } of listOperations(doc)) {
+    const where = `${method.toUpperCase()} ${path}`;
+    const description =
+      typeof operation.description === "string" ? operation.description.trim() : "";
+    const summary =
+      typeof operation.summary === "string" ? operation.summary.trim() : "";
+    if (!description && !summary) {
+      report.missingDescription.push(where);
+    }
+
+    const isWrite = ["post", "put", "delete", "patch"].includes(method);
+    if (isWrite) {
+      const retries = operation["x-speakeasy-retries"];
+      // A write op must declare its retry posture: either strategy:none
+      // (non-idempotent) or an explicit safe-read backoff (idempotent
+      // read-shaped POST like searchMessages).
+      if (!isRecord(retries)) {
+        report.unsafeWriteRetries.push(where);
+      }
+    }
+
+    const pagination = operation["x-speakeasy-pagination"];
+    if (pagination) {
+      const okResponse = isRecord(operation.responses?.["200"]) ? operation.responses["200"] : null;
+      if (!okResponse || !isRecord(okResponse.content)) {
+        report.missingPaginationMetadata.push(where);
+      }
+    }
+  }
+
+  for (const finding of report.findings) {
+    if (finding.code === "examples/real-email" || finding.code === "examples/live-id") {
+      report.leakedSecrets.push(`${finding.location}: ${finding.code}`);
+    }
+  }
+
+  return report;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

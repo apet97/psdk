@@ -1,6 +1,37 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { describe, expect, test } from "vitest";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
+import { describe, expect, it, test } from "vitest";
+
+function listMarkdownFiles(
+  cwd: string,
+  isExcluded: (relativePath: string) => boolean,
+): string[] {
+  const found: string[] = [];
+  const stack: string[] = [cwd];
+  while (stack.length > 0) {
+    const dir = stack.pop()!;
+    let entries: import("node:fs").Dirent[];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const absolute = join(dir, entry.name);
+      const rel = relative(cwd, absolute);
+      if (entry.isDirectory()) {
+        if (isExcluded(`${rel}/`)) continue;
+        stack.push(absolute);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      if (!entry.name.endsWith(".md")) continue;
+      if (isExcluded(rel)) continue;
+      found.push(rel);
+    }
+  }
+  return found;
+}
 
 type PackageJson = {
   name: string;
@@ -132,13 +163,13 @@ const requiredChangelogHeadings = [
 ];
 
 const requiredPublicSurfaceRows = [
-  "| `pumble-sdk` | Raw SDK | Stable |",
-  "| `pumble-sdk/extensions/index.js` | Facade helpers | Stable |",
-  "| `pumble-sdk/extensions/webhooks.js` | Webhook verification | Stable |",
-  "| `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | Beta |",
-  "| `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | Beta |",
-  "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
-  "| `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |",
+  "| `.` | `pumble-sdk` | Raw SDK + façade re-exports | stable |",
+  "| `./extensions/index.js` | `pumble-sdk/extensions/index.js` | Façade helpers | stable |",
+  "| `./extensions/webhooks.js` | `pumble-sdk/extensions/webhooks.js` | Webhook verification | stable |",
+  "| `./extensions/telemetry.js` | `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | beta |",
+  "| `./extensions/testing/index.js` | `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |",
+  "| `./extensions/app/index.js` | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |",
+  "| `./extensions/app/socket-mode.js` | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |",
 ];
 
 const requiredExtensionCategories = [
@@ -541,10 +572,13 @@ describe("docs", () => {
   });
 
   test("docs mark app and oauth helpers experimental without complete flow claims", () => {
+    expect(stability).toMatch(
+      /`pumble-sdk\/extensions\/app\/index\.js`.*experimental/i,
+    );
+    expect(apiReference).toContain(
+      "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
+    );
     for (const markdown of [apiReference, stability]) {
-      expect(markdown).toContain(
-        "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
-      );
       expect(markdown).toContain("OAuth/app helpers are experimental utilities");
       expect(markdown).toContain(
         "do not provide a complete install, token refresh, storage, and workspace-selection flow",
@@ -634,5 +668,120 @@ describe("docs", () => {
     expect(support).toContain("Support Matrix");
     expect(support).toContain("| Browser/edge runtime | Not supported in `0.3.x` |");
     expect(support).toContain("For organization deployments:");
+  });
+});
+
+describe("product identity guard", () => {
+  const guardRepoRoot = resolve(__dirname, "..", "..");
+  const FORBIDDEN = [
+    "SDK generator platform",
+    "Stainless competitor",
+    "multi-language generator",
+    "production-grade",
+    "industrial-strength",
+    "world-class",
+    "best-in-class",
+  ];
+  const ALLOWED_FILES = ["docs/product/sdk-generator-product-boundary.md"];
+  const docFiles = listMarkdownFiles(guardRepoRoot, (rel) =>
+    rel.includes("node_modules") ||
+    rel.includes("esm/") ||
+    rel.includes("dist/") ||
+    rel.includes(".remember/") ||
+    rel.includes("docs/superpowers/") ||
+    rel.includes("docs/product/"),
+  );
+
+  it.each(FORBIDDEN)("'%s' appears only in the boundary doc", (phrase) => {
+    const hits = docFiles
+      .filter((rel) => !ALLOWED_FILES.includes(rel))
+      .filter((rel) => readFileSync(join(guardRepoRoot, rel), "utf8").includes(phrase));
+    expect(hits).toEqual([]);
+  });
+});
+
+describe("operations checklist boundary", () => {
+  const ops = readFileSync(new URL("../docs/OPERATIONS-CHECKLIST.md", import.meta.url), "utf8");
+  const NEVER = ["SLA", "SSO", "SCIM", "account manager", "premium support", "hosted control plane"];
+
+  it.each(NEVER)("does not promise %s", (claim) => {
+    expect(ops).not.toContain(claim);
+  });
+
+  it("covers deployment knobs we do provide", () => {
+    expect(ops).toContain("Secret management");
+    expect(ops).toContain("Audit log retention");
+    expect(ops).toContain("Rate-limit coordination");
+  });
+});
+
+describe("docs IA", () => {
+  const idx = readFileSync(new URL("../docs/INDEX.md", import.meta.url), "utf8");
+  const sections = [
+    "Start here",
+    "SDK basics",
+    "Facade workflows",
+    "Raw SDK reference",
+    "CLI",
+    "MCP",
+    "Webhooks",
+    "Testing & replay",
+    "Errors",
+    "Releases & support",
+    "Experimental",
+  ];
+  it.each(sections)("INDEX names section %s", (s) => expect(idx).toContain(s));
+
+  it.each([
+    "QUICKSTART.md",
+    "API-REFERENCE.md",
+    "CLI-REFERENCE.md",
+    "MCP-SAFETY.md",
+    "ERROR-MODEL.md",
+    "RESOLVERS.md",
+    "TESTING.md",
+    "STABILITY.md",
+    "SUPPORT.md",
+    "MIGRATING.md",
+    "verification/v0.3.21.md",
+  ])("INDEX links %s", (path) => {
+    expect(idx).toContain(path);
+  });
+});
+
+describe("facade-first docs", () => {
+  it("README's first ts code example uses createPumbleClient", () => {
+    const firstBlock = readme.match(/```ts\n([\s\S]*?)\n```/);
+    expect(firstBlock?.[1] ?? "").toContain("createPumbleClient");
+  });
+
+  it("Quickstart contains a 'Which API should I use?' section", () => {
+    expect(quickstart).toMatch(/Which API should I use\?/);
+    expect(quickstart).toContain("facade");
+    expect(quickstart).toContain("raw SDK");
+    expect(quickstart).toContain("CLI");
+    expect(quickstart).toContain("curated MCP");
+    expect(quickstart).toContain("webhooks");
+  });
+});
+
+describe("MCP safety guidance", () => {
+  it("README warns against exposing raw readwrite", () => {
+    expect(readme).toMatch(/Do not expose this to agents you do not control/);
+    expect(readme).toMatch(/curated profile/);
+  });
+});
+
+describe("safe search pagination", () => {
+  it("API reference recommends searchAllMessages for full walks", () => {
+    expect(apiReference).toMatch(/searchAllMessages.*recommended/i);
+  });
+
+  it("Quickstart shows a searchAllMessages example", () => {
+    expect(quickstart).toContain("searchAllMessages");
+  });
+
+  it("README links the safe search helper", () => {
+    expect(readme).toContain("searchAllMessages");
   });
 });

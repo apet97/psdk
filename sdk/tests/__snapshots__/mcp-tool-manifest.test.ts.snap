@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`curated MCP tool manifest > manifest is stable (snapshot) 1`] = `
+[
+  "find_channel",
+  "find_user",
+  "get_channel_context",
+  "get_thread_context",
+  "list_channels",
+  "reply_to_thread_confirmed",
+  "reply_to_thread_preview",
+  "search_messages",
+  "send_message_confirmed",
+  "send_message_preview",
+  "whoami",
+]
+`;

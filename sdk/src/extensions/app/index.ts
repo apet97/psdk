@@ -1,3 +1,9 @@
+/**
+ * Experimental — incomplete OAuth/install/refresh flows.
+ * Available in v0.x but with no completeness guarantee; see
+ * docs/STABILITY.md and docs/EXPERIMENTAL.md before depending on these.
+ */
+
 export {
   createPumbleEventRouter,
   type PumbleEventDispatchResult,

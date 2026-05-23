@@ -1,0 +1,33 @@
+id: G19
+title: Examples catalog with safety labels
+priority: P2
+status: done
+why: "Readers need to see at a glance which examples write, which are read-only, and which need env credentials."
+scope:
+  allowed:
+    - sdk/examples/**
+    - sdk/tests/examples.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "examples/INDEX.md lists every example path with a safety label and env requirement."
+  - "tests/examples.test.ts verifies referenced paths exist and every row carries a label."
+commands:
+  - "cd sdk && npm test -- tests/examples.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Removing a label from any catalog row fails the safety-label test."
+  - "Renaming an example without updating the catalog fails the existence test."
+links:
+  docs:
+    - sdk/examples/INDEX.md
+  tests:
+    - sdk/tests/examples.test.ts
+rollback: "Revert this commit; examples remain discoverable through examples/README.md."

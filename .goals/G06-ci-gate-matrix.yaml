@@ -1,0 +1,36 @@
+id: G06
+title: CI gate matrix doc + Actions job summary
+priority: P1
+status: done
+why: "Public PR runs only execute a subset of release gates; users need a single doc that explains which gates run when and where to look for the rest."
+scope:
+  allowed:
+    - .github/workflows/**
+    - sdk/docs/CI-GATES.md
+    - sdk/tests/ci-gates.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "sdk/docs/CI-GATES.md documents every gate (offline, speakeasy regen, live arazzo/search, facade live, MCP live, release required)."
+  - "tests/ci-gates.test.ts enforces each required-gate row and runs/skips columns."
+  - "ci.yml emits a Markdown job summary listing offline + speakeasy gate status."
+  - "release.yml runs verify:live with --required so the publish step refuses to proceed without live verification."
+commands:
+  - "cd sdk && npm test -- tests/ci-gates.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Test fails if any required gate name is removed from the doc."
+  - "Doc keeps the runs-vs-skips columns even when reorganised."
+links:
+  docs:
+    - sdk/docs/CI-GATES.md
+  tests:
+    - sdk/tests/ci-gates.test.ts
+rollback: "Revert this commit; no production impact until the owning task lands."

@@ -1,0 +1,36 @@
+id: G08
+title: Mark app/OAuth/socket helpers experimental and isolate
+priority: P2
+status: done
+why: "Option A — isolate: app/OAuth/Socket Mode helpers stay in the package, marked experimental, with docs that explain the missing pieces. Option B (completing the OAuth flow) is out of scope here."
+scope:
+  allowed:
+    - sdk/src/extensions/app/**
+    - sdk/docs/EXPERIMENTAL.md
+    - sdk/docs/STABILITY.md
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "app/index.ts and app/socket-mode.ts carry an experimental banner."
+  - "docs/EXPERIMENTAL.md documents what's missing and how to opt in."
+  - "STABILITY.md still marks the exports experimental (unchanged by G07)."
+commands:
+  - "cd sdk && npm test -- tests/docs.test.ts tests/package-metadata.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Removing the experimental banner is the user signalling readiness; flag in PR review."
+  - "Linking app exports from the README headline triggers the surface-audit leak check."
+links:
+  docs:
+    - sdk/docs/EXPERIMENTAL.md
+    - sdk/docs/STABILITY.md
+  tests:
+    - sdk/tests/package-metadata.test.ts
+rollback: "Revert this commit; the helpers stay reachable but lose the experimental banner."

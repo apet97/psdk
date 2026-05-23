@@ -1,0 +1,33 @@
+id: G23
+title: Telemetry recipes + redaction guarantee
+priority: P3
+status: done
+why: "Telemetry is optional; the recipes doc keeps the integration cookbook out of the API reference, and the test pins the no-message-text guarantee."
+scope:
+  allowed:
+    - sdk/src/extensions/telemetry.ts
+    - sdk/docs/OBSERVABILITY.md
+    - sdk/tests/telemetry.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "docs/OBSERVABILITY.md documents OTel, JSONL writer, and the redaction guarantee."
+  - "tests/telemetry.test.ts asserts message text never appears in the audit JSONL output."
+commands:
+  - "cd sdk && npm test -- tests/telemetry.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Adding a 'text' field to ID_FIELDS would let message text leak; the new test catches it."
+links:
+  docs:
+    - sdk/docs/OBSERVABILITY.md
+  tests:
+    - sdk/tests/telemetry.test.ts
+rollback: "Revert this commit; existing telemetry behaviour is unchanged."

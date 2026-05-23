@@ -1,0 +1,33 @@
+id: G22
+title: Security checklist
+priority: P2
+status: done
+why: "Releases need a single human-readable checklist that mirrors the automated guards (fixture scan, redaction, MCP profile defaults)."
+scope:
+  allowed:
+    - sdk/docs/SECURITY-CHECKLIST.md
+    - sdk/tests/security-checklist.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "docs/SECURITY-CHECKLIST.md has Secrets, Webhooks, MCP, and CI sections."
+  - "tests/security-checklist.test.ts enforces section headers and key bullets."
+commands:
+  - "cd sdk && npm test -- tests/security-checklist.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Removing the scan-fixtures bullet flags the test."
+  - "Dropping a required section header fails the test."
+links:
+  docs:
+    - sdk/docs/SECURITY-CHECKLIST.md
+  tests:
+    - sdk/tests/security-checklist.test.ts
+rollback: "Revert this commit; automated guards remain in place."

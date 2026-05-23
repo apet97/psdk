@@ -1,0 +1,41 @@
+id: G20
+title: Test taxonomy doc + named suites
+priority: P2
+status: done
+why: "Contributors need a single map of what each test category proves and which command runs it; the full suite is too coarse to debug failures fast."
+scope:
+  allowed:
+    - sdk/docs/TESTING.md
+    - sdk/package.json
+    - sdk/.speakeasy/gen.yaml
+    - sdk/tests/package-metadata.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "sdk/docs/TESTING.md lists every test category with representative files."
+  - "package.json exposes test:unit, test:docs, test:guards, test:smoke, test:mcp, test:cli named suites."
+  - "Each named suite passes locally."
+commands:
+  - "cd sdk && npm run test:unit"
+  - "cd sdk && npm run test:docs"
+  - "cd sdk && npm run test:guards"
+  - "cd sdk && npm run test:smoke"
+  - "cd sdk && npm run test:mcp"
+  - "cd sdk && npm run test:cli"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Adding a new test file under tests/ without categorizing it shows up as missing from any suite."
+  - "Renaming a test file fails the suite that references it."
+links:
+  docs:
+    - sdk/docs/TESTING.md
+  tests:
+    - sdk/tests/goal-registry.test.ts
+rollback: "Revert this commit; npm test continues to run the whole suite."

@@ -1,0 +1,37 @@
+id: G05
+title: Release evidence script + test
+priority: P1
+status: done
+why: "Every release must produce an auditable verification doc with commit, CI URLs, npm URL, provenance, tarball SHA-256, and live smoke artifact pointer."
+scope:
+  allowed:
+    - sdk/scripts/write-release-evidence.mjs
+    - sdk/docs/verification/**
+    - sdk/tests/release-evidence.test.ts
+    - .github/workflows/release.yml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "sdk/scripts/write-release-evidence.mjs renders a per-version verification doc."
+  - "tests/release-evidence.test.ts asserts every required field is present in every v*.md doc."
+  - ".github/workflows/release.yml runs the script before npm publish and uploads the redacted smoke log."
+commands:
+  - "cd sdk && npm test -- tests/release-evidence.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Test fails when any required field is removed."
+  - "Script refuses to write evidence when no tarball is on disk."
+  - "Test rejects `/actions/runs/0`, an all-zero tarball SHA, and any Provenance value outside the {attested, none, unverified} enum."
+links:
+  docs:
+    - sdk/docs/verification/v0.3.21.md
+  tests:
+    - sdk/tests/release-evidence.test.ts
+rollback: "Revert this commit; no production impact until the owning task lands."

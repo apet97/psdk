@@ -82,6 +82,7 @@ describe("package metadata", () => {
       "docs/API-REFERENCE.md",
       "docs/ERRORS.md",
       "docs/INTEGRATION-USAGE.md",
+      "docs/MCP-SAFETY.md",
       "docs/PACKAGE-SPLIT.md",
       "docs/QUICKSTART.md",
       "docs/STABILITY.md",
@@ -95,5 +96,68 @@ describe("package metadata", () => {
 
   it("keeps Speakeasy package file allowlist in parity with normalized package metadata", () => {
     expect(gen.typescript.additionalPackageJSON.files).toEqual(pkg.files);
+  });
+});
+
+import { runSurfaceAudit } from "../scripts/public-surface-audit.mjs";
+
+import { execFileSync } from "node:child_process";
+
+import { readdirSync } from "node:fs";
+
+describe("version consistency", () => {
+  const pkgVersion = JSON.parse(
+    readFileSync(join(__dirname, "..", "package.json"), "utf8"),
+  ).version as string;
+  const changelog = readFileSync(join(__dirname, "..", "..", "CHANGELOG.md"), "utf8");
+  const latestVerif = readdirSync(join(__dirname, "..", "docs", "verification"))
+    .filter((f) => /^v\d+\.\d+\.\d+\.md$/.test(f))
+    .sort()
+    .pop();
+
+  it("CHANGELOG mentions current version", () => {
+    expect(changelog).toContain(pkgVersion);
+  });
+
+  it("verification doc exists for current version", () => {
+    expect(latestVerif).toBe(`v${pkgVersion}.md`);
+  });
+});
+
+describe("npm pack budget", () => {
+  function pack() {
+    const out = execFileSync("npm", ["pack", "--dry-run", "--json"], {
+      cwd: join(__dirname, ".."),
+      stdio: ["ignore", "pipe", "ignore"],
+    }).toString();
+    return JSON.parse(out)[0] as { size: number; files: Array<{ path: string }> };
+  }
+
+  it("tarball size remains under the budget", () => {
+    const SIZE_BUDGET_BYTES = 2_500_000;
+    expect(pack().size).toBeLessThan(SIZE_BUDGET_BYTES);
+  });
+
+  it("tarball excludes test, script, and example trees", () => {
+    const paths = pack().files.map((f) => f.path);
+    for (const path of paths) {
+      expect(path).not.toMatch(/\.test\.[jt]sx?$/);
+      expect(path).not.toMatch(/(^|\/)tests\//);
+      expect(path).not.toMatch(/(^|\/)scripts\//);
+      expect(path).not.toMatch(/(^|\/)examples\//);
+      expect(path).not.toMatch(/(^|\/)\.speakeasy\//);
+    }
+  });
+});
+
+describe("public surface tiers", () => {
+  const report = runSurfaceAudit();
+
+  it("every export has a stability tier", () => {
+    expect(report.missingTier).toEqual([]);
+  });
+
+  it("experimental exports do not appear in the README headline section", () => {
+    expect(report.experimentalLeaksInReadme).toEqual([]);
   });
 });

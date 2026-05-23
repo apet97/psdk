@@ -1,0 +1,34 @@
+id: G24
+title: Versioning policy + cross-doc version check
+priority: P2
+status: done
+why: "Releases must mention the current version in CHANGELOG.md and ship a matching verification doc; the policy doc says what counts as a breaking change per tier."
+scope:
+  allowed:
+    - sdk/docs/VERSIONING.md
+    - sdk/docs/MIGRATING.md
+    - sdk/tests/package-metadata.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "docs/VERSIONING.md states the breaking-change matrix and per-release artifacts."
+  - "tests/package-metadata.test.ts asserts CHANGELOG mentions package.version and a matching docs/verification/v<version>.md exists."
+commands:
+  - "cd sdk && npm test -- tests/package-metadata.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Bumping package.json without updating CHANGELOG fails the version-consistency test."
+  - "Renaming the verification doc fails the matching-file test."
+links:
+  docs:
+    - sdk/docs/VERSIONING.md
+  tests:
+    - sdk/tests/package-metadata.test.ts
+rollback: "Revert this commit; existing CHANGELOG and verification doc remain intact."

@@ -497,3 +497,16 @@ describe("searchAllMessages — mocked", () => {
     }).rejects.toThrow(/exceeded 3 pages/);
   });
 });
+
+import { createPumbleClient } from "../src/extensions/client.js";
+
+describe("facade search.all", () => {
+  it("is exposed on the facade", () => {
+    const client = createPumbleClient({
+      apiKeyAuth: "x".repeat(24),
+      serverURL: "https://example.invalid",
+    });
+    expect(typeof client.search?.all).toBe("function");
+  });
+});
+

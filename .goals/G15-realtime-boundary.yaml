@@ -1,0 +1,33 @@
+id: G15
+title: Realtime / streaming boundary
+priority: P3
+status: done
+why: "Users keep asking whether MCP SSE is a Pumble event stream — it isn't. Socket Mode is experimental, and there's no stable Pumble streaming endpoint."
+scope:
+  allowed:
+    - sdk/docs/REALTIME.md
+    - sdk/tests/realtime-boundary.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "docs/REALTIME.md states the three boundaries (no Pumble stream, MCP SSE is transport, Socket Mode experimental)."
+  - "tests/realtime-boundary.test.ts enforces each statement."
+commands:
+  - "cd sdk && npm test -- tests/realtime-boundary.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Marketing SSE as a Pumble event stream fails the test."
+  - "Removing the experimental label on Socket Mode fails the test."
+links:
+  docs:
+    - sdk/docs/REALTIME.md
+  tests:
+    - sdk/tests/realtime-boundary.test.ts
+rollback: "Revert this commit; no production impact until the owning task lands."

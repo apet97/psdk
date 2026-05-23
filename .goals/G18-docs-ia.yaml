@@ -1,0 +1,33 @@
+id: G18
+title: Docs IA index
+priority: P2
+status: done
+why: "Readers need one navigable index that groups docs by job (Start here / SDK / CLI / MCP / Webhooks / Errors / Releases / Experimental / Internals)."
+scope:
+  allowed:
+    - sdk/docs/**
+    - sdk/tests/docs.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "docs/INDEX.md exists with the named sections."
+  - "tests/docs.test.ts enforces section names and file links."
+commands:
+  - "cd sdk && npm test -- tests/docs.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Removing a section header from INDEX.md fails the test."
+  - "Renaming a referenced doc without updating INDEX fails the test."
+links:
+  docs:
+    - sdk/docs/INDEX.md
+  tests:
+    - sdk/tests/docs.test.ts
+rollback: "Revert this commit; existing docs remain reachable from sdk/README.md."

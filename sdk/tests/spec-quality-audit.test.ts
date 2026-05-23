@@ -141,11 +141,53 @@ describe("spec quality audit", () => {
       baseOperation({
         operationId: "sendMessage",
         tags: ["Messages"],
-        "x-speakeasy-retries": { strategy: "none" },
+        "x-speakeasy-retries": { strategy: "none", statusCodes: ["5XX"] },
       }),
     );
 
     expect(auditOpenApiDocument(doc)).toEqual([]);
+  });
+
+  it("flags x-speakeasy-retries blocks missing statusCodes (matches speakeasy lint)", () => {
+    const doc = documentWithOperation(
+      "/sendMessage",
+      "post",
+      baseOperation({
+        operationId: "sendMessage",
+        tags: ["Messages"],
+        "x-speakeasy-retries": { strategy: "none" },
+      }),
+    );
+
+    expect(auditOpenApiDocument(doc)).toEqual([
+      {
+        code: "retries/missing-statuscodes",
+        location: "POST /sendMessage",
+        message:
+          "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
+      },
+    ]);
+  });
+
+  it("flags document-level x-speakeasy-retries missing statusCodes", () => {
+    const doc = {
+      openapi: "3.1.0",
+      "x-speakeasy-retries": { strategy: "backoff" },
+      paths: {
+        "/list": {
+          get: baseOperation({ operationId: "list", tags: ["Channels"] }),
+        },
+      },
+    };
+
+    expect(auditOpenApiDocument(doc)).toEqual([
+      {
+        code: "retries/missing-statuscodes",
+        location: "<document>",
+        message:
+          "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
+      },
+    ]);
   });
 
   it("accepts documented Idempotency-Key support", () => {
@@ -172,5 +214,90 @@ describe("spec quality audit", () => {
         },
       ]),
     ).toBe("Spec quality audit failed with 1 finding(s):\n- [responses/missing] GET /broken: Operation must document at least one response.");
+  });
+});
+
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve, join } from "node:path";
+// eslint-disable-next-line import/no-unresolved
+import { auditSpec, runAudit } from "../scripts/spec-quality-audit.mjs";
+
+describe("spec quality audit (extended)", () => {
+  const report = runAudit({ specPath: resolve(__dirname, "..", "..", "PumbleOpenApi.yaml") });
+
+  it("every operation has a description or summary", () => {
+    expect(report.missingDescription).toEqual([]);
+  });
+
+  it("write operations declare x-speakeasy-retries strategy:none", () => {
+    expect(report.unsafeWriteRetries).toEqual([]);
+  });
+
+  it("paginated operations carry pagination metadata", () => {
+    expect(report.missingPaginationMetadata).toEqual([]);
+  });
+
+  it("no live emails or 24-char IDs leak into examples", () => {
+    expect(report.leakedSecrets).toEqual([]);
+  });
+
+  it("every x-speakeasy-retries block declares statusCodes (matches speakeasy lint)", () => {
+    const missing = report.findings.filter(
+      (finding: { code: string }) => finding.code === "retries/missing-statuscodes",
+    );
+    expect(missing).toEqual([]);
+  });
+});
+
+describe("spec-audit CLI surface", () => {
+  function writeSpec(contents: string): string {
+    const dir = mkdtempSync(join(tmpdir(), "spec-audit-test-"));
+    const file = join(dir, "spec.yaml");
+    writeFileSync(file, contents);
+    return file;
+  }
+
+  it("passes for a minimal valid spec", () => {
+    const file = writeSpec(`openapi: 3.0.0
+info:
+  title: t
+  version: 0.0.1
+paths:
+  /list:
+    get:
+      operationId: list
+      summary: list things
+      tags: [Channels]
+      responses:
+        "200":
+          description: ok
+`);
+
+    expect(auditSpec(file)).toEqual({
+      ok: true,
+      message: "Spec quality audit passed.",
+    });
+  });
+
+  it("fails when a write op lacks x-speakeasy-retries (gate the test asserts)", () => {
+    const file = writeSpec(`openapi: 3.0.0
+info:
+  title: t
+  version: 0.0.1
+paths:
+  /createX:
+    post:
+      operationId: createX
+      summary: create
+      tags: [Channels]
+      responses:
+        "200":
+          description: ok
+`);
+
+    const result = auditSpec(file);
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/Write operations missing x-speakeasy-retries/);
   });
 });

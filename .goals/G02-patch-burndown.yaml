@@ -1,0 +1,41 @@
+id: G02
+title: Reduce generated-runtime patch debt
+priority: P1
+status: done
+why: "Five generated-runtime patches need a single auditable registry so we can burn them down as Speakeasy support arrives."
+scope:
+  allowed:
+    - sdk/scripts/patch-generated-runtime.mjs
+    - sdk/docs/patch-burndown.md
+    - sdk/docs/PATCH-COUNT.txt
+    - sdk/docs/adr/**
+    - sdk/tests/patch-burndown.test.ts
+    - sdk/tests/generated-runtime-patch.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "sdk/docs/patch-burndown.md table covers every patch ID emitted by scripts/patch-generated-runtime.mjs."
+  - "sdk/docs/PATCH-COUNT.txt is a single integer that equals the table row count."
+  - "tests/patch-burndown.test.ts enforces ID/doc/script consistency and a non-empty removal-condition column."
+  - "ADR 0008 cross-links the burndown doc and PATCH-COUNT."
+commands:
+  - "cd sdk && npm test -- tests/patch-burndown.test.ts"
+  - "cd sdk && npm run goals:check"
+adversarial_checks:
+  - "Adding a new patch ID without updating PATCH-COUNT.txt fails the test."
+  - "Removing the removal-condition column breaks the row-shape assertion."
+links:
+  docs:
+    - sdk/docs/patch-burndown.md
+    - sdk/docs/PATCH-COUNT.txt
+    - sdk/docs/adr/0008-generated-runtime-patches.md
+  tests:
+    - sdk/tests/patch-burndown.test.ts
+rollback: "Revert this commit; no production impact until the owning task lands."

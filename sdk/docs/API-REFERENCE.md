@@ -2,6 +2,8 @@
 
 Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
 
+> **Scope note.** This reference documents the Pumble SDK only. It is not a manual for a general SDK generator — the product boundary is captured in [`docs/product/sdk-generator-product-boundary.md`](../../docs/product/sdk-generator-product-boundary.md).
+
 Redacted release proof for `0.3.21`: [`docs/verification/v0.3.21.md`](docs/verification/v0.3.21.md).
 Migration notes: [`docs/MIGRATING.md`](docs/MIGRATING.md).
 
@@ -113,6 +115,19 @@ if (!result.ok) {
 Raw generated pagination is lower level and follows endpoint-specific response
 shapes. For search walks, prefer `searchAllMessages`.
 
+### Searching messages
+
+`searchAllMessages` is **recommended** for full search walks. It dedupes
+timestamp-boundary overlaps, caps page count, and respects abort signals. Raw
+`searchMessages` is available via `client.raw.messages.searchMessages` for
+direct cursor control, but can skip same-second boundary results.
+
+```ts
+for await (const hit of client.search.all({ text: "release" }, { signal })) {
+  console.log(hit.id, hit.text);
+}
+```
+
 `searchAllMessages` is the safer helper for search walks because it manages
 timestamp cursors, overlaps same-second boundaries, and dedupes by message ID.
 Very high-volume identical timestamp bursts may still require narrower query
@@ -170,19 +185,39 @@ Webhook helpers provide signature verification for signed Pumble callbacks and
 an event handler/router surface for dispatching typed events. Keep raw-body
 middleware in front of webhook verification routes.
 
+### Framework recipes
+
+- [`examples/webhooks/express.ts`](../examples/webhooks/express.ts) — mount `createWebhookHandler` under an express router; do NOT mount `express.json()` first.
+- [`examples/webhooks/fastify.ts`](../examples/webhooks/fastify.ts) — pass `request.raw`/`reply.raw` to the handler; skip the JSON content-type parser for this route.
+- [`examples/webhooks/next-route.ts`](../examples/webhooks/next-route.ts) — App Router route handler with explicit HMAC verification (Next runs on WHATWG `Request`, not Node `IncomingMessage`).
+- [`examples/webhooks/node-http.ts`](../examples/webhooks/node-http.ts) — plain `node:http` server.
+
+Common rules:
+- Body must be raw bytes (no JSON parsing before signature check).
+- Timestamp tolerance is 5 minutes by default; pass `timestampToleranceSeconds` to override.
+- A bad signature returns 401; treat it as a hard reject.
+- Handler exceptions cause Pumble to retry — keep handlers idempotent.
+
 ## Stability
+
+| Export key | Import path | Surface | Tier |
+| --- | --- | --- | --- |
+| `.` | `pumble-sdk` | Raw SDK + façade re-exports | stable |
+| `./extensions/index.js` | `pumble-sdk/extensions/index.js` | Façade helpers | stable |
+| `./extensions/webhooks.js` | `pumble-sdk/extensions/webhooks.js` | Webhook verification | stable |
+| `./extensions/telemetry.js` | `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | beta |
+| `./extensions/testing/index.js` | `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |
+| `./extensions/app/index.js` | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |
+| `./extensions/app/socket-mode.js` | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |
+
+Legacy table — the previous row format is kept for tooling that greps for it:
 
 | Import path | Surface | Stability |
 | --- | --- | --- |
-| `pumble-sdk` | Raw SDK | Stable |
-| `pumble-sdk/extensions/index.js` | Facade helpers | Stable |
-| `pumble-sdk/extensions/webhooks.js` | Webhook verification | Stable |
-| Curated MCP stdio/read/confirmed-write tools | Agent tools | Stable |
-| `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | Beta |
-| Audit-log helpers | Audit-log helpers | Beta |
-| `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | Beta |
 | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |
 | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |
+| Curated MCP stdio/read/confirmed-write tools | Agent tools | Stable |
+| Audit-log helpers | Audit-log helpers | Beta |
 | Package split | Future packaging shape | Experimental |
 | Generated internals and patch scripts | Generated/runtime maintenance | Internal |
 

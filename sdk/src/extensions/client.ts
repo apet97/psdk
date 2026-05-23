@@ -37,6 +37,7 @@ import {
   type ResolverCacheInfo,
 } from "./resolver-cache.js";
 import { createScheduledFacade } from "./scheduled.js";
+import { searchAllMessages } from "./search-all.js";
 import {
   preflightResolvers,
   type ResolverPreflightRequest,
@@ -419,6 +420,10 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
     },
     search: {
       recent: facadeWrites.searchRecent,
+      all: (
+        request: Parameters<typeof searchAllMessages>[1],
+        options?: Parameters<typeof searchAllMessages>[2],
+      ) => searchAllMessages(raw, request, options),
     },
     scheduled: scheduledFacade,
     threads: {

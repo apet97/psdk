@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -235,5 +236,27 @@ describe("examples", () => {
       code: ":white_check_mark:",
     });
     expect(otel.openTelemetryExampleRequiredEnv).toEqual(["PUMBLE_API_KEY"]);
+  });
+});
+
+describe("examples catalog", () => {
+  const idxPath = join(examplesDir, "INDEX.md");
+  const idx = readFileSync(idxPath, "utf8");
+
+  it("lists every example path that resolves on disk", () => {
+    const rows = idx.split("\n").filter((line) => line.startsWith("| ") && line.includes(".ts"));
+    for (const row of rows) {
+      const match = row.match(/`([\w/.-]+)`/);
+      if (!match) continue;
+      const rel = match[1];
+      expect(existsSync(join(examplesDir, rel)), rel).toBe(true);
+    }
+  });
+
+  it("every catalog row carries a safety label", () => {
+    const rows = idx.split("\n").filter((line) => line.startsWith("| ") && !line.startsWith("| ---") && !line.startsWith("| Example"));
+    for (const row of rows) {
+      expect(row).toMatch(/\b(read-only|writes|deletes|experimental)\b/i);
+    }
   });
 });

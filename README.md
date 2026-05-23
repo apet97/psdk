@@ -8,22 +8,34 @@ This package is not a general generator for SDKs. The generated raw SDK comes fr
 
 The package source and user docs live in [`sdk/`](sdk/).
 
+## What this is
+
+A **Pumble TypeScript SDK / Developer Toolkit**: one generated raw client from `PumbleOpenApi.yaml`, plus handwritten façade, webhooks, CLI, and curated MCP for Pumble specifically.
+
+## What this is not
+
+- A general SDK generator (use Stainless or Speakeasy for that — see [`docs/product/sdk-generator-product-boundary.md`](docs/product/sdk-generator-product-boundary.md)).
+- A multi-language code generator.
+- A hosted control plane for arbitrary OpenAPI specs.
+
 ## Quick Links
 
-These links point to repository docs under `sdk/`; the npm package includes the
-SDK docs listed by `sdk/package.json`.
+Start with the documentation map: **[sdk/docs/INDEX.md](sdk/docs/INDEX.md)** — it groups every doc by job (Start here, SDK basics, CLI, MCP, Webhooks, Testing, Errors, Releases, Experimental, Internals).
+
+Common entry points:
 
 - [SDK README](sdk/README.md)
-- [Quickstart](sdk/docs/QUICKSTART.md)
-- [Integration usage](sdk/docs/INTEGRATION-USAGE.md)
-- [Repository examples](sdk/examples/README.md)
-- [API reference](sdk/docs/API-REFERENCE.md)
-- [Support](sdk/docs/SUPPORT.md)
-- [Security](SECURITY.md)
-- [Contributing](CONTRIBUTING.md)
-- [Changelog](CHANGELOG.md)
-- [Package split policy](sdk/docs/PACKAGE-SPLIT.md)
+- [Quickstart](sdk/docs/QUICKSTART.md) · [API reference](sdk/docs/API-REFERENCE.md) · [CLI reference](sdk/docs/CLI-REFERENCE.md)
+- [Error model](sdk/docs/ERROR-MODEL.md) · [MCP safety](sdk/docs/MCP-SAFETY.md) · [Resolvers](sdk/docs/RESOLVERS.md)
+- [Retries, timeouts, rate limits](sdk/docs/RETRIES-TIMEOUTS-RATE-LIMITS.md) · [Observability](sdk/docs/OBSERVABILITY.md)
+- [Testing taxonomy](sdk/docs/TESTING.md) · [CI gates](sdk/docs/CI-GATES.md) · [Versioning](sdk/docs/VERSIONING.md)
+- [Security checklist](sdk/docs/SECURITY-CHECKLIST.md) · [Operations checklist](sdk/docs/OPERATIONS-CHECKLIST.md)
+- [Realtime boundary](sdk/docs/REALTIME.md) · [Experimental surfaces](sdk/docs/EXPERIMENTAL.md)
+- [Stability](sdk/docs/STABILITY.md) · [Spec contract](sdk/docs/SPEC-CONTRACT.md) · [Patch burndown](sdk/docs/patch-burndown.md)
+- [Repository examples](sdk/examples/INDEX.md)
+- [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 - [SDK generator boundary](docs/product/sdk-generator-product-boundary.md)
+- Governance: [.goals/ registry](.goals/README.md) — one YAML per goal, validated by `sdk/scripts/goal-check.mjs`.
 
 ## Install
 

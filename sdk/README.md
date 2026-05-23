@@ -10,6 +10,16 @@ This package is not a general generator for SDKs. The generated raw SDK comes fr
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## What this is
+
+A **Pumble TypeScript SDK / Developer Toolkit**: one generated raw client from `PumbleOpenApi.yaml`, plus handwritten façade, webhooks, CLI, and curated MCP for Pumble specifically.
+
+## What this is not
+
+- A general generator for SDKs (use Stainless or Speakeasy for that — see [`../docs/product/sdk-generator-product-boundary.md`](../docs/product/sdk-generator-product-boundary.md)).
+- A multi-language code generator.
+- A hosted control plane for arbitrary OpenAPI specs.
+
 ## Install
 
 ```bash
@@ -27,6 +37,31 @@ Support and API surfaces are listed in [`docs/SUPPORT.md`](docs/SUPPORT.md)
 and [`docs/API-REFERENCE.md`](docs/API-REFERENCE.md).
 Migration notes are in [`docs/MIGRATING.md`](docs/MIGRATING.md).
 Redacted release proof for `0.3.21`: [`docs/verification/v0.3.21.md`](docs/verification/v0.3.21.md).
+
+## First run
+
+The façade is the recommended entry point. It accepts human-friendly inputs
+(channel names, emails) and returns structured receipts.
+
+```ts
+import {
+  assertFacadeOk,
+  createPumbleClient,
+} from "pumble-sdk/extensions/index.js";
+
+const pumble = createPumbleClient({
+  apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
+});
+
+const sent = await pumble.messages.send({
+  channel: "#general",
+  text: "hello",
+});
+const receipt = assertFacadeOk(sent);
+console.log(receipt.ids.messageId);
+```
+
+Need raw endpoint access? See [Raw SDK Usage](#raw-sdk-usage) below.
 
 ## Stable, Beta, Experimental
 
@@ -90,6 +125,12 @@ const search = await pumble.search.recent({
   query: "incident",
   limit: 5,
 });
+
+// Full search walks: use `pumble.search.all(...)` (`searchAllMessages`) —
+// it handles same-second overlap, dedupes by message ID, and respects aborts.
+for await (const hit of pumble.search.all({ text: "incident" })) {
+  console.log(hit.id);
+}
 ```
 
 If a name or email is ambiguous, write helpers return choices and do not call
@@ -219,6 +260,10 @@ surface, and require an audit log:
 ```bash
 PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
 ```
+
+Do not expose this to agents you do not control. The curated profile is the
+default for a reason — see [`docs/MCP-SAFETY.md`](docs/MCP-SAFETY.md) for the
+full safety profile matrix.
 
 SSE is for local HTTP clients. Bind to localhost and require a bearer token:
 
