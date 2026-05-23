@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { resolveChannel, resolveUser } from "../src/extensions/index.js";
+import {
+  formatChannelCandidateLabel,
+  formatUserCandidateLabel,
+  resolveChannel,
+  resolveUser,
+} from "../src/extensions/index.js";
 
 const users = [
   {
@@ -72,6 +77,19 @@ const client = {
 };
 
 describe("resolveUser", () => {
+  it("formats user candidate labels from the shared helper", () => {
+    expect(formatUserCandidateLabel({
+      id: "u1",
+      email: "alice@example.com",
+      name: "Alice Johnson",
+    })).toBe("Alice Johnson alice@example.com | u1");
+    expect(formatUserCandidateLabel({
+      id: "u2",
+      email: "nameless@example.com",
+      name: "  ",
+    })).toBe("nameless@example.com | u2");
+  });
+
   it("resolves an exact user id before human-name matching", async () => {
     await expect(resolveUser(client, "u2")).resolves.toEqual({
       ok: true,
@@ -124,6 +142,14 @@ describe("resolveUser", () => {
 });
 
 describe("resolveChannel", () => {
+  it("formats channel candidate labels from the shared helper", () => {
+    expect(formatChannelCandidateLabel({
+      id: "c1",
+      name: "general",
+      channelType: "PUBLIC",
+    })).toBe("#general | PUBLIC | c1");
+  });
+
   it("resolves an exact channel id before human-name matching", async () => {
     await expect(resolveChannel(client, "c2")).resolves.toEqual({
       ok: true,

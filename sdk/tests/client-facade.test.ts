@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
 const delegates = vi.hoisted(() => ({
   findChannelByName: vi.fn(),
@@ -25,7 +25,12 @@ vi.mock("../src/extensions/resolve.js", async (importOriginal) => {
   };
 });
 
-import { createPumbleClient } from "../src/extensions/index.js";
+import {
+  assertFacadeOk,
+  createPumbleClient,
+  isFacadeFailure,
+  type FacadeSendReceipt,
+} from "../src/extensions/index.js";
 
 describe("createPumbleClient", () => {
   beforeEach(() => {
@@ -37,6 +42,51 @@ describe("createPumbleClient", () => {
 
     expect(client.raw).toBeDefined();
     expect(client.raw.users).toBeDefined();
+  });
+
+  it("detects facade failures at runtime", () => {
+    const failure = {
+      ok: false,
+      reason: "not_found",
+      summary: "Channel not found.",
+      choices: [],
+      nextActions: ["Check the channel name."],
+    };
+
+    expect(isFacadeFailure(failure)).toBe(true);
+    expect(isFacadeFailure({ ok: true, summary: "Sent." })).toBe(false);
+    expect(isFacadeFailure(null)).toBe(false);
+  });
+
+  it("assertFacadeOk throws actionable failure details and narrows success values", () => {
+    type Result = FacadeSendReceipt | {
+      ok: false;
+      reason: "not_found";
+      summary: string;
+      choices: [];
+      nextActions: string[];
+    };
+
+    const success = {
+      ok: true,
+      summary: "Sent.",
+      ids: { channelId: "c1", messageId: "m1" },
+      channel: { id: "c1", name: "general", channelType: "PUBLIC" },
+      message: { id: "m1", channelId: "c1" },
+    } satisfies Result;
+    const narrowed = assertFacadeOk(success);
+    expectTypeOf(narrowed).toMatchTypeOf<FacadeSendReceipt>();
+    expect(narrowed.ids.messageId).toBe("m1");
+
+    expect(() =>
+      assertFacadeOk({
+        ok: false,
+        reason: "not_found",
+        summary: "Channel not found.",
+        choices: [],
+        nextActions: ["Check the channel name."],
+      } satisfies Result)
+    ).toThrow("Channel not found. Next actions: Check the channel name.");
   });
 
   it("delegates identity.me to generated users.myInfo", async () => {

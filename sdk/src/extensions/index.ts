@@ -2,7 +2,9 @@
 // does NOT touch this directory, so anything exported here survives a
 // `speakeasy generate sdk` run.
 export {
+  assertFacadeOk,
   createPumbleClient,
+  isFacadeFailure,
   type CreatePumbleClientOptions,
   type ChannelSummary,
   type FacadeDmReceipt,
@@ -18,6 +20,10 @@ export {
   type FacadeThreadReplyReceipt,
   type FacadeThreadReplyRequest,
   type PumbleClient,
+  type ResolverCacheInfo,
+  type ResolverCacheState,
+  type ResolverPreflightRequest,
+  type ResolverPreflightResult,
   type UserSummary,
 } from "./client.js";
 
@@ -67,6 +73,8 @@ export {
 } from "./find.js";
 
 export {
+  formatChannelCandidateLabel,
+  formatUserCandidateLabel,
   resolveChannel,
   resolveUser,
   type ResolveChannelCandidate,

@@ -37,7 +37,10 @@ inputs, resolves them to exact IDs, and returns structured receipts instead of
 making callers stitch together raw endpoint responses:
 
 ```typescript
-import { createPumbleClient } from "pumble-sdk/extensions/index.js";
+import {
+  assertFacadeOk,
+  createPumbleClient,
+} from "pumble-sdk/extensions/index.js";
 
 const pumble = createPumbleClient({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -47,6 +50,7 @@ const sent = await pumble.messages.send({
   channel: "#general",
   text: "Hello from pumble-sdk.",
 });
+assertFacadeOk(sent);
 
 const dm = await pumble.messages.dm({
   user: "ada@example.com",
@@ -60,10 +64,25 @@ const search = await pumble.search.recent({
 ```
 
 If a name or email is ambiguous, write helpers return choices and do not call
-Pumble.
+Pumble. Use the summary for logs or UI copy, show `nextActions`, and present
+choices by `choice.label`:
+
+```typescript
+const result = await pumble.messages.send({
+  channel: "gen",
+  text: "Hello from pumble-sdk.",
+});
+
+if (!result.ok) {
+  console.error(result.summary);
+  for (const action of result.nextActions) console.error(action);
+  for (const choice of result.choices) console.error(choice.label);
+  process.exit(1);
+}
+```
 
 Resolver lists are uncached by default. Opt in per client when repeated facade
-calls should reuse one channel list and one user list:
+calls should reuse one channel list and one user list per client instance:
 
 ```typescript
 const pumble = createPumbleClient({
@@ -72,8 +91,15 @@ const pumble = createPumbleClient({
 });
 
 await pumble.resolvers.refresh();
+console.log(pumble.resolvers.cacheInfo());
+await pumble.resolvers.preflight({ channel: "#general", user: "ada@example.com" });
 pumble.resolvers.clearCache();
 ```
+
+`resolverCache` defaults to `false`. When enabled, it keeps one in-memory
+`listChannels` result and one in-memory `listUsers` result per client instance.
+There is no TTL, persistence, background refresh, or hidden invalidation except
+that a failed list promise is cleared so the next facade call can retry.
 
 ## Raw SDK Usage
 

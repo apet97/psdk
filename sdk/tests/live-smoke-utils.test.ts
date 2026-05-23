@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { runSearchSmoke, selectDmRecipient } from "../scripts/live-smoke-utils.mjs";
+import {
+  redactLiveValue,
+  runLiveOperation,
+  runSearchSmoke,
+  selectDmRecipient,
+} from "../scripts/live-smoke-utils.mjs";
 
 describe("live smoke helpers", () => {
   it("exercises search.recent with the unique run id without requiring live indexing", async () => {
@@ -33,6 +38,34 @@ describe("live smoke helpers", () => {
       email: "ok@example.invalid",
       status: "ACTIVATED",
       role: "USER",
+    });
+  });
+
+  it("redacts live identifiers, emails, and secret-looking values", () => {
+    expect(redactLiveValue({
+      apiKey: "sk_test_secret",
+      email: "ada@example.com",
+      channelId: "1234567890abcdef12345678",
+      text: "safe run sdk-facade-live-1",
+    })).toEqual({
+      apiKey: "<redacted>",
+      email: "<redacted>",
+      channelId: "<redacted>",
+      text: "safe run sdk-facade-live-1",
+    });
+  });
+
+  it("wraps live operation failures with operation, category, and redacted context", async () => {
+    const error = Object.assign(new Error("No access for ada@example.com"), { statusCode: 403 });
+
+    await expect(runLiveOperation("messages.send", {
+      channelId: "1234567890abcdef12345678",
+      email: "ada@example.com",
+    }, async () => {
+      throw error;
+    })).rejects.toMatchObject({
+      message: expect.stringContaining("messages.send failed [permission]"),
+      cause: error,
     });
   });
 });

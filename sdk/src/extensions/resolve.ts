@@ -39,6 +39,19 @@ export type ResolveChannelCandidate = Pick<Channel, "id" | "name" | "channelType
 export type ResolveUserResult = ResolveResult<User, ResolveUserCandidate>;
 export type ResolveChannelResult = ResolveResult<Channel, ResolveChannelCandidate>;
 
+export function formatUserCandidateLabel(candidate: Pick<User, "id" | "email" | "name">): string {
+  const name = candidate.name.trim();
+  return name.length > 0
+    ? `${name} ${candidate.email} | ${candidate.id}`
+    : `${candidate.email} | ${candidate.id}`;
+}
+
+export function formatChannelCandidateLabel(
+  candidate: Pick<Channel, "id" | "name" | "channelType">,
+): string {
+  return `#${candidate.name} | ${candidate.channelType} | ${candidate.id}`;
+}
+
 function normalise(value: string, caseInsensitive: boolean): string {
   const trimmed = value.trim();
   return caseInsensitive ? trimmed.toLowerCase() : trimmed;
@@ -82,12 +95,11 @@ function fromMatches<TValue, TCandidate>(
 }
 
 function userCandidate(user: User): ResolveUserCandidate {
-  const name = user.name.trim();
   return {
     id: user.id,
     email: user.email,
     name: user.name,
-    label: name.length > 0 ? `${name} ${user.email} | ${user.id}` : `${user.email} | ${user.id}`,
+    label: formatUserCandidateLabel(user),
   };
 }
 
@@ -96,7 +108,7 @@ function channelCandidate(channel: Channel): ResolveChannelCandidate {
     id: channel.id,
     name: channel.name,
     channelType: channel.channelType,
-    label: `#${channel.name} | ${channel.channelType} | ${channel.id}`,
+    label: formatChannelCandidateLabel(channel),
   };
 }
 

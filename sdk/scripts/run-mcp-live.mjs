@@ -4,6 +4,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { createPumbleClient } from "../esm/extensions/index.js";
 import { requireLiveApiKey } from "./live-env.mjs";
 import { CURATED_TOOL_NAMES } from "../esm/mcp-server/curated/tools.js";
+import { redactLiveValue, runLiveOperation } from "./live-smoke-utils.mjs";
 
 const { apiKeyAuth, env } = requireLiveApiKey();
 const raw = createPumbleClient({ apiKeyAuth, resolverCache: true }).raw;
@@ -26,7 +27,9 @@ function safeChildEnv(env) {
 }
 
 function assertEnvelope(name, payload) {
-  if (payload?.ok !== true) throw new Error(`${name} returned non-ok payload`);
+  if (payload?.ok !== true) {
+    throw new Error(`${name} returned non-ok payload: ${JSON.stringify(redactLiveValue(payload))}`);
+  }
   for (const key of ["summary", "ids", "data", "nextActions"]) {
     if (!(key in payload)) throw new Error(`${name} missing ${key}`);
   }
@@ -35,14 +38,17 @@ function assertEnvelope(name, payload) {
 }
 
 function parseToolPayload(result) {
-  if (result.isError) throw new Error(`MCP tool returned error: ${JSON.stringify(result.content)}`);
+  if (result.isError) {
+    throw new Error(`MCP tool returned error: ${JSON.stringify(redactLiveValue(result.content))}`);
+  }
   const [content] = result.content ?? [];
   if (content?.type !== "text") throw new Error("MCP tool did not return text content");
   return JSON.parse(content.text);
 }
 
 async function call(name, args = {}) {
-  return parseToolPayload(await client.callTool({ name, arguments: args }));
+  return runLiveOperation(`mcp.${name}`, args, async () =>
+    parseToolPayload(await client.callTool({ name, arguments: args })));
 }
 
 async function cleanup() {
@@ -58,8 +64,8 @@ async function cleanup() {
 }
 
 try {
-  await client.connect(transport);
-  const listed = await client.listTools();
+  await runLiveOperation("mcp.connect", {}, () => client.connect(transport));
+  const listed = await runLiveOperation("mcp.listTools", {}, () => client.listTools());
   const names = listed.tools.map((tool) => tool.name).sort();
   const expected = [...CURATED_TOOL_NAMES].sort();
   if (JSON.stringify(names) !== JSON.stringify(expected)) {
@@ -70,11 +76,12 @@ try {
   }
 
   assertEnvelope("whoami", await call("whoami"));
-  const channel = await raw.channels.createChannel({
+  const channel = await runLiveOperation("channels.create", { channel: channelName }, () =>
+    raw.channels.createChannel({
     name: channelName,
     type: "PUBLIC",
     description: "Created by pumble-sdk curated MCP live smoke.",
-  });
+  }));
   created.channelId = channel.id;
 
   const preview = assertEnvelope("send_message_preview", await call("send_message_preview", {
@@ -107,6 +114,9 @@ try {
       replyId: "<redacted>",
     },
   }));
+} catch (error) {
+  console.error(error instanceof Error ? error.stack : String(error));
+  process.exitCode = 1;
 } finally {
   await cleanup();
 }

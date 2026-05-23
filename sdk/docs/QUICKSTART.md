@@ -30,7 +30,10 @@ The package is ESM-only. CommonJS callers should use `await import(...)`.
 Use the hand-written facade for common app and integration flows:
 
 ```typescript
-import { createPumbleClient } from "pumble-sdk/extensions/index.js";
+import {
+  assertFacadeOk,
+  createPumbleClient,
+} from "pumble-sdk/extensions/index.js";
 
 const pumble = createPumbleClient({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -76,7 +79,9 @@ const sent = await pumble.messages.send({
 });
 
 if (!sent.ok) {
-  console.log(sent.summary, sent.choices);
+  console.log(sent.summary);
+  console.log(sent.nextActions.join("\n"));
+  console.log(sent.choices.map((choice) => choice.label).join("\n"));
   process.exit(1);
 }
 
@@ -85,6 +90,32 @@ console.log("message id:", sent.ids.messageId);
 
 Keep the returned message ID if you need to fetch, reply, or audit the
 message later.
+
+For exception-style flows, `assertFacadeOk(result)` throws with `summary` and
+`nextActions` and narrows the result to the success receipt:
+
+```typescript
+const receipt = assertFacadeOk(await pumble.messages.send({
+  channel: "#general",
+  text: "Deploy finished.",
+}));
+
+console.log(receipt.ids.messageId);
+```
+
+If you want to validate targets before writing, use a preflight:
+
+```typescript
+const preflight = await pumble.resolvers.preflight({
+  channel: "#general",
+  user: "ada@example.com",
+});
+if (!preflight.ok) {
+  if (preflight.channel && !preflight.channel.ok) console.error(preflight.channel.summary);
+  if (preflight.user && !preflight.user.ok) console.error(preflight.user.summary);
+  process.exit(1);
+}
+```
 
 ## Reply To Thread
 

@@ -21,6 +21,8 @@ import {
   type FindOptions,
 } from "./find.js";
 import {
+  formatChannelCandidateLabel,
+  formatUserCandidateLabel,
   resolveChannel,
   resolveUser,
   type ResolveChannelCandidate,
@@ -40,6 +42,16 @@ type MethodArgs<T, K extends keyof T> =
   T[K] extends (...args: infer Args) => unknown ? Args : never;
 
 export type CreatePumbleClientOptions = SDKOptions & {
+  /**
+   * Opt in to one in-memory `listChannels` and one in-memory `listUsers`
+   * resolver result per client instance.
+   *
+   * Defaults to `false`. Cached resolver lists have no TTL, no background
+   * refresh, and no hidden invalidation beyond clearing a failed list promise
+   * so the next resolver call can retry. Use `client.resolvers.refresh()` to
+   * preload or replace both lists, and `client.resolvers.clearCache()` to drop
+   * cached lists manually.
+   */
   resolverCache?: boolean | undefined;
 };
 
@@ -139,6 +151,51 @@ export type FacadeFindUserResult =
   }
   | FacadeFailure<UserSummary>;
 
+export type ResolverCacheState = "empty" | "loaded";
+
+export interface ResolverCacheInfo {
+  channels: ResolverCacheState;
+  users: ResolverCacheState;
+}
+
+export interface ResolverPreflightRequest {
+  channel?: string | undefined;
+  user?: string | undefined;
+  options?: ResolveOptions | undefined;
+}
+
+export type ResolverPreflightResult =
+  | {
+    ok: true;
+    channel?: Extract<FacadeFindChannelResult, { ok: true }> | undefined;
+    user?: Extract<FacadeFindUserResult, { ok: true }> | undefined;
+  }
+  | {
+    ok: false;
+    channel?: FacadeFindChannelResult | undefined;
+    user?: FacadeFindUserResult | undefined;
+  };
+
+export function isFacadeFailure(value: unknown): value is FacadeFailure<unknown> {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<FacadeFailure<unknown>>;
+  return candidate.ok === false
+    && (candidate.reason === "not_found" || candidate.reason === "ambiguous")
+    && typeof candidate.summary === "string"
+    && Array.isArray(candidate.choices)
+    && Array.isArray(candidate.nextActions);
+}
+
+export function assertFacadeOk<T extends { ok: boolean; summary?: string; nextActions?: string[] }>(
+  value: T,
+): Extract<T, { ok: true }> {
+  if (value.ok === true) return value as Extract<T, { ok: true }>;
+  const nextActions = Array.isArray(value.nextActions) && value.nextActions.length > 0
+    ? ` Next actions: ${value.nextActions.join(" ")}`
+    : "";
+  throw new Error(`${value.summary ?? "Facade operation failed."}${nextActions}`);
+}
+
 function channelSummary(channel: Channel): ChannelSummary {
   return {
     id: channel.id,
@@ -192,15 +249,14 @@ function candidateWithLabel<TChoice>(targetKind: "Channel" | "User", choice: TCh
     const channel = choice as TChoice & ResolveChannelCandidate;
     return {
       ...choice,
-      label: `#${channel.name} | ${channel.channelType} | ${channel.id}`,
+      label: formatChannelCandidateLabel(channel),
     };
   }
   if (targetKind === "User" && "id" in choice && "email" in choice && "name" in choice) {
     const user = choice as TChoice & ResolveUserCandidate;
-    const name = user.name.trim();
     return {
       ...choice,
-      label: name.length > 0 ? `${name} ${user.email} | ${user.id}` : `${user.email} | ${user.id}`,
+      label: formatUserCandidateLabel(user),
     };
   }
   return choice;
@@ -212,31 +268,89 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
   let channelCache: Promise<ChannelListEntry[]> | undefined;
   let userCache: Promise<User[]> | undefined;
 
+  function loadChannels() {
+    const cached = raw.channels.listChannels().catch((error: unknown) => {
+      if (channelCache === cached) channelCache = undefined;
+      throw error;
+    });
+    channelCache = cached;
+    return cached;
+  }
+
+  function loadUsers() {
+    const cached = raw.users.listUsers().catch((error: unknown) => {
+      if (userCache === cached) userCache = undefined;
+      throw error;
+    });
+    userCache = cached;
+    return cached;
+  }
+
   const cachedResolverClient = {
     channels: {
       listChannels() {
-        channelCache ??= raw.channels.listChannels();
-        return channelCache;
+        return channelCache ?? loadChannels();
       },
     },
     users: {
       listUsers() {
-        userCache ??= raw.users.listUsers();
-        return userCache;
+        return userCache ?? loadUsers();
       },
     },
   };
 
   const resolverClient = resolverCache ? cachedResolverClient : raw;
   const resolvers = {
+    /**
+     * Drop both in-memory resolver lists for this client instance.
+     */
     clearCache() {
       channelCache = undefined;
       userCache = undefined;
     },
+    /**
+     * Preload or replace both resolver lists for this client instance.
+     *
+     * This performs a foreground `listChannels` and `listUsers`; it does not
+     * start any background refresh loop.
+     */
     async refresh() {
-      channelCache = raw.channels.listChannels();
-      userCache = raw.users.listUsers();
+      loadChannels();
+      loadUsers();
       await Promise.all([channelCache, userCache]);
+    },
+    /**
+     * Report whether resolver list promises exist for this client instance.
+     *
+     * `loaded` means a list promise is either in-flight or resolved; rejected
+     * list promises are cleared automatically.
+     */
+    cacheInfo(): ResolverCacheInfo {
+      return {
+        channels: channelCache === undefined ? "empty" : "loaded",
+        users: userCache === undefined ? "empty" : "loaded",
+      };
+    },
+    /**
+     * Resolve intended write targets without performing any write operation.
+     */
+    async preflight(request: ResolverPreflightRequest): Promise<ResolverPreflightResult> {
+      const [channel, user] = await Promise.all([
+        request.channel === undefined
+          ? Promise.resolve(undefined)
+          : resolveFacadeChannel(request.channel, request.options),
+        request.user === undefined
+          ? Promise.resolve(undefined)
+          : resolveFacadeUser(request.user, request.options),
+      ]);
+      if ((channel !== undefined && !channel.ok) || (user !== undefined && !user.ok)) {
+        return { ok: false, channel, user };
+      }
+      return {
+        ok: true,
+        channel: channel as Extract<FacadeFindChannelResult, { ok: true }> | undefined,
+        user: user as Extract<FacadeFindUserResult, { ok: true }> | undefined,
+      };
     },
   };
 

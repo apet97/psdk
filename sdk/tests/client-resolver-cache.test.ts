@@ -86,6 +86,80 @@ describe("createPumbleClient resolverCache", () => {
     expect(listUsers).toHaveBeenCalledTimes(1);
   });
 
+  it("clears a rejected cached channel list so the next facade resolution retries", async () => {
+    const { client, listChannels } = cachedClient();
+    listChannels
+      .mockRejectedValueOnce(new Error("temporary channels failure"))
+      .mockResolvedValueOnce(channelEntries);
+
+    await expect(client.channels.find("general")).rejects.toThrow("temporary channels failure");
+    await expect(client.channels.find("general")).resolves.toMatchObject({
+      ok: true,
+      ids: { channelId: "c1" },
+    });
+
+    expect(listChannels).toHaveBeenCalledTimes(2);
+  });
+
+  it("clears a rejected cached user list so the next facade resolution retries", async () => {
+    const { client, listUsers } = cachedClient();
+    listUsers
+      .mockRejectedValueOnce(new Error("temporary users failure"))
+      .mockResolvedValueOnce(users);
+
+    await expect(client.users.find("ada@example.invalid")).rejects.toThrow("temporary users failure");
+    await expect(client.users.find("ada@example.invalid")).resolves.toMatchObject({
+      ok: true,
+      ids: { userId: "u1" },
+    });
+
+    expect(listUsers).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports resolver cache state without forcing loads", async () => {
+    const { client, listChannels, listUsers } = cachedClient();
+
+    expect(client.resolvers.cacheInfo()).toEqual({ channels: "empty", users: "empty" });
+    await client.channels.find("general");
+    expect(client.resolvers.cacheInfo()).toEqual({ channels: "loaded", users: "empty" });
+    await client.users.find("ada@example.invalid");
+    expect(client.resolvers.cacheInfo()).toEqual({ channels: "loaded", users: "loaded" });
+
+    expect(listChannels).toHaveBeenCalledTimes(1);
+    expect(listUsers).toHaveBeenCalledTimes(1);
+  });
+
+  it("preflights channel and user targets without writing", async () => {
+    const { client } = cachedClient();
+    const sendMessage = vi.spyOn(client.raw.messages, "sendMessage");
+    const dmUser = vi.spyOn(client.raw.messages, "dmUser");
+
+    await expect(client.resolvers.preflight({
+      channel: "general",
+      user: "ada@example.invalid",
+    })).resolves.toMatchObject({
+      ok: true,
+      channel: { ok: true, ids: { channelId: "c1" } },
+      user: { ok: true, ids: { userId: "u1" } },
+    });
+
+    expect(sendMessage).not.toHaveBeenCalled();
+    expect(dmUser).not.toHaveBeenCalled();
+  });
+
+  it("preflight reports failed target resolutions together", async () => {
+    const { client } = cachedClient();
+
+    await expect(client.resolvers.preflight({
+      channel: "missing-channel",
+      user: "missing-user@example.invalid",
+    })).resolves.toMatchObject({
+      ok: false,
+      channel: { ok: false, reason: "not_found" },
+      user: { ok: false, reason: "not_found" },
+    });
+  });
+
   it("clearCache forces new list calls", async () => {
     const { client, listChannels, listUsers } = cachedClient();
 
