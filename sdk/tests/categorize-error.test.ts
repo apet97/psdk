@@ -32,6 +32,14 @@ describe("categorizeError", () => {
       expected: { category: "permission", retryable: false, statusCode: 403 },
     },
     {
+      name: "structured 403 is validation",
+      error: sdkError(
+        403,
+        "{\"message\":\"Allowed values are PUBLIC|PRIVATE\",\"localizedMessage\":\"Allowed values are PUBLIC|PRIVATE\",\"code\":400000}",
+      ),
+      expected: { category: "validation", retryable: false, statusCode: 403 },
+    },
+    {
       name: "404 is not-found",
       error: sdkError(404),
       expected: { category: "not-found", retryable: false, statusCode: 404 },
@@ -70,6 +78,19 @@ describe("categorizeError", () => {
       localizedMessage: "Localized bad custom status",
       code: 7001,
       raw: error,
+    });
+  });
+
+  it("uses the legacy error string as the message", () => {
+    const error = new LegacyError(
+      { error: "Could not find channel" },
+      httpMeta(404, "{\"error\":\"Could not find channel\"}"),
+    );
+
+    expect(error.message).toBe("Could not find channel");
+    expect(categorizeError(error)).toMatchObject({
+      category: "not-found",
+      message: "Could not find channel",
     });
   });
 

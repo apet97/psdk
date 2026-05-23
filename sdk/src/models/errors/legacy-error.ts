@@ -32,8 +32,8 @@ export class LegacyError extends PumbleSDKError {
     err: LegacyErrorData,
     httpMeta: { response: Response; request: Request; body: string },
   ) {
-    const message = "message" in err && typeof err.message === "string"
-      ? err.message
+    const message = typeof err.error === "string" && err.error.trim().length > 0
+      ? err.error
       : `API error occurred: ${JSON.stringify(err)}`;
     super(message, httpMeta);
     this.data$ = err;

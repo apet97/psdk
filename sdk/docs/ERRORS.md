@@ -19,6 +19,10 @@ The error includes the request, response, raw body, and validation cause.
 
 Use `categorizeError(error)` for logs and retry decisions.
 
+Plain `401` and `403` responses are categorized as `permission`. A `403` with
+Pumble's structured validation body (`localizedMessage`, numeric `code`, or a
+message plus validation field details) is categorized as `validation`.
+
 ## Lower-level Result
 
 Advanced callers can import generated functions from `pumble-sdk/funcs/...`

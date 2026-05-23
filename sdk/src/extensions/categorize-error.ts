@@ -33,6 +33,9 @@ export function categorizeError(e: unknown): CategorizedError {
   const details = detailsOf(e);
   const networkCode = networkCodeOf(e);
 
+  if (statusCode === 403 && isStructuredLike(e, details)) {
+    return categorized(e, "validation", false, statusCode, details);
+  }
   if (statusCode === 401 || statusCode === 403) {
     return categorized(e, "permission", false, statusCode, details);
   }
@@ -83,6 +86,7 @@ interface ErrorDetails {
   message: string;
   localizedMessage?: string;
   code?: number;
+  hasValidationField?: boolean;
 }
 
 function detailsOf(e: unknown): ErrorDetails {
@@ -108,6 +112,7 @@ function detailsOf(e: unknown): ErrorDetails {
       message,
       ...(localizedMessage !== undefined ? { localizedMessage } : {}),
       ...(code !== undefined ? { code } : {}),
+      ...(hasValidationStyleField(parsed) ? { hasValidationField: true } : {}),
     };
   }
 
@@ -118,7 +123,8 @@ function detailsOf(e: unknown): ErrorDetails {
 function isStructuredLike(e: unknown, details: ErrorDetails): boolean {
   return e instanceof StructuredError
     || details.localizedMessage !== undefined
-    || details.code !== undefined;
+    || details.code !== undefined
+    || details.hasValidationField === true;
 }
 
 function parsePumbleBody(e: unknown): Record<string, unknown> | null {
@@ -142,6 +148,14 @@ function stringField(record: Record<string, unknown>, key: string): string | und
 function numberField(record: Record<string, unknown>, key: string): number | undefined {
   const value = record[key];
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function hasValidationStyleField(record: Record<string, unknown>): boolean {
+  if (typeof record.message !== "string") return false;
+  return typeof record.field === "string"
+    || Array.isArray(record.fields)
+    || Array.isArray(record.errors)
+    || Array.isArray(record.violations);
 }
 
 function networkCodeOf(e: unknown): string | null {
