@@ -103,6 +103,27 @@ import { runSurfaceAudit } from "../scripts/public-surface-audit.mjs";
 
 import { execFileSync } from "node:child_process";
 
+import { readdirSync } from "node:fs";
+
+describe("version consistency", () => {
+  const pkgVersion = JSON.parse(
+    readFileSync(join(__dirname, "..", "package.json"), "utf8"),
+  ).version as string;
+  const changelog = readFileSync(join(__dirname, "..", "..", "CHANGELOG.md"), "utf8");
+  const latestVerif = readdirSync(join(__dirname, "..", "docs", "verification"))
+    .filter((f) => /^v\d+\.\d+\.\d+\.md$/.test(f))
+    .sort()
+    .pop();
+
+  it("CHANGELOG mentions current version", () => {
+    expect(changelog).toContain(pkgVersion);
+  });
+
+  it("verification doc exists for current version", () => {
+    expect(latestVerif).toBe(`v${pkgVersion}.md`);
+  });
+});
+
 describe("npm pack budget", () => {
   function pack() {
     const out = execFileSync("npm", ["pack", "--dry-run", "--json"], {

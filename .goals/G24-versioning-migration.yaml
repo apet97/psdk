@@ -1,13 +1,13 @@
 id: G24
 title: Versioning policy + cross-doc version check
 priority: P2
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Releases must mention the current version in CHANGELOG.md and ship a matching verification doc; the policy doc says what counts as a breaking change per tier."
 scope:
   allowed:
     - sdk/docs/VERSIONING.md
     - sdk/docs/MIGRATING.md
-    - sdk/tests/versioning.test.ts
+    - sdk/tests/package-metadata.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -18,12 +18,17 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "docs/VERSIONING.md states the breaking-change matrix and per-release artifacts."
+  - "tests/package-metadata.test.ts asserts CHANGELOG mentions package.version and a matching docs/verification/v<version>.md exists."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/package-metadata.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Bumping package.json without updating CHANGELOG fails the version-consistency test."
+  - "Renaming the verification doc fails the matching-file test."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/VERSIONING.md
+  tests:
+    - sdk/tests/package-metadata.test.ts
+rollback: "Revert this commit; existing CHANGELOG and verification doc remain intact."
