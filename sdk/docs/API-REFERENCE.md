@@ -83,8 +83,8 @@ The default agent profile is curated:
 pumble-mcp start --profile curated
 ```
 
-Stdio is the local default transport for MCP clients. SSE must use the localhost
-default and optional bearer auth after the SSE hardening in this branch:
+Stdio is the local default transport for MCP clients. SSE binds to `127.0.0.1`
+by default and supports optional bearer auth:
 
 ```bash
 pumble-mcp start --transport sse --host 127.0.0.1 --auth-token "$PUMBLE_MCP_TOKEN"

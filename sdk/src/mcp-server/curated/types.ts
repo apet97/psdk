@@ -12,6 +12,8 @@ export interface CuratedServerOptions {
 export interface CuratedStartOptions extends CuratedServerOptions {
   readonly transport: CuratedTransport;
   readonly port: number;
+  readonly host: string;
+  readonly authToken?: string | undefined;
   readonly env?: readonly [string, string][] | undefined;
 }
 

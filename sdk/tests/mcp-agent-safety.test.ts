@@ -146,6 +146,36 @@ describe("MCP agent safety evals", () => {
     }
   });
 
+  it("keeps curated SSE on localhost with bearer auth when requested", () => {
+    const invocation = buildMcpInvocation({
+      argv: [
+        "start",
+        "--transport",
+        "sse",
+        "--host",
+        "127.0.0.1",
+        "--auth-token",
+        "test-token",
+      ],
+      env: {},
+      generatedMcp: "/tmp/raw-mcp-server.js",
+      curatedMcp: "/tmp/pumble-mcp-curated.js",
+    });
+
+    expect(invocation.effectiveProfile).toBe("curated");
+    expect(invocation.nodeArgs).toEqual([
+      "/tmp/pumble-mcp-curated.js",
+      "start",
+      "--transport",
+      "sse",
+      "--host",
+      "127.0.0.1",
+      "--auth-token",
+      "test-token",
+    ]);
+    expect(invocation.args).not.toContain("--tool");
+  });
+
   it("keeps the raw generated profile available only when explicitly requested", () => {
     const invocation = buildMcpInvocation({
       argv: fixture.rawProfileArgv,

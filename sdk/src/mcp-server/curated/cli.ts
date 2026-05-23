@@ -1,7 +1,9 @@
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import express from "express";
+import { resolve } from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { createCuratedMcpServer } from "./server.js";
 import type { CuratedStartOptions, CuratedTransport } from "./types.js";
 
@@ -24,6 +26,8 @@ Usage:
 Options:
   --transport stdio|sse   Transport to use (default: stdio).
   --port <number>         Port for SSE transport (default: 2718).
+  --host <host>           Host for SSE transport (default: 127.0.0.1).
+  --auth-token <token>    Bearer token required for SSE requests.
   --api-key-auth <key>    Sets the apiKeyAuth auth field for the API.
   --server-url <url>      Overrides the default server URL used by the SDK.
   --server-index <index>  Selects a predefined server used by the SDK.
@@ -80,6 +84,13 @@ function parsePort(value: string): number {
   return port;
 }
 
+function parseHost(value: string): string {
+  if (value.trim().length === 0) {
+    throw new CuratedUsageError("pumble-mcp-curated: --host requires a non-empty value.");
+  }
+  return value;
+}
+
 function parseEnv(value: string): [string, string] {
   const sep = value.indexOf("=");
   if (sep <= 0 || sep === value.length - 1) {
@@ -106,6 +117,8 @@ export function parseCuratedStartArgs(
 
   let transport: CuratedTransport = "stdio";
   let port = 2718;
+  let host = "127.0.0.1";
+  let authToken: string | undefined;
   let apiKeyAuth: string | undefined;
   let serverURL: string | undefined;
   let serverIdx: number | undefined;
@@ -122,6 +135,18 @@ export function parseCuratedStartArgs(
     if (arg === "--port" || arg?.startsWith("--port=")) {
       const next = valueFor(args, i, "--port");
       port = parsePort(next.value);
+      i = next.nextIndex;
+      continue;
+    }
+    if (arg === "--host" || arg?.startsWith("--host=")) {
+      const next = valueFor(args, i, "--host");
+      host = parseHost(next.value);
+      i = next.nextIndex;
+      continue;
+    }
+    if (arg === "--auth-token" || arg?.startsWith("--auth-token=")) {
+      const next = valueFor(args, i, "--auth-token");
+      authToken = next.value;
       i = next.nextIndex;
       continue;
     }
@@ -168,7 +193,21 @@ export function parseCuratedStartArgs(
     throw new CuratedUsageError(`pumble-mcp-curated: unknown option ${arg}`);
   }
 
-  return { transport, port, apiKeyAuth, serverURL, serverIdx, env };
+  return { transport, port, host, authToken, apiKeyAuth, serverURL, serverIdx, env };
+}
+
+export function createMcpSseAuthMiddleware(authToken: string | undefined): express.RequestHandler {
+  return (req, res, next) => {
+    if (authToken === undefined) {
+      next();
+      return;
+    }
+    if (req.header("authorization") !== `Bearer ${authToken}`) {
+      res.sendStatus(401);
+      return;
+    }
+    next();
+  };
 }
 
 async function startStdio(options: CuratedStartOptions) {
@@ -186,11 +225,12 @@ async function startStdio(options: CuratedStartOptions) {
 
 async function startSSE(options: CuratedStartOptions) {
   const app = express();
+  const sseAuth = createMcpSseAuthMiddleware(options.authToken);
   const mcpServer = createCuratedMcpServer(options);
   let transport: SSEServerTransport | undefined;
   const controller = new AbortController();
 
-  app.get("/sse", async (_req, res) => {
+  app.get("/sse", sseAuth, async (_req, res) => {
     transport = new SSEServerTransport("/message", res);
     await mcpServer.connect(transport);
     mcpServer.server.onclose = async () => {
@@ -198,14 +238,18 @@ async function startSSE(options: CuratedStartOptions) {
     };
   });
 
-  app.post("/message", async (req, res) => {
+  app.post("/message", sseAuth, async (req, res) => {
     if (!transport) {
       throw new Error("Server transport not initialized");
     }
     await transport.handlePostMessage(req, res);
   });
 
-  const httpServer = app.listen(options.port, "0.0.0.0");
+  if (options.host === "0.0.0.0") {
+    console.error("MCP SSE is listening on all interfaces. Use --auth-token outside local development.");
+  }
+
+  const httpServer = app.listen(options.port, options.host);
 
   controller.signal.addEventListener("abort", async () => {
     await mcpServer.close();
@@ -235,11 +279,18 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  if (error instanceof CuratedUsageError) {
-    console.error(error.message);
-    process.exit(error.exitCode);
-  }
-  console.error(error);
-  process.exit(1);
-});
+function isMainModule(): boolean {
+  return process.argv[1] !== undefined
+    && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+}
+
+if (isMainModule()) {
+  main().catch((error) => {
+    if (error instanceof CuratedUsageError) {
+      console.error(error.message);
+      process.exit(error.exitCode);
+    }
+    console.error(error);
+    process.exit(1);
+  });
+}

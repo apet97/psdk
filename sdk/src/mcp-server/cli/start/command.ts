@@ -26,6 +26,18 @@ export const startCommand = buildCommand({
         parse: (val: string) =>
           z.coerce.number().int().gte(0).lt(65536).parse(val),
       },
+      host: {
+        kind: "parsed",
+        brief: "The host to bind when the SSE transport is enabled",
+        default: "127.0.0.1",
+        parse: (value) => z.string().min(1).parse(value),
+      },
+      "auth-token": {
+        kind: "parsed",
+        brief: "Bearer token required for SSE /sse and /message requests",
+        optional: true,
+        parse: (value) => z.string().min(1).parse(value),
+      },
       tool: {
         kind: "parsed",
         brief: "Specify tools to mount on the server",

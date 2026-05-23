@@ -16,6 +16,8 @@ import { createMCPServer } from "../../server.js";
 interface StartCommandFlags {
   readonly transport: "stdio" | "sse";
   readonly port: number;
+  readonly host: string;
+  readonly "auth-token"?: string | undefined;
   readonly tool?: string[];
   readonly "api-key-auth"?: string | undefined;
   readonly "server-url"?: string;
@@ -65,6 +67,7 @@ async function startStdio(flags: StartCommandFlags) {
 async function startSSE(flags: StartCommandFlags) {
   const logger = createConsoleLogger(flags["log-level"]);
   const app = express();
+  const sseAuth = createMcpSseAuthMiddleware(flags["auth-token"]);
   const mcpServer = createMCPServer({
     logger,
     allowedTools: flags.tool,
@@ -76,7 +79,7 @@ async function startSSE(flags: StartCommandFlags) {
   let transport: SSEServerTransport | undefined;
   const controller = new AbortController();
 
-  app.get("/sse", async (_req, res) => {
+  app.get("/sse", sseAuth, async (_req, res) => {
     transport = new SSEServerTransport("/message", res);
 
     await mcpServer.connect(transport);
@@ -86,7 +89,7 @@ async function startSSE(flags: StartCommandFlags) {
     };
   });
 
-  app.post("/message", async (req, res) => {
+  app.post("/message", sseAuth, async (req, res) => {
     if (!transport) {
       throw new Error("Server transport not initialized");
     }
@@ -94,7 +97,11 @@ async function startSSE(flags: StartCommandFlags) {
     await transport.handlePostMessage(req, res);
   });
 
-  const httpServer = app.listen(flags.port, "0.0.0.0", () => {
+  if (flags.host === "0.0.0.0") {
+    logger.warning("MCP SSE is listening on all interfaces. Use --auth-token outside local development.");
+  }
+
+  const httpServer = app.listen(flags.port, flags.host, () => {
     const ha = httpServer.address();
     const host = typeof ha === "string" ? ha : `${ha?.address}:${ha?.port}`;
     logger.info("MCP HTTP server started", { host });
@@ -129,4 +136,18 @@ async function startSSE(flags: StartCommandFlags) {
   const abort = () => controller.abort();
   process.on("SIGTERM", abort);
   process.on("SIGINT", abort);
+}
+
+function createMcpSseAuthMiddleware(authToken: string | undefined): express.RequestHandler {
+  return (req, res, next) => {
+    if (authToken === undefined) {
+      next();
+      return;
+    }
+    if (req.header("authorization") !== `Bearer ${authToken}`) {
+      res.sendStatus(401);
+      return;
+    }
+    next();
+  };
 }
