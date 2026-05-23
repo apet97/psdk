@@ -1,15 +1,30 @@
 import { describe, expect, it, vi } from "vitest";
-import { createPumbleClient } from "../src/extensions/index.js";
+import {
+  asChannelId,
+  asMessageId,
+  asUserId,
+  createPumbleClient,
+} from "../src/extensions/index.js";
 import {
   channelEntryFixture,
   messageRefFixture,
   userFixture,
 } from "./helpers/fixtures.js";
 
+const CHANNEL_ID = asChannelId("bbbbbbbbbbbbbbbbbbbb0201");
+const OPS_CHANNEL_ID = asChannelId("bbbbbbbbbbbbbbbbbbbb0202");
+const DM_CHANNEL_ID = asChannelId("bbbbbbbbbbbbbbbbbbbb0203");
+const USER_ID = asUserId("aaaaaaaaaaaaaaaaaaaa0201");
+const USER_ID_2 = asUserId("aaaaaaaaaaaaaaaaaaaa0202");
+const MESSAGE_ID = asMessageId("cccccccccccccccccccc0201");
+const REPLY_MESSAGE_ID = asMessageId("cccccccccccccccccccc0202");
+const DM_MESSAGE_ID = asMessageId("cccccccccccccccccccc0203");
+const ROOT_MESSAGE_ID = asMessageId("cccccccccccccccccccc0204");
+
 const channelEntries = [
   channelEntryFixture({
     channel: {
-      id: "c1",
+      id: CHANNEL_ID,
       name: "general",
       channelType: "PUBLIC",
       workspaceId: "w1",
@@ -17,7 +32,7 @@ const channelEntries = [
   }),
   channelEntryFixture({
     channel: {
-      id: "c2",
+      id: OPS_CHANNEL_ID,
       name: "ops",
       channelType: "PRIVATE",
       workspaceId: "w1",
@@ -27,7 +42,7 @@ const channelEntries = [
 
 const users = [
   userFixture({
-    id: "u1",
+    id: USER_ID,
     email: "ada@example.invalid",
     name: "Ada Lovelace",
     role: "MEMBER",
@@ -35,7 +50,7 @@ const users = [
     workspaceId: "w1",
   }),
   userFixture({
-    id: "u2",
+    id: USER_ID_2,
     email: "grace@example.invalid",
     name: "Grace Hopper",
     role: "MEMBER",
@@ -51,11 +66,11 @@ function cachedClient() {
   const listUsers = vi.spyOn(client.raw.users, "listUsers")
     .mockResolvedValue(users);
   vi.spyOn(client.raw.messages, "sendMessage")
-    .mockResolvedValue(messageRefFixture({ id: "m1", channelId: "c1" }));
+    .mockResolvedValue(messageRefFixture({ id: MESSAGE_ID, channelId: CHANNEL_ID }));
   vi.spyOn(client.raw.messages, "sendReply")
-    .mockResolvedValue(messageRefFixture({ id: "r1", channelId: "c1" }));
+    .mockResolvedValue(messageRefFixture({ id: REPLY_MESSAGE_ID, channelId: CHANNEL_ID }));
   vi.spyOn(client.raw.messages, "dmUser")
-    .mockResolvedValue(messageRefFixture({ id: "d1", channelId: "dm1" }));
+    .mockResolvedValue(messageRefFixture({ id: DM_MESSAGE_ID, channelId: DM_CHANNEL_ID }));
   return { client, listChannels, listUsers };
 }
 
@@ -81,7 +96,7 @@ describe("createPumbleClient resolverCache", () => {
 
     await client.channels.find("general");
     await client.messages.send({ channel: "#general", text: "hello" });
-    await client.threads.reply({ channel: "general", messageId: "root1", text: "reply" });
+    await client.threads.reply({ channel: "general", messageId: ROOT_MESSAGE_ID, text: "reply" });
     await client.users.find("ada@example.invalid");
     await client.messages.dm({ user: "ada@example.invalid", text: "dm" });
 
@@ -98,7 +113,7 @@ describe("createPumbleClient resolverCache", () => {
     await expect(client.channels.find("general")).rejects.toThrow("temporary channels failure");
     await expect(client.channels.find("general")).resolves.toMatchObject({
       ok: true,
-      ids: { channelId: "c1" },
+      ids: { channelId: CHANNEL_ID },
     });
 
     expect(listChannels).toHaveBeenCalledTimes(2);
@@ -113,7 +128,7 @@ describe("createPumbleClient resolverCache", () => {
     await expect(client.users.find("ada@example.invalid")).rejects.toThrow("temporary users failure");
     await expect(client.users.find("ada@example.invalid")).resolves.toMatchObject({
       ok: true,
-      ids: { userId: "u1" },
+      ids: { userId: USER_ID },
     });
 
     expect(listUsers).toHaveBeenCalledTimes(2);
@@ -142,8 +157,8 @@ describe("createPumbleClient resolverCache", () => {
       user: "ada@example.invalid",
     })).resolves.toMatchObject({
       ok: true,
-      channel: { ok: true, ids: { channelId: "c1" } },
-      user: { ok: true, ids: { userId: "u1" } },
+      channel: { ok: true, ids: { channelId: CHANNEL_ID } },
+      user: { ok: true, ids: { userId: USER_ID } },
     });
 
     expect(sendMessage).not.toHaveBeenCalled();

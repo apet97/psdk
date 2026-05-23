@@ -8,6 +8,11 @@ import type {
   UserSummary,
 } from "../src/extensions/index.js";
 import {
+  asChannelId,
+  asMessageId,
+  asUserId,
+} from "../src/extensions/index.js";
+import {
   channelFixture,
   messageRefFixture,
   userFixture,
@@ -45,14 +50,22 @@ function apiError(status: number): PumbleSDKError {
   });
 }
 
+const CHANNEL_ID = asChannelId("bbbbbbbbbbbbbbbbbbbb0101");
+const USER_ID = asUserId("aaaaaaaaaaaaaaaaaaaa0101");
+const MESSAGE_ID = asMessageId("cccccccccccccccccccc0101");
+const DM_MESSAGE_ID = asMessageId("cccccccccccccccccccc0102");
+const DM_CHANNEL_ID = asChannelId("bbbbbbbbbbbbbbbbbbbb0102");
+const REPLY_MESSAGE_ID = asMessageId("cccccccccccccccccccc0103");
+const ROOT_MESSAGE_ID = asMessageId("cccccccccccccccccccc0104");
+
 const channelSummary: ChannelSummary = {
-  id: "channel-1",
+  id: CHANNEL_ID,
   name: "general",
   channelType: "PUBLIC",
 };
 
 const userSummary: UserSummary = {
-  id: "user-1",
+  id: USER_ID,
   email: "user@example.invalid",
   name: "Example User",
 };
@@ -68,11 +81,14 @@ const channelNotFound: FacadeFailure<ChannelSummary> = {
 describe("createFacadeWrites", () => {
   it("send resolves channel targets before calling generated sendMessage", async () => {
     const raw = createRawMessages();
-    raw.messages.sendMessage.mockResolvedValue(messageRefFixture());
+    raw.messages.sendMessage.mockResolvedValue(messageRefFixture({
+      id: MESSAGE_ID,
+      channelId: CHANNEL_ID,
+    }));
     const resolveFacadeChannel = vi.fn().mockResolvedValue({
       ok: true,
       summary: "Found channel #general.",
-      ids: { channelId: "channel-1" },
+      ids: { channelId: CHANNEL_ID },
       channel: channelSummary,
     });
     const writes = createFacadeWrites({
@@ -86,14 +102,14 @@ describe("createFacadeWrites", () => {
       text: "hello",
     })).resolves.toEqual({
       ok: true,
-      summary: "Sent message message-1 to #general.",
-      ids: { channelId: "channel-1", messageId: "message-1" },
+      summary: `Sent message ${MESSAGE_ID} to #general.`,
+      ids: { channelId: CHANNEL_ID, messageId: MESSAGE_ID },
       channel: channelSummary,
-      message: messageRefFixture(),
+      message: messageRefFixture({ id: MESSAGE_ID, channelId: CHANNEL_ID }),
     });
     expect(resolveFacadeChannel).toHaveBeenCalledWith("#general");
     expect(raw.messages.sendMessage).toHaveBeenCalledWith({
-      channelId: "channel-1",
+      channelId: CHANNEL_ID,
       text: "hello",
     }, undefined);
   });
@@ -101,8 +117,8 @@ describe("createFacadeWrites", () => {
   it("send uses exact channel IDs without resolving by default", async () => {
     const raw = createRawMessages();
     raw.messages.sendMessage.mockResolvedValue(messageRefFixture({
-      id: "message-1",
-      channelId: "channel-1",
+      id: MESSAGE_ID,
+      channelId: CHANNEL_ID,
     }));
     const resolveFacadeChannel = vi.fn();
     const writes = createFacadeWrites({
@@ -112,17 +128,17 @@ describe("createFacadeWrites", () => {
     });
 
     await expect(writes.sendFacadeMessage({
-      channelId: "channel-1",
+      channelId: CHANNEL_ID,
       text: "hello",
     })).resolves.toMatchObject({
       ok: true,
-      summary: "Sent message message-1 to channel channel-1.",
-      ids: { channelId: "channel-1", messageId: "message-1" },
-      message: { id: "message-1", channelId: "channel-1" },
+      summary: `Sent message ${MESSAGE_ID} to channel ${CHANNEL_ID}.`,
+      ids: { channelId: CHANNEL_ID, messageId: MESSAGE_ID },
+      message: { id: MESSAGE_ID, channelId: CHANNEL_ID },
     });
     expect(resolveFacadeChannel).not.toHaveBeenCalled();
     expect(raw.messages.sendMessage).toHaveBeenCalledWith({
-      channelId: "channel-1",
+      channelId: CHANNEL_ID,
       text: "hello",
     }, undefined);
   });
@@ -130,13 +146,13 @@ describe("createFacadeWrites", () => {
   it("dm resolves user targets before calling generated dmUser", async () => {
     const raw = createRawMessages();
     raw.messages.dmUser.mockResolvedValue(messageRefFixture({
-      id: "dm-message-1",
-      channelId: "dm-channel-1",
+      id: DM_MESSAGE_ID,
+      channelId: DM_CHANNEL_ID,
     }));
     const resolveFacadeUser = vi.fn().mockResolvedValue({
       ok: true,
       summary: "Found user Example User.",
-      ids: { userId: "user-1" },
+      ids: { userId: USER_ID },
       user: userSummary,
     });
     const writes = createFacadeWrites({
@@ -150,18 +166,18 @@ describe("createFacadeWrites", () => {
       text: "hello dm",
     })).resolves.toEqual({
       ok: true,
-      summary: "Sent DM dm-message-1 to Example User.",
+      summary: `Sent DM ${DM_MESSAGE_ID} to Example User.`,
       ids: {
-        userId: "user-1",
-        messageId: "dm-message-1",
-        channelId: "dm-channel-1",
+        userId: USER_ID,
+        messageId: DM_MESSAGE_ID,
+        channelId: DM_CHANNEL_ID,
       },
       user: userSummary,
-      message: { id: "dm-message-1", channelId: "dm-channel-1" },
+      message: { id: DM_MESSAGE_ID, channelId: DM_CHANNEL_ID },
     });
     expect(resolveFacadeUser).toHaveBeenCalledWith("user@example.invalid");
     expect(raw.messages.dmUser).toHaveBeenCalledWith({
-      userId: "user-1",
+      userId: USER_ID,
       text: "hello dm",
     }, undefined);
   });
@@ -169,8 +185,8 @@ describe("createFacadeWrites", () => {
   it("dm uses exact user IDs without resolving by default", async () => {
     const raw = createRawMessages();
     raw.messages.dmUser.mockResolvedValue(messageRefFixture({
-      id: "dm-message-1",
-      channelId: "dm-channel-1",
+      id: DM_MESSAGE_ID,
+      channelId: DM_CHANNEL_ID,
     }));
     const resolveFacadeUser = vi.fn();
     const writes = createFacadeWrites({
@@ -180,21 +196,21 @@ describe("createFacadeWrites", () => {
     });
 
     await expect(writes.dmFacadeUser({
-      userId: "user-1",
+      userId: USER_ID,
       text: "hello dm",
     })).resolves.toMatchObject({
       ok: true,
-      summary: "Sent DM dm-message-1 to user user-1.",
+      summary: `Sent DM ${DM_MESSAGE_ID} to user ${USER_ID}.`,
       ids: {
-        userId: "user-1",
-        messageId: "dm-message-1",
-        channelId: "dm-channel-1",
+        userId: USER_ID,
+        messageId: DM_MESSAGE_ID,
+        channelId: DM_CHANNEL_ID,
       },
-      message: { id: "dm-message-1", channelId: "dm-channel-1" },
+      message: { id: DM_MESSAGE_ID, channelId: DM_CHANNEL_ID },
     });
     expect(resolveFacadeUser).not.toHaveBeenCalled();
     expect(raw.messages.dmUser).toHaveBeenCalledWith({
-      userId: "user-1",
+      userId: USER_ID,
       text: "hello dm",
     }, undefined);
   });
@@ -202,13 +218,13 @@ describe("createFacadeWrites", () => {
   it("thread replies resolve channel targets before calling generated sendReply", async () => {
     const raw = createRawMessages();
     raw.messages.sendReply.mockResolvedValue(messageRefFixture({
-      id: "reply-1",
-      channelId: "channel-1",
+      id: REPLY_MESSAGE_ID,
+      channelId: CHANNEL_ID,
     }));
     const resolveFacadeChannel = vi.fn().mockResolvedValue({
       ok: true,
       summary: "Found channel #general.",
-      ids: { channelId: "channel-1" },
+      ids: { channelId: CHANNEL_ID },
       channel: channelSummary,
     });
     const writes = createFacadeWrites({
@@ -219,23 +235,23 @@ describe("createFacadeWrites", () => {
 
     await expect(writes.replyFacadeThread({
       channel: "#general",
-      messageId: "root-1",
+      messageId: ROOT_MESSAGE_ID,
       text: "thread reply",
     })).resolves.toEqual({
       ok: true,
-      summary: "Replied with reply-1 in #general.",
+      summary: `Replied with ${REPLY_MESSAGE_ID} in #general.`,
       ids: {
-        channelId: "channel-1",
-        messageId: "reply-1",
-        rootMessageId: "root-1",
+        channelId: CHANNEL_ID,
+        messageId: REPLY_MESSAGE_ID,
+        rootMessageId: ROOT_MESSAGE_ID,
       },
       channel: channelSummary,
-      message: { id: "reply-1", channelId: "channel-1" },
+      message: { id: REPLY_MESSAGE_ID, channelId: CHANNEL_ID },
     });
     expect(resolveFacadeChannel).toHaveBeenCalledWith("#general");
     expect(raw.messages.sendReply).toHaveBeenCalledWith({
-      channelId: "channel-1",
-      messageId: "root-1",
+      channelId: CHANNEL_ID,
+      messageId: ROOT_MESSAGE_ID,
       text: "thread reply",
     }, undefined);
   });
@@ -243,8 +259,8 @@ describe("createFacadeWrites", () => {
   it("thread replies use exact channel IDs without resolving by default", async () => {
     const raw = createRawMessages();
     raw.messages.sendReply.mockResolvedValue(messageRefFixture({
-      id: "reply-1",
-      channelId: "channel-1",
+      id: REPLY_MESSAGE_ID,
+      channelId: CHANNEL_ID,
     }));
     const resolveFacadeChannel = vi.fn();
     const writes = createFacadeWrites({
@@ -254,48 +270,51 @@ describe("createFacadeWrites", () => {
     });
 
     await expect(writes.replyFacadeThread({
-      channelId: "channel-1",
-      messageId: "root-1",
+      channelId: CHANNEL_ID,
+      messageId: ROOT_MESSAGE_ID,
       text: "thread reply",
     })).resolves.toMatchObject({
       ok: true,
-      summary: "Replied with reply-1 in channel channel-1.",
+      summary: `Replied with ${REPLY_MESSAGE_ID} in channel ${CHANNEL_ID}.`,
       ids: {
-        channelId: "channel-1",
-        messageId: "reply-1",
-        rootMessageId: "root-1",
+        channelId: CHANNEL_ID,
+        messageId: REPLY_MESSAGE_ID,
+        rootMessageId: ROOT_MESSAGE_ID,
       },
-      message: { id: "reply-1", channelId: "channel-1" },
+      message: { id: REPLY_MESSAGE_ID, channelId: CHANNEL_ID },
     });
     expect(resolveFacadeChannel).not.toHaveBeenCalled();
     expect(raw.messages.sendReply).toHaveBeenCalledWith({
-      channelId: "channel-1",
-      messageId: "root-1",
+      channelId: CHANNEL_ID,
+      messageId: ROOT_MESSAGE_ID,
       text: "thread reply",
     }, undefined);
   });
 
   it("validates exact IDs when validateTarget is true", async () => {
     const raw = createRawMessages();
-    raw.messages.sendMessage.mockResolvedValue(messageRefFixture());
+    raw.messages.sendMessage.mockResolvedValue(messageRefFixture({
+      id: MESSAGE_ID,
+      channelId: CHANNEL_ID,
+    }));
     raw.messages.dmUser.mockResolvedValue(messageRefFixture({
-      id: "dm-message-1",
-      channelId: "dm-channel-1",
+      id: DM_MESSAGE_ID,
+      channelId: DM_CHANNEL_ID,
     }));
     raw.messages.sendReply.mockResolvedValue(messageRefFixture({
-      id: "reply-1",
-      channelId: "channel-1",
+      id: REPLY_MESSAGE_ID,
+      channelId: CHANNEL_ID,
     }));
     const resolveFacadeChannel = vi.fn().mockResolvedValue({
       ok: true,
       summary: "Found channel #general.",
-      ids: { channelId: "channel-1" },
+      ids: { channelId: CHANNEL_ID },
       channel: channelSummary,
     });
     const resolveFacadeUser = vi.fn().mockResolvedValue({
       ok: true,
       summary: "Found user Example User.",
-      ids: { userId: "user-1" },
+      ids: { userId: USER_ID },
       user: userSummary,
     });
     const writes = createFacadeWrites({
@@ -304,18 +323,18 @@ describe("createFacadeWrites", () => {
       resolveFacadeUser,
     });
 
-    await writes.sendFacadeMessage({ channelId: "channel-1", validateTarget: true, text: "hello" });
-    await writes.dmFacadeUser({ userId: "user-1", validateTarget: true, text: "hello" });
+    await writes.sendFacadeMessage({ channelId: CHANNEL_ID, validateTarget: true, text: "hello" });
+    await writes.dmFacadeUser({ userId: USER_ID, validateTarget: true, text: "hello" });
     await writes.replyFacadeThread({
-      channelId: "channel-1",
+      channelId: CHANNEL_ID,
       validateTarget: true,
-      messageId: "root-1",
+      messageId: ROOT_MESSAGE_ID,
       text: "hello",
     });
 
-    expect(resolveFacadeChannel).toHaveBeenCalledWith("channel-1");
+    expect(resolveFacadeChannel).toHaveBeenCalledWith(CHANNEL_ID);
     expect(resolveFacadeChannel).toHaveBeenCalledTimes(2);
-    expect(resolveFacadeUser).toHaveBeenCalledWith("user-1");
+    expect(resolveFacadeUser).toHaveBeenCalledWith(USER_ID);
   });
 
   it("search recent preserves default and explicit limits in generated search requests", async () => {
@@ -376,7 +395,7 @@ describe("createFacadeWrites", () => {
     })).resolves.toBe(channelNotFound);
     await expect(writes.replyFacadeThread({
       channel: "missing",
-      messageId: "root-1",
+      messageId: ROOT_MESSAGE_ID,
       text: "do not send",
     })).resolves.toBe(channelNotFound);
     expect(raw.messages.sendMessage).not.toHaveBeenCalled();
@@ -399,7 +418,7 @@ describe("createFacadeWrites", () => {
         choices: [],
       });
 
-    await expect(writes.replyFacadeThread({ messageId: "root-1", text: "missing target" }))
+    await expect(writes.replyFacadeThread({ messageId: ROOT_MESSAGE_ID, text: "missing target" }))
       .resolves.toMatchObject({
         ok: false,
         reason: "invalid_request",
@@ -425,7 +444,7 @@ describe("createFacadeWrites", () => {
       .resolves.toMatchObject({ ok: false, reason: "invalid_request" });
     await expect(writes.replyFacadeThread({
       channelId: " ",
-      messageId: "root-1",
+      messageId: ROOT_MESSAGE_ID,
       text: "missing target",
     })).resolves.toMatchObject({ ok: false, reason: "invalid_request" });
 
@@ -465,7 +484,7 @@ describe("createFacadeWrites", () => {
       resolveFacadeChannel: vi.fn().mockResolvedValue({
         ok: true,
         summary: "Found channel #general.",
-        ids: { channelId: "channel-1" },
+        ids: { channelId: CHANNEL_ID },
         channel: channelSummary,
       }),
       resolveFacadeUser: vi.fn(),
@@ -494,7 +513,7 @@ describe("createFacadeWrites", () => {
       resolveFacadeUser: vi.fn().mockResolvedValue({
         ok: true,
         summary: "Found user Example User.",
-        ids: { userId: "user-1" },
+        ids: { userId: USER_ID },
         user: userSummary,
       }),
     });
@@ -521,7 +540,7 @@ describe("createFacadeWrites", () => {
       resolveFacadeChannel: vi.fn().mockResolvedValue({
         ok: true,
         summary: "Found channel #general.",
-        ids: { channelId: "channel-1" },
+        ids: { channelId: CHANNEL_ID },
         channel: channelSummary,
       }),
       resolveFacadeUser: vi.fn(),
@@ -529,7 +548,7 @@ describe("createFacadeWrites", () => {
 
     await expect(writes.replyFacadeThread({
       channel: "#general",
-      messageId: "root-1",
+      messageId: ROOT_MESSAGE_ID,
       text: "hello",
     })).resolves.toMatchObject({
       ok: false,
@@ -562,7 +581,7 @@ describe("createFacadeWrites", () => {
   });
 
   it("accepts typed fixture summaries without widening generated fixtures", () => {
-    expect(channelFixture(channelSummary).id).toBe("channel-1");
-    expect(userFixture(userSummary).id).toBe("user-1");
+    expect(channelFixture(channelSummary).id).toBe(CHANNEL_ID);
+    expect(userFixture(userSummary).id).toBe(USER_ID);
   });
 });
