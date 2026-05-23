@@ -217,9 +217,11 @@ describe("spec quality audit", () => {
   });
 });
 
-import { resolve } from "node:path";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve, join } from "node:path";
 // eslint-disable-next-line import/no-unresolved
-import { runAudit } from "../scripts/spec-quality-audit.mjs";
+import { auditSpec, runAudit } from "../scripts/spec-quality-audit.mjs";
 
 describe("spec quality audit (extended)", () => {
   const report = runAudit({ specPath: resolve(__dirname, "..", "..", "PumbleOpenApi.yaml") });
@@ -245,5 +247,57 @@ describe("spec quality audit (extended)", () => {
       (finding: { code: string }) => finding.code === "retries/missing-statuscodes",
     );
     expect(missing).toEqual([]);
+  });
+});
+
+describe("spec-audit CLI surface", () => {
+  function writeSpec(contents: string): string {
+    const dir = mkdtempSync(join(tmpdir(), "spec-audit-test-"));
+    const file = join(dir, "spec.yaml");
+    writeFileSync(file, contents);
+    return file;
+  }
+
+  it("passes for a minimal valid spec", () => {
+    const file = writeSpec(`openapi: 3.0.0
+info:
+  title: t
+  version: 0.0.1
+paths:
+  /list:
+    get:
+      operationId: list
+      summary: list things
+      tags: [Channels]
+      responses:
+        "200":
+          description: ok
+`);
+
+    expect(auditSpec(file)).toEqual({
+      ok: true,
+      message: "Spec quality audit passed.",
+    });
+  });
+
+  it("fails when a write op lacks x-speakeasy-retries (gate the test asserts)", () => {
+    const file = writeSpec(`openapi: 3.0.0
+info:
+  title: t
+  version: 0.0.1
+paths:
+  /createX:
+    post:
+      operationId: createX
+      summary: create
+      tags: [Channels]
+      responses:
+        "200":
+          description: ok
+`);
+
+    const result = auditSpec(file);
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/Write operations missing x-speakeasy-retries/);
   });
 });

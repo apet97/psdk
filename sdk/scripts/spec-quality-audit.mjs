@@ -236,18 +236,50 @@ function isRecord(value) {
 }
 
 function runCli() {
-  const source = readFileSync(DEFAULT_SPEC_PATH, "utf8");
-  const doc = parse(source);
-  const findings = auditOpenApiDocument(doc);
-  const formatted = formatAuditFindings(findings);
-
-  if (findings.length > 0) {
-    console.error(formatted);
+  const result = auditSpec(DEFAULT_SPEC_PATH);
+  if (!result.ok) {
+    console.error(result.message);
     process.exitCode = 1;
     return;
   }
+  console.log(result.message);
+}
 
-  console.log(formatted);
+export function auditSpec(specPath) {
+  const report = runAudit({ specPath });
+  const sections = [];
+
+  if (report.findings.length > 0) {
+    sections.push(formatAuditFindings(report.findings));
+  }
+  if (report.missingDescription.length > 0) {
+    sections.push(formatBucket("Operations missing description/summary", report.missingDescription));
+  }
+  if (report.unsafeWriteRetries.length > 0) {
+    sections.push(
+      formatBucket(
+        "Write operations missing x-speakeasy-retries declaration",
+        report.unsafeWriteRetries,
+      ),
+    );
+  }
+  if (report.missingPaginationMetadata.length > 0) {
+    sections.push(
+      formatBucket("Paginated operations missing 200 response metadata", report.missingPaginationMetadata),
+    );
+  }
+  if (report.leakedSecrets.length > 0) {
+    sections.push(formatBucket("Example values leaking real IDs or emails", report.leakedSecrets));
+  }
+
+  if (sections.length === 0) {
+    return { ok: true, message: "Spec quality audit passed." };
+  }
+  return { ok: false, message: sections.join("\n\n") };
+}
+
+function formatBucket(title, items) {
+  return [`${title} (${items.length}):`, ...items.map((entry) => `  - ${entry}`)].join("\n");
 }
 
 export function runAudit({ specPath = DEFAULT_SPEC_PATH } = {}) {
