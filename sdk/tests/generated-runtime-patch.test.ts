@@ -40,6 +40,14 @@ describe("generated runtime patch", () => {
     expect(source).toContain("new ResponseValidationError(\"Response validation failed\"");
   });
 
+  it("keeps generated backoff from starting at zero for ordinary retries", () => {
+    const source = readFileSync(join(__dirname, "../src/lib/retries.ts"), "utf8");
+
+    expect(source).toContain("const attempt = Math.max(1, x)");
+    expect(source).toContain("initialInterval * Math.pow(attempt, exponent)");
+    expect(source).toContain("function retryIntervalFromResponse(res: Response): number | undefined");
+  });
+
   it("keeps generated write schemas semantically constrained", () => {
     for (const fileName of [
       "send-message.ts",

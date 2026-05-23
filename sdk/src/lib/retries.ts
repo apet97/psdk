@@ -175,14 +175,15 @@ async function retryBackoff(
         throw err;
       }
 
-      let retryInterval = 0;
+      let retryInterval: number | undefined;
       if (err instanceof TemporaryError) {
         retryInterval = retryIntervalFromResponse(err.response);
       }
 
-      if (retryInterval <= 0) {
+      if (retryInterval === undefined) {
+        const attempt = Math.max(1, x);
         retryInterval =
-          initialInterval * Math.pow(x, exponent) + Math.random() * 1000;
+          initialInterval * Math.pow(attempt, exponent) + Math.random() * 1000;
       }
 
       const d = Math.min(retryInterval, maxInterval);
@@ -193,10 +194,10 @@ async function retryBackoff(
   }
 }
 
-function retryIntervalFromResponse(res: Response): number {
+function retryIntervalFromResponse(res: Response): number | undefined {
   const retryVal = res.headers.get("retry-after") || "";
   if (!retryVal) {
-    return 0;
+    return undefined;
   }
 
   const parsedNumber = Number(retryVal);
@@ -210,7 +211,7 @@ function retryIntervalFromResponse(res: Response): number {
     return deltaMS > 0 ? Math.ceil(deltaMS) : 0;
   }
 
-  return 0;
+  return undefined;
 }
 
 async function delay(delay: number): Promise<void> {

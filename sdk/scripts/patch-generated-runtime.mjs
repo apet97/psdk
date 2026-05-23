@@ -101,6 +101,52 @@ patchFile(resolve(sdkRoot, "src/lib/matchers.ts"), [
   },
 ]);
 
+patchFile(resolve(sdkRoot, "src/lib/retries.ts"), [
+  {
+    before: `      let retryInterval = 0;
+      if (err instanceof TemporaryError) {
+        retryInterval = retryIntervalFromResponse(err.response);
+      }
+
+      if (retryInterval <= 0) {
+        retryInterval =
+          initialInterval * Math.pow(x, exponent) + Math.random() * 1000;
+      }`,
+    after: `      let retryInterval: number | undefined;
+      if (err instanceof TemporaryError) {
+        retryInterval = retryIntervalFromResponse(err.response);
+      }
+
+      if (retryInterval === undefined) {
+        const attempt = Math.max(1, x);
+        retryInterval =
+          initialInterval * Math.pow(attempt, exponent) + Math.random() * 1000;
+      }`,
+  },
+  {
+    before: `function retryIntervalFromResponse(res: Response): number {
+  const retryVal = res.headers.get("retry-after") || "";
+  if (!retryVal) {
+    return 0;
+  }`,
+    after: `function retryIntervalFromResponse(res: Response): number | undefined {
+  const retryVal = res.headers.get("retry-after") || "";
+  if (!retryVal) {
+    return undefined;
+  }`,
+  },
+  {
+    before: `  return 0;
+}
+
+async function delay(delay: number): Promise<void> {`,
+    after: `  return undefined;
+}
+
+async function delay(delay: number): Promise<void> {`,
+  },
+]);
+
 patchFile(resolve(sdkRoot, "src/models/operations/send-message.ts"), [
   { before: "channel: z.string(),", after: "channel: z.string().min(1)," },
   { before: "channelId: z.string(),", after: "channelId: z.string().min(1)," },
