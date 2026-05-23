@@ -50,7 +50,7 @@ export function createMCPServer(deps: {
 }) {
   const server = new McpServer({
     name: "PumbleSDK",
-    version: "0.3.21",
+    version: "0.3.22",
   });
 
   const client = new PumbleSDKCore({
