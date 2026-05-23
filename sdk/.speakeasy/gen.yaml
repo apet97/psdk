@@ -59,9 +59,13 @@ typescript:
       - bin/pumble-mcp-args.mjs
       - bin/pumble-mcp-curated.js
       - bin/pumble-mcp.mjs
+      - docs/API-REFERENCE.md
+      - docs/ERRORS.md
       - docs/INTEGRATION-USAGE.md
       - docs/PACKAGE-SPLIT.md
       - docs/QUICKSTART.md
+      - docs/STABILITY.md
+      - docs/SUPPORT.md
       - esm
       - src
     peerDependenciesMeta:

@@ -18,6 +18,7 @@ const stability = readFileSync(new URL("../docs/STABILITY.md", import.meta.url),
 const errorsGuide = readFileSync(new URL("../docs/ERRORS.md", import.meta.url), "utf8");
 const apiReference = readFileSync(new URL("../docs/API-REFERENCE.md", import.meta.url), "utf8");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+const changelog = readFileSync(new URL("../../CHANGELOG.md", import.meta.url), "utf8");
 const context = readFileSync(new URL("../../CONTEXT.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -109,12 +110,22 @@ const requiredApiReferencePhrases = [
   "same-second boundaries",
   "pumble-mcp start --profile curated",
   "stdio",
-  "localhost",
+  "127.0.0.1",
   "bearer auth",
   "`pumble`",
   "`pumble-mcp`",
   "signature verification",
   "event handler/router",
+];
+
+const requiredChangelogHeadings = [
+  "generated api",
+  "facade",
+  "cli/mcp",
+  "webhooks/app helpers",
+  "security",
+  "docs",
+  "migration notes",
 ];
 
 function markdownHeadings(markdown: string): string[] {
@@ -410,6 +421,12 @@ describe("docs", () => {
     for (const phrase of requiredApiReferencePhrases) {
       expect(apiReference).toContain(phrase);
     }
+  });
+
+  test("changelog includes release communication sections", () => {
+    expect(markdownHeadings(changelog)).toEqual(
+      expect.arrayContaining(requiredChangelogHeadings),
+    );
   });
 
   test("docs describe resolver performance and cache boundaries", () => {

@@ -31,6 +31,8 @@ describe("package metadata", () => {
     expect(pkg.scripts["package-split:dry-run"]).toBe(
       "node scripts/package-split-dry-run.mjs",
     );
+    expect(pkg.scripts.prepublishOnly).not.toBe("npm run build");
+    expect(pkg.scripts.prepublishOnly).toContain("verify:offline");
 
     for (const gate of [
       "npm run spec:audit",
@@ -56,9 +58,13 @@ describe("package metadata", () => {
       "bin/pumble-mcp-args.mjs",
       "bin/pumble-mcp-curated.js",
       "bin/pumble-mcp.mjs",
+      "docs/API-REFERENCE.md",
+      "docs/ERRORS.md",
       "docs/INTEGRATION-USAGE.md",
       "docs/PACKAGE-SPLIT.md",
       "docs/QUICKSTART.md",
+      "docs/STABILITY.md",
+      "docs/SUPPORT.md",
       "esm",
       "src",
     ]);
