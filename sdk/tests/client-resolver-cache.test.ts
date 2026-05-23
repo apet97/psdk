@@ -1,45 +1,48 @@
 import { describe, expect, it, vi } from "vitest";
 import { createPumbleClient } from "../src/extensions/index.js";
+import {
+  channelEntryFixture,
+  messageRefFixture,
+  userFixture,
+} from "./helpers/fixtures.js";
 
 const channelEntries = [
-  {
+  channelEntryFixture({
     channel: {
       id: "c1",
       name: "general",
       channelType: "PUBLIC",
       workspaceId: "w1",
     },
-    users: [],
-  },
-  {
+  }),
+  channelEntryFixture({
     channel: {
       id: "c2",
       name: "ops",
       channelType: "PRIVATE",
       workspaceId: "w1",
     },
-    users: [],
-  },
-] as any;
+  }),
+];
 
 const users = [
-  {
+  userFixture({
     id: "u1",
     email: "ada@example.invalid",
     name: "Ada Lovelace",
     role: "MEMBER",
     status: "ACTIVATED",
     workspaceId: "w1",
-  },
-  {
+  }),
+  userFixture({
     id: "u2",
     email: "grace@example.invalid",
     name: "Grace Hopper",
     role: "MEMBER",
     status: "ACTIVATED",
     workspaceId: "w1",
-  },
-] as any;
+  }),
+];
 
 function cachedClient() {
   const client = createPumbleClient({ apiKeyAuth: "x", resolverCache: true });
@@ -48,11 +51,11 @@ function cachedClient() {
   const listUsers = vi.spyOn(client.raw.users, "listUsers")
     .mockResolvedValue(users);
   vi.spyOn(client.raw.messages, "sendMessage")
-    .mockResolvedValue({ id: "m1", channelId: "c1" } as any);
+    .mockResolvedValue(messageRefFixture({ id: "m1", channelId: "c1" }));
   vi.spyOn(client.raw.messages, "sendReply")
-    .mockResolvedValue({ id: "r1", channelId: "c1" } as any);
+    .mockResolvedValue(messageRefFixture({ id: "r1", channelId: "c1" }));
   vi.spyOn(client.raw.messages, "dmUser")
-    .mockResolvedValue({ id: "d1", channelId: "dm1" } as any);
+    .mockResolvedValue(messageRefFixture({ id: "d1", channelId: "dm1" }));
   return { client, listChannels, listUsers };
 }
 

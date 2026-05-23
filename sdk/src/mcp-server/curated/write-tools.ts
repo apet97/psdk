@@ -6,7 +6,6 @@ import type {
   ServerRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as z from "zod/v3";
-import { resolveChannel } from "../../extensions/index.js";
 import {
   createConfirmationToken,
   createWritePreview,
@@ -20,9 +19,9 @@ import {
   isFailurePayload,
   jsonTool,
   okPayload,
-  resolveFailurePayload,
   type CuratedFailurePayload,
 } from "./payloads.js";
+import { resolveCuratedChannelTarget } from "./targets.js";
 import type { CuratedClient } from "./types.js";
 
 export const CURATED_WRITE_TOOL_NAMES = [
@@ -106,13 +105,9 @@ async function resolveWriteChannel<T extends { channelId?: string | undefined; c
   | (T & { channelId: string; channel?: string | undefined })
   | CuratedFailurePayload
 > {
-  if (args.channelId !== undefined) return args as T & { channelId: string };
-  if (args.channel === undefined) {
-    throw new Error(`${toolName}: channelId or channel is required`);
-  }
-  const result = await resolveChannel(client, args.channel);
-  if (!result.ok) return resolveFailurePayload("Channel", args.channel, result);
-  return { ...args, channelId: result.value.id, channel: result.value.name };
+  const target = await resolveCuratedChannelTarget(client, toolName, args);
+  if (isFailurePayload(target)) return target;
+  return { ...args, channelId: target.channelId, channel: target.channelName };
 }
 
 function sendMessagePreview(request: PreviewSendMessageArgs & { channelId: string }): WritePreview {

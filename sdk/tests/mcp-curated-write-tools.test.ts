@@ -56,7 +56,7 @@ async function invoke(
   return tool.handler(parseArgs(tool, args), {});
 }
 
-function jsonContent<T = Record<string, any>>(result: CallToolResult): T {
+function jsonContent<T = Record<string, unknown>>(result: CallToolResult): T {
   expect(result.isError).toBeUndefined();
   expect(result.content).toHaveLength(1);
   const [content] = result.content;
@@ -199,7 +199,7 @@ describe("curated write workflow tools", () => {
     const result = await invoke(server, "send_message_confirmed", {
       ...(payload.data as Record<string, unknown>),
       preview: {
-        ...((payload.data as any).preview as Record<string, unknown>),
+        ...((payload.data as { preview: Record<string, unknown> }).preview),
         targetId: "channel-2",
       },
     });

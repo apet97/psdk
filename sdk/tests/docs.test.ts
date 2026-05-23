@@ -14,6 +14,7 @@ const integrationUsage = readFileSync(
 );
 const packageSplit = readFileSync(new URL("../docs/PACKAGE-SPLIT.md", import.meta.url), "utf8");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+const context = readFileSync(new URL("../../CONTEXT.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 ) as PackageJson;
@@ -165,6 +166,26 @@ describe("docs", () => {
       "../PumbleOpenApi.yaml",
     ]) {
       expect(existsSync(resolve(sdkRoot, relativePath)), relativePath).toBe(true);
+    }
+  });
+
+  test("root context documents SDKP vocabulary and non-negotiables", () => {
+    for (const phrase of [
+      "Generated SDK",
+      "Handwritten extensions",
+      "Facade",
+      "Resolver",
+      "Resolver cache",
+      "Curated MCP",
+      "Live smoke",
+      "Replay fixtures",
+      "Generated directories are regenerated, not hand-edited",
+      "Facade failures are values",
+      "Fresh writes should be proven with direct read endpoints",
+      "MCP writes must remain preview/confirm",
+      "Final live-smoke output must remain redacted",
+    ]) {
+      expect(context).toContain(phrase);
     }
   });
 

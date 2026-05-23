@@ -82,7 +82,7 @@ async function invoke(
   return tool.handler(parseArgs(tool, args), {});
 }
 
-function jsonContent(result: CallToolResult): any {
+function jsonContent<T = Record<string, unknown>>(result: CallToolResult): T {
   expect(result.isError).toBeUndefined();
   expect(result.content).toHaveLength(1);
   const [content] = result.content;
@@ -91,7 +91,7 @@ function jsonContent(result: CallToolResult): any {
   expect(text).not.toContain("attachments");
   expect(text).not.toContain("reactions");
   expect(text).not.toContain("highlightedBlocks");
-  return JSON.parse(text);
+  return JSON.parse(text) as T;
 }
 
 function readClient(overrides: Record<string, unknown> = {}) {

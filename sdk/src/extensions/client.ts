@@ -2,7 +2,6 @@ import type { SDKOptions } from "../lib/config.js";
 import type { RequestOptions } from "../lib/sdks.js";
 import type { Channel } from "../models/channel.js";
 import type { MessageRef } from "../models/message-ref.js";
-import type { ChannelListEntry } from "../models/channel-list-entry.js";
 import type {
   DmUserRequest,
   SearchMessagesRequest,
@@ -16,19 +15,27 @@ import type { Messages } from "../sdk/messages.js";
 import { PumbleSDK } from "../sdk/sdk.js";
 import type { Users } from "../sdk/users.js";
 import {
+  createFacadeFailure,
+  type FacadeFailure,
+} from "./facade-failure.js";
+import {
   findChannelByName,
   findUserByEmail,
   type FindOptions,
 } from "./find.js";
 import {
-  formatChannelCandidateLabel,
-  formatUserCandidateLabel,
   resolveChannel,
   resolveUser,
-  type ResolveChannelCandidate,
   type ResolveOptions,
-  type ResolveUserCandidate,
 } from "./resolve.js";
+import {
+  createResolverCache,
+  type ResolverCacheInfo,
+} from "./resolver-cache.js";
+import {
+  preflightResolvers,
+  type ResolverPreflightRequest,
+} from "./resolver-preflight.js";
 import {
   getThreadContext,
   replyToThread,
@@ -40,6 +47,23 @@ import {
 
 type MethodArgs<T, K extends keyof T> =
   T[K] extends (...args: infer Args) => unknown ? Args : never;
+
+export {
+  assertFacadeOk,
+  isFacadeFailure,
+} from "./facade-failure.js";
+
+export type {
+  FacadeFailure,
+  FacadeFailureReason,
+} from "./facade-failure.js";
+
+export type {
+  ResolverCacheInfo,
+  ResolverCacheState,
+} from "./resolver-cache.js";
+
+export type { ResolverPreflightRequest } from "./resolver-preflight.js";
 
 export type CreatePumbleClientOptions = SDKOptions & {
   /**
@@ -54,16 +78,6 @@ export type CreatePumbleClientOptions = SDKOptions & {
    */
   resolverCache?: boolean | undefined;
 };
-
-export type FacadeFailureReason = "not_found" | "ambiguous";
-
-export interface FacadeFailure<TChoice> {
-  ok: false;
-  reason: FacadeFailureReason;
-  summary: string;
-  choices: TChoice[];
-  nextActions: string[];
-}
 
 export interface ChannelSummary {
   id: string;
@@ -151,50 +165,11 @@ export type FacadeFindUserResult =
   }
   | FacadeFailure<UserSummary>;
 
-export type ResolverCacheState = "empty" | "loaded";
-
-export interface ResolverCacheInfo {
-  channels: ResolverCacheState;
-  users: ResolverCacheState;
-}
-
-export interface ResolverPreflightRequest {
-  channel?: string | undefined;
-  user?: string | undefined;
-  options?: ResolveOptions | undefined;
-}
-
 export type ResolverPreflightResult =
-  | {
-    ok: true;
-    channel?: Extract<FacadeFindChannelResult, { ok: true }> | undefined;
-    user?: Extract<FacadeFindUserResult, { ok: true }> | undefined;
-  }
-  | {
-    ok: false;
-    channel?: FacadeFindChannelResult | undefined;
-    user?: FacadeFindUserResult | undefined;
-  };
-
-export function isFacadeFailure(value: unknown): value is FacadeFailure<unknown> {
-  if (typeof value !== "object" || value === null) return false;
-  const candidate = value as Partial<FacadeFailure<unknown>>;
-  return candidate.ok === false
-    && (candidate.reason === "not_found" || candidate.reason === "ambiguous")
-    && typeof candidate.summary === "string"
-    && Array.isArray(candidate.choices)
-    && Array.isArray(candidate.nextActions);
-}
-
-export function assertFacadeOk<T extends { ok: boolean; summary?: string; nextActions?: string[] }>(
-  value: T,
-): Extract<T, { ok: true }> {
-  if (value.ok === true) return value as Extract<T, { ok: true }>;
-  const nextActions = Array.isArray(value.nextActions) && value.nextActions.length > 0
-    ? ` Next actions: ${value.nextActions.join(" ")}`
-    : "";
-  throw new Error(`${value.summary ?? "Facade operation failed."}${nextActions}`);
-}
+  import("./resolver-preflight.js").ResolverPreflightResult<
+    FacadeFindChannelResult,
+    FacadeFindUserResult
+  >;
 
 function channelSummary(channel: Channel): ChannelSummary {
   return {
@@ -224,89 +199,18 @@ function missingTarget(helper: string, target: string): never {
   throw new Error(`${helper}: ${target} is required`);
 }
 
-function targetFailure<TChoice>(
-  targetKind: "Channel" | "User",
-  input: string,
-  result: { ok: false; reason: FacadeFailureReason; candidates: TChoice[] },
-): FacadeFailure<TChoice> {
-  const target = targetKind.toLowerCase();
-  return {
-    ok: false,
-    reason: result.reason,
-    summary: `${targetKind} ${JSON.stringify(input)} is ${
-      result.reason === "ambiguous" ? "ambiguous" : "not found"
-    }.`,
-    choices: result.candidates.map((choice) => candidateWithLabel(targetKind, choice)),
-    nextActions: result.reason === "ambiguous"
-      ? [`Use a more exact ${targetKind} value or pass one returned ${target} id.`]
-      : [`Check the ${target} name, email, or id and try again.`],
-  };
-}
-
-function candidateWithLabel<TChoice>(targetKind: "Channel" | "User", choice: TChoice): TChoice {
-  if (typeof choice !== "object" || choice === null || "label" in choice) return choice;
-  if (targetKind === "Channel" && "id" in choice && "name" in choice && "channelType" in choice) {
-    const channel = choice as TChoice & ResolveChannelCandidate;
-    return {
-      ...choice,
-      label: formatChannelCandidateLabel(channel),
-    };
-  }
-  if (targetKind === "User" && "id" in choice && "email" in choice && "name" in choice) {
-    const user = choice as TChoice & ResolveUserCandidate;
-    return {
-      ...choice,
-      label: formatUserCandidateLabel(user),
-    };
-  }
-  return choice;
-}
-
 export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
   const { resolverCache = false, ...sdkOptions } = options;
   const raw = new PumbleSDK(sdkOptions);
-  let channelCache: Promise<ChannelListEntry[]> | undefined;
-  let userCache: Promise<User[]> | undefined;
+  const resolverCacheState = createResolverCache(raw);
 
-  function loadChannels() {
-    const cached = raw.channels.listChannels().catch((error: unknown) => {
-      if (channelCache === cached) channelCache = undefined;
-      throw error;
-    });
-    channelCache = cached;
-    return cached;
-  }
-
-  function loadUsers() {
-    const cached = raw.users.listUsers().catch((error: unknown) => {
-      if (userCache === cached) userCache = undefined;
-      throw error;
-    });
-    userCache = cached;
-    return cached;
-  }
-
-  const cachedResolverClient = {
-    channels: {
-      listChannels() {
-        return channelCache ?? loadChannels();
-      },
-    },
-    users: {
-      listUsers() {
-        return userCache ?? loadUsers();
-      },
-    },
-  };
-
-  const resolverClient = resolverCache ? cachedResolverClient : raw;
+  const resolverClient = resolverCache ? resolverCacheState.client : raw;
   const resolvers = {
     /**
      * Drop both in-memory resolver lists for this client instance.
      */
     clearCache() {
-      channelCache = undefined;
-      userCache = undefined;
+      resolverCacheState.clearCache();
     },
     /**
      * Preload or replace both resolver lists for this client instance.
@@ -315,9 +219,7 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
      * start any background refresh loop.
      */
     async refresh() {
-      loadChannels();
-      loadUsers();
-      await Promise.all([channelCache, userCache]);
+      await resolverCacheState.refresh();
     },
     /**
      * Report whether resolver list promises exist for this client instance.
@@ -326,31 +228,13 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
      * list promises are cleared automatically.
      */
     cacheInfo(): ResolverCacheInfo {
-      return {
-        channels: channelCache === undefined ? "empty" : "loaded",
-        users: userCache === undefined ? "empty" : "loaded",
-      };
+      return resolverCacheState.cacheInfo();
     },
     /**
      * Resolve intended write targets without performing any write operation.
      */
     async preflight(request: ResolverPreflightRequest): Promise<ResolverPreflightResult> {
-      const [channel, user] = await Promise.all([
-        request.channel === undefined
-          ? Promise.resolve(undefined)
-          : resolveFacadeChannel(request.channel, request.options),
-        request.user === undefined
-          ? Promise.resolve(undefined)
-          : resolveFacadeUser(request.user, request.options),
-      ]);
-      if ((channel !== undefined && !channel.ok) || (user !== undefined && !user.ok)) {
-        return { ok: false, channel, user };
-      }
-      return {
-        ok: true,
-        channel: channel as Extract<FacadeFindChannelResult, { ok: true }> | undefined,
-        user: user as Extract<FacadeFindUserResult, { ok: true }> | undefined,
-      };
+      return preflightResolvers(request, resolveFacadeChannel, resolveFacadeUser);
     },
   };
 
@@ -359,7 +243,7 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
     options?: ResolveOptions,
   ): Promise<FacadeFindChannelResult> {
     const result = await resolveChannel(resolverClient, input, options);
-    if (!result.ok) return targetFailure("Channel", input, result);
+    if (!result.ok) return createFacadeFailure("Channel", input, result);
     const channel = channelSummary(result.value);
     return {
       ok: true,
@@ -374,7 +258,7 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
     options?: ResolveOptions,
   ): Promise<FacadeFindUserResult> {
     const result = await resolveUser(resolverClient, input, options);
-    if (!result.ok) return targetFailure("User", input, result);
+    if (!result.ok) return createFacadeFailure("User", input, result);
     const user = userSummary(result.value);
     return {
       ok: true,

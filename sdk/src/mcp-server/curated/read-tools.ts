@@ -5,7 +5,6 @@ import type {
   ServerRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as z from "zod/v3";
-import { resolveChannel } from "../../extensions/index.js";
 import { getThreadContext as fetchThreadContext } from "../../extensions/thread-context.js";
 import type { RequestOptions } from "../../lib/sdks.js";
 import type { Message } from "../../models/message.js";
@@ -14,8 +13,8 @@ import type { SearchHit } from "../../models/search-hit.js";
 import {
   okPayload,
   jsonTool,
-  resolveFailurePayload,
 } from "./payloads.js";
+import { resolveCuratedChannelTarget } from "./targets.js";
 import type { CuratedClient } from "./types.js";
 
 const DEFAULT_READ_LIMIT = 10;
@@ -107,25 +106,6 @@ type GetThreadContextArgs = z.infer<z.ZodObject<typeof getThreadContextSchema>>;
 
 function requestOptions(ctx: ToolExtra): RequestOptions | undefined {
   return ctx.signal === undefined ? undefined : { signal: ctx.signal };
-}
-
-async function resolveChannelTarget(
-  client: CuratedClient,
-  toolName: string,
-  args: { channel?: string | undefined; channelId?: string | undefined },
-): Promise<
-  | { ok: true; channelId: string; channelName?: string | undefined }
-  | ReturnType<typeof resolveFailurePayload>
-> {
-  if (args.channelId !== undefined) {
-    return { ok: true, channelId: args.channelId, channelName: args.channel };
-  }
-  if (args.channel === undefined) {
-    throw new Error(`${toolName}: channelId or channel is required`);
-  }
-  const result = await resolveChannel(client, args.channel);
-  if (!result.ok) return resolveFailurePayload("Channel", args.channel, result);
-  return { ok: true, channelId: result.value.id, channelName: result.value.name };
 }
 
 function compactActor(author: string, authorAppId: string | null | undefined): CompactActor {
@@ -276,7 +256,7 @@ export function registerCuratedReadTools(
     getChannelContextSchema,
     async (args: GetChannelContextArgs, ctx: ToolExtra) =>
       jsonTool(async () => {
-        const target = await resolveChannelTarget(client, "get_channel_context", args);
+        const target = await resolveCuratedChannelTarget(client, "get_channel_context", args);
         if (!target.ok) return target;
 
         const request = listMessagesRequest(args, target.channelId);
@@ -311,7 +291,7 @@ export function registerCuratedReadTools(
     getThreadContextSchema,
     async (args: GetThreadContextArgs, ctx: ToolExtra) =>
       jsonTool(async () => {
-        const target = await resolveChannelTarget(client, "get_thread_context", args);
+        const target = await resolveCuratedChannelTarget(client, "get_thread_context", args);
         if (!target.ok) return target;
 
         const context = await fetchThreadContext(

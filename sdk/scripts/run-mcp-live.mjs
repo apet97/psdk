@@ -4,13 +4,14 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { createPumbleClient } from "../esm/extensions/index.js";
 import { requireLiveApiKey } from "./live-env.mjs";
 import { CURATED_TOOL_NAMES } from "../esm/mcp-server/curated/tools.js";
-import { redactLiveValue, runLiveOperation } from "./live-smoke-utils.mjs";
+import { createLiveSmokeHarness } from "./live-smoke-harness.mjs";
+import { redactLiveValue } from "./live-smoke-utils.mjs";
 
 const { apiKeyAuth, env } = requireLiveApiKey();
 const raw = createPumbleClient({ apiKeyAuth, resolverCache: true }).raw;
+const smoke = createLiveSmokeHarness({ finalSummary: "Curated MCP live smoke passed." });
 const runId = `sdk-mcp-live-${Date.now()}`;
 const channelName = runId.toLowerCase();
-const created = { channelId: undefined, messageIds: [] };
 const client = new Client({ name: "pumble-sdk-live-smoke", version: "0.0.0" });
 const transport = new StdioClientTransport({
   command: process.execPath,
@@ -47,25 +48,19 @@ function parseToolPayload(result) {
 }
 
 async function call(name, args = {}) {
-  return runLiveOperation(`mcp.${name}`, args, async () =>
+  return smoke.run(`mcp.${name}`, args, async () =>
     parseToolPayload(await client.callTool({ name, arguments: args })));
 }
 
 async function cleanup() {
-  for (const item of created.messageIds.reverse()) {
-    try {
-      await raw.messages.deleteMessage(item);
-    } catch {
-      // Best-effort cleanup only.
-    }
-  }
+  await smoke.cleanup((item) => raw.messages.deleteMessage(item));
   await client.close().catch(() => {});
   await transport.close().catch(() => {});
 }
 
 try {
-  await runLiveOperation("mcp.connect", {}, () => client.connect(transport));
-  const listed = await runLiveOperation("mcp.listTools", {}, () => client.listTools());
+  await smoke.run("mcp.connect", {}, () => client.connect(transport));
+  const listed = await smoke.run("mcp.listTools", {}, () => client.listTools());
   const names = listed.tools.map((tool) => tool.name).sort();
   const expected = [...CURATED_TOOL_NAMES].sort();
   if (JSON.stringify(names) !== JSON.stringify(expected)) {
@@ -76,13 +71,12 @@ try {
   }
 
   assertEnvelope("whoami", await call("whoami"));
-  const channel = await runLiveOperation("channels.create", { channel: channelName }, () =>
+  await smoke.run("channels.create", { channel: channelName }, () =>
     raw.channels.createChannel({
     name: channelName,
     type: "PUBLIC",
     description: "Created by pumble-sdk curated MCP live smoke.",
   }));
-  created.channelId = channel.id;
 
   const preview = assertEnvelope("send_message_preview", await call("send_message_preview", {
     channel: channelName,
@@ -92,7 +86,7 @@ try {
     "send_message_confirmed",
     preview.data,
   ));
-  created.messageIds.push({ channelId: sent.ids.channelId, messageId: sent.ids.messageId });
+  smoke.trackMessage({ channelId: sent.ids.channelId, messageId: sent.ids.messageId });
 
   const replyPreview = assertEnvelope("reply_to_thread_preview", await call("reply_to_thread_preview", {
     channel: channelName,
@@ -103,17 +97,13 @@ try {
     "reply_to_thread_confirmed",
     replyPreview.data,
   ));
-  created.messageIds.push({ channelId: reply.ids.channelId, messageId: reply.ids.messageId });
+  smoke.trackMessage({ channelId: reply.ids.channelId, messageId: reply.ids.messageId });
 
-  console.log(JSON.stringify({
-    ok: true,
-    summary: "Curated MCP live smoke passed.",
-    ids: {
-      channelId: "<redacted>",
-      messageId: "<redacted>",
-      replyId: "<redacted>",
-    },
-  }));
+  smoke.printSuccess({
+    channelId: sent.ids.channelId,
+    messageId: sent.ids.messageId,
+    replyId: reply.ids.messageId,
+  });
 } catch (error) {
   console.error(error instanceof Error ? error.stack : String(error));
   process.exitCode = 1;

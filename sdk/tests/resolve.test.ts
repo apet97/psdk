@@ -5,9 +5,10 @@ import {
   resolveChannel,
   resolveUser,
 } from "../src/extensions/index.js";
+import { channelEntryFixture, userFixture } from "./helpers/fixtures.js";
 
 const users = [
-  {
+  userFixture({
     id: "u1",
     email: "alice@example.com",
     name: "Alice Johnson",
@@ -15,27 +16,27 @@ const users = [
     status: "ACTIVATED",
     workspaceId: "w1",
     phone: "+1-555-0101",
-  },
-  {
+  }),
+  userFixture({
     id: "u2",
     email: "alex@example.com",
     name: "Alex Stone",
     role: "MEMBER",
     status: "ACTIVATED",
     workspaceId: "w1",
-  },
-  {
+  }),
+  userFixture({
     id: "u3",
     email: "alexis@example.com",
     name: "Alexis Stone",
     role: "MEMBER",
     status: "ACTIVATED",
     workspaceId: "w1",
-  },
-] as any;
+  }),
+];
 
 const channels = [
-  {
+  channelEntryFixture({
     channel: {
       id: "c1",
       name: "general",
@@ -44,24 +45,24 @@ const channels = [
       description: "Workspace talk",
     },
     users: ["u1"],
-  },
-  {
+  }),
+  channelEntryFixture({
     channel: {
       id: "c2",
       name: "engineering",
       channelType: "PRIVATE",
       workspaceId: "w1",
     },
-  },
-  {
+  }),
+  channelEntryFixture({
     channel: {
       id: "c3",
       name: "engineering-support",
       channelType: "PUBLIC",
       workspaceId: "w1",
     },
-  },
-] as any;
+  }),
+];
 
 const client = {
   users: {

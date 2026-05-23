@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 import { createPumbleClient } from "../esm/extensions/index.js";
 import { requireLiveApiKey } from "./live-env.mjs";
+import { createLiveSmokeHarness } from "./live-smoke-harness.mjs";
 import {
   redactLiveValue,
-  runLiveOperation,
   runSearchSmoke,
   selectDmRecipient,
 } from "./live-smoke-utils.mjs";
 
 const { apiKeyAuth } = requireLiveApiKey();
 const client = createPumbleClient({ apiKeyAuth, resolverCache: true });
+const smoke = createLiveSmokeHarness({ finalSummary: "Facade live smoke passed." });
 const runId = `sdk-facade-live-${Date.now()}`;
 const channelName = runId.toLowerCase();
 const text = `facade smoke ${runId}`;
-const created = { channelId: undefined, messageIds: [] };
 
 function assertOk(name, value) {
   if (!value?.ok) {
@@ -27,7 +27,7 @@ function assertOk(name, value) {
 }
 
 async function assertMessageReadable(name, { channelId, messageId, text }) {
-  const fetched = await runLiveOperation(name, { channelId, messageId }, () =>
+  const fetched = await smoke.run(name, { channelId, messageId }, () =>
     client.messages.fetch({ channelId, messageId }));
   if (fetched?.id !== messageId) {
     throw new Error(`${name} returned an unexpected message id`);
@@ -39,37 +39,30 @@ async function assertMessageReadable(name, { channelId, messageId, text }) {
 }
 
 async function cleanup() {
-  for (const item of created.messageIds.reverse()) {
-    try {
-      await client.raw.messages.deleteMessage(item);
-    } catch {
-      // Best-effort cleanup only: live smoke should report the original failure.
-    }
-  }
+  await smoke.cleanup((item) => client.raw.messages.deleteMessage(item));
 }
 
 try {
-  const me = await runLiveOperation("identity.me", {}, () => client.identity.me());
+  const me = await smoke.run("identity.me", {}, () => client.identity.me());
   if (!me?.id || !me?.email) throw new Error("identity.me returned no id/email");
 
-  assertOk("users.find", await runLiveOperation("users.find", { email: me.email }, () =>
+  assertOk("users.find", await smoke.run("users.find", { email: me.email }, () =>
     client.users.find(me.email)));
 
-  const channel = await runLiveOperation("channels.create", { channel: channelName }, () =>
+  await smoke.run("channels.create", { channel: channelName }, () =>
     client.raw.channels.createChannel({
     name: channelName,
     type: "PUBLIC",
     description: "Created by pumble-sdk facade live smoke.",
   }));
-  created.channelId = channel.id;
-  await runLiveOperation("resolvers.refresh", {}, () => client.resolvers.refresh());
+  await smoke.run("resolvers.refresh", {}, () => client.resolvers.refresh());
 
-  const foundChannel = assertOk("channels.find", await runLiveOperation(
+  const foundChannel = assertOk("channels.find", await smoke.run(
     "channels.find",
     { channel: channelName },
     () => client.channels.find(channelName),
   ));
-  const sent = assertOk("messages.send", await runLiveOperation(
+  const sent = assertOk("messages.send", await smoke.run(
     "messages.send",
     { channel: foundChannel.ids.channelId },
     () => client.messages.send({
@@ -77,7 +70,7 @@ try {
     text,
   }),
   ));
-  created.messageIds.push({ channelId: sent.ids.channelId, messageId: sent.ids.messageId });
+  smoke.trackMessage({ channelId: sent.ids.channelId, messageId: sent.ids.messageId });
   await assertMessageReadable("messages.fetch.sent", {
     channelId: sent.ids.channelId,
     messageId: sent.ids.messageId,
@@ -86,12 +79,12 @@ try {
 
   await runSearchSmoke({
     searchRecent: (request) =>
-      runLiveOperation("search.recent", { query: request.query }, () => client.search.recent(request)),
+      smoke.run("search.recent", { query: request.query }, () => client.search.recent(request)),
     query: runId,
   });
 
   const replyText = `facade smoke reply ${runId}`;
-  const reply = assertOk("threads.reply", await runLiveOperation(
+  const reply = assertOk("threads.reply", await smoke.run(
     "threads.reply",
     { channelId: sent.ids.channelId, messageId: sent.ids.messageId },
     () => client.threads.reply({
@@ -100,17 +93,17 @@ try {
     text: replyText,
   }),
   ));
-  created.messageIds.push({ channelId: reply.ids.channelId, messageId: reply.ids.messageId });
+  smoke.trackMessage({ channelId: reply.ids.channelId, messageId: reply.ids.messageId });
   await assertMessageReadable("messages.fetch.reply", {
     channelId: reply.ids.channelId,
     messageId: reply.ids.messageId,
     text: replyText,
   });
 
-  const users = await runLiveOperation("users.list", {}, () => client.users.list());
+  const users = await smoke.run("users.list", {}, () => client.users.list());
   const recipient = selectDmRecipient(users, me.id);
   if (!recipient) throw new Error("No non-self user available for DM smoke");
-  const dm = assertOk("messages.dm", await runLiveOperation(
+  const dm = assertOk("messages.dm", await smoke.run(
     "messages.dm",
     { userId: recipient.id },
     () => client.messages.dm({
@@ -118,18 +111,14 @@ try {
     text: `facade smoke dm ${runId}`,
   }),
   ));
-  created.messageIds.push({ channelId: dm.ids.channelId, messageId: dm.ids.messageId });
+  smoke.trackMessage({ channelId: dm.ids.channelId, messageId: dm.ids.messageId });
 
-  console.log(JSON.stringify({
-    ok: true,
-    summary: "Facade live smoke passed.",
-    ids: {
-      channelId: "<redacted>",
-      messageId: "<redacted>",
-      replyId: "<redacted>",
-      dmMessageId: "<redacted>",
-    },
-  }));
+  smoke.printSuccess({
+    channelId: sent.ids.channelId,
+    messageId: sent.ids.messageId,
+    replyId: reply.ids.messageId,
+    dmMessageId: dm.ids.messageId,
+  });
 } catch (error) {
   console.error(error instanceof Error ? error.stack : String(error));
   process.exitCode = 1;

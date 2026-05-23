@@ -31,6 +31,7 @@ import {
   isFacadeFailure,
   type FacadeSendReceipt,
 } from "../src/extensions/index.js";
+import { messageRefFixture, userFixture } from "./helpers/fixtures.js";
 
 describe("createPumbleClient", () => {
   beforeEach(() => {
@@ -91,8 +92,8 @@ describe("createPumbleClient", () => {
 
   it("delegates identity.me to generated users.myInfo", async () => {
     const client = createPumbleClient({ apiKeyAuth: "x" });
-    const user = { id: "u1", email: "me@example.invalid", name: "Me" };
-    const myInfo = vi.spyOn(client.raw.users, "myInfo").mockResolvedValue(user as any);
+    const user = userFixture({ id: "u1", email: "me@example.invalid", name: "Me" });
+    const myInfo = vi.spyOn(client.raw.users, "myInfo").mockResolvedValue(user);
 
     await expect(client.identity.me()).resolves.toBe(user);
     expect(myInfo).toHaveBeenCalledOnce();
@@ -199,7 +200,7 @@ describe("createPumbleClient", () => {
       value: { id: "c1", name: "general", channelType: "PUBLIC" },
     });
     const sendMessage = vi.spyOn(client.raw.messages, "sendMessage")
-      .mockResolvedValue({ id: "m1", channelId: "c1" } as any);
+      .mockResolvedValue(messageRefFixture({ id: "m1", channelId: "c1" }));
 
     await expect(client.messages.send({
       channel: "#general",
@@ -224,7 +225,7 @@ describe("createPumbleClient", () => {
       value: { id: "c2", name: "ops-private", channelType: "PRIVATE" },
     });
     const sendMessage = vi.spyOn(client.raw.messages, "sendMessage")
-      .mockResolvedValue({ id: "m2", channelId: "c2" } as any);
+      .mockResolvedValue(messageRefFixture({ id: "m2", channelId: "c2" }));
 
     await expect(client.messages.send({
       channelId: "c2",
@@ -283,7 +284,7 @@ describe("createPumbleClient", () => {
       value: { id: "u1", email: "ada@example.invalid", name: "Ada" },
     });
     const dmUser = vi.spyOn(client.raw.messages, "dmUser")
-      .mockResolvedValue({ id: "m1", channelId: "dm1" } as any);
+      .mockResolvedValue(messageRefFixture({ id: "m1", channelId: "dm1" }));
 
     await expect(client.messages.dm({
       user: "ada@example.invalid",
@@ -308,7 +309,7 @@ describe("createPumbleClient", () => {
       value: { id: "c1", name: "general", channelType: "PUBLIC" },
     });
     const sendReply = vi.spyOn(client.raw.messages, "sendReply")
-      .mockResolvedValue({ id: "r1", channelId: "c1" } as any);
+      .mockResolvedValue(messageRefFixture({ id: "r1", channelId: "c1" }));
 
     await expect(client.threads.reply({
       channel: "#general",
@@ -335,7 +336,7 @@ describe("createPumbleClient", () => {
       value: { id: "c2", name: "ops-private", channelType: "PRIVATE" },
     });
     const sendReply = vi.spyOn(client.raw.messages, "sendReply")
-      .mockResolvedValue({ id: "r2", channelId: "c2" } as any);
+      .mockResolvedValue(messageRefFixture({ id: "r2", channelId: "c2" }));
 
     await expect(client.threads.reply({
       channelId: "c2",
