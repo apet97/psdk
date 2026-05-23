@@ -1,8 +1,8 @@
 id: G11
 title: Resolver performance doc + metrics test
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Resolvers are the only Pumble lookup; users need visible cache metrics to right-size TTL and a single doc that explains the cache semantics."
 scope:
   allowed:
     - sdk/src/extensions/**
@@ -18,12 +18,19 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "createResolverCache().metrics() returns { hits, misses, evictions }."
+  - "tests/resolver-perf.test.ts asserts metrics across hit/miss/eviction/failure paths."
+  - "docs/RESOLVERS.md documents inputs, cache options, metrics, and validateTarget."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/resolver-perf.test.ts tests/client-resolver-cache.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Removing metrics() fails the test suite."
+  - "Resetting evictions on clearCache breaks the eviction test."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/RESOLVERS.md
+  tests:
+    - sdk/tests/resolver-perf.test.ts
+    - sdk/tests/client-resolver-cache.test.ts
+rollback: "Revert this commit; clientCache continues to function without metrics."
