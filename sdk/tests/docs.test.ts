@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 
 type PackageJson = {
   name: string;
+  files: string[];
   exports: Record<string, string | Record<string, string>>;
 };
 
@@ -103,6 +104,15 @@ function documentedImports(markdown: string): Array<{ clause: string; specifier:
   return imports;
 }
 
+function sdkReadmePackageDocLinks(): string[] {
+  const links = new Set<string>();
+  const linkPattern = /\[[^\]]+\]\((docs\/[^)#]+)(?:#[^)]+)?\)/g;
+  for (const match of readme.matchAll(linkPattern)) {
+    links.add(match[1]);
+  }
+  return [...links].sort();
+}
+
 function exportTargetFor(specifier: string): string | undefined {
   const packageSubpath =
     specifier === packageJson.name ? "." : `.${specifier.slice(packageJson.name.length)}`;
@@ -175,6 +185,16 @@ describe("docs", () => {
       const target = exportTargetFor(specifier);
       expect(target, specifier).toBeDefined();
       expect(existsSync(resolve(sdkRoot, target!)), `${specifier} -> ${target}`).toBe(true);
+    }
+  });
+
+  test("sdk readme docs links exist and are packaged", () => {
+    const links = sdkReadmePackageDocLinks();
+    expect(links.length).toBeGreaterThan(0);
+
+    for (const relativePath of links) {
+      expect(existsSync(resolve(sdkRoot, relativePath)), relativePath).toBe(true);
+      expect(packageJson.files, relativePath).toContain(relativePath);
     }
   });
 

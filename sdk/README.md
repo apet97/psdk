@@ -254,6 +254,7 @@ temporary app, and checks the exported package surface and bins.
 - Package split planning is tracked in
   [`docs/PACKAGE-SPLIT.md`](docs/PACKAGE-SPLIT.md). This repository currently publishes one package: `pumble-sdk`.
 
-More examples are in [`docs/QUICKSTART.md`](docs/QUICKSTART.md) and
-[`examples/`](examples/). Integration guidance is in
+More examples are in [`docs/QUICKSTART.md`](docs/QUICKSTART.md). Repository
+examples live in the source tree under `examples/`. They are not included in
+the npm tarball. Integration guidance is in
 [`docs/INTEGRATION-USAGE.md`](docs/INTEGRATION-USAGE.md).

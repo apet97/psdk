@@ -6,6 +6,9 @@ The package source and user docs live in [`sdk/`](sdk/).
 
 ## Quick Links
 
+These links point to repository docs under `sdk/`; the npm package includes the
+SDK docs listed by `sdk/package.json`.
+
 - [SDK README](sdk/README.md)
 - [Quickstart](sdk/docs/QUICKSTART.md)
 - [Integration usage](sdk/docs/INTEGRATION-USAGE.md)
