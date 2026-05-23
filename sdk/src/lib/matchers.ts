@@ -224,7 +224,21 @@ export function match<T, E>(
     switch (encoding) {
       case "json":
         body = await response.text();
-        raw = JSON.parse(body);
+        try {
+          raw = JSON.parse(body);
+        } catch (err) {
+          return [{
+            ok: false,
+            error: new ResponseValidationError("Response validation failed", {
+              request,
+              response,
+              body,
+              cause: err,
+              rawValue: body,
+              rawMessage: "Response JSON parse failed",
+            }),
+          }, body];
+        }
         break;
       case "jsonl":
         raw = response.body;

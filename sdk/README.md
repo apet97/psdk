@@ -11,6 +11,11 @@ npm install pumble-sdk
 The package is ESM-only and requires Node.js 20 or newer. CommonJS callers can
 load it with `await import("pumble-sdk")`.
 
+Surface stability is listed in [`docs/STABILITY.md`](docs/STABILITY.md).
+Error handling is covered in [`docs/ERRORS.md`](docs/ERRORS.md).
+Support and API surfaces are listed in [`docs/SUPPORT.md`](docs/SUPPORT.md)
+and [`docs/API-REFERENCE.md`](docs/API-REFERENCE.md).
+
 ## Authentication
 
 Create a Pumble API key in **Workspace settings -> API keys** and pass it as
@@ -114,6 +119,9 @@ await pumble.raw.messages.sendMessage({
   text: "Raw endpoint call.",
 });
 ```
+
+Scheduled messages are raw-only today. Use `pumble.raw.scheduledMessages`
+until the facade adds target resolution or receipt behavior for that surface.
 
 ## CLI
 

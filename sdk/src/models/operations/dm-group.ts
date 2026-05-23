@@ -37,8 +37,8 @@ export const DmGroupRequest$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   DmGroupRequest
 > = z.object({
-  userIds: z.array(z.string()),
-  text: z.string(),
+  userIds: z.array(z.string().min(1)).min(1),
+  text: z.string().min(1),
   asBot: z.boolean().optional(),
 });
 

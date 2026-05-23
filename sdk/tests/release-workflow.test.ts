@@ -23,6 +23,7 @@ describe("release workflow parity", () => {
     expect(releaseWorkflow).toContain("SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}");
     expect(releaseWorkflow).toContain("SPEAKEASY_API_KEY secret is required");
     expect(releaseWorkflow).toContain("speakeasy generate sdk");
+    expect(releaseWorkflow).toContain("node sdk/scripts/patch-generated-runtime.mjs");
   });
 
   it("guards generated-regeneration drift in hand-written release paths", () => {
@@ -40,5 +41,17 @@ describe("release workflow parity", () => {
     ]) {
       expect(releaseWorkflow).toContain(guardedPath);
     }
+  });
+
+  it("requires live verification before npm publish", () => {
+    expect(releaseWorkflow).toContain("PUMBLE_API_KEY: ${{ secrets.PUMBLE_API_KEY }}");
+    expect(releaseWorkflow).toContain("npm run verify:live -- --required");
+    expect(releaseWorkflow.indexOf("npm run verify:live -- --required"))
+      .toBeLessThan(releaseWorkflow.indexOf("npm publish --provenance"));
+  });
+
+  it("does not pipe an unpinned Speakeasy installer into the release shell", () => {
+    expect(releaseWorkflow).not.toContain("curl -fsSL https://go.speakeasy.com/cli-install.sh | sh");
+    expect(releaseWorkflow).toMatch(/SPEAKEASY_VERSION|sha256|checksum/i);
   });
 });

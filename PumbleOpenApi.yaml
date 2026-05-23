@@ -35,7 +35,7 @@ servers:
 security:
   - ApiKeyAuth: []
 
-x-speakeasy-retries:
+x-sdk-safe-read-retries: &safeReadRetries
   strategy: backoff
   backoff:
     initialInterval: 500
@@ -811,6 +811,7 @@ paths:
     get:
       operationId: listChannels
       tags: [Channels]
+      x-speakeasy-retries: *safeReadRetries
       summary: List all channels
       description: Returns every channel visible to the API key.
       responses:
@@ -837,6 +838,7 @@ paths:
     get:
       operationId: getChannel
       tags: [Channels]
+      x-speakeasy-retries: *safeReadRetries
       summary: Get channel details by ID or name
       description: |
         Provide **either** `channelId` (preferred) **or** `channel` (by name).
@@ -995,12 +997,16 @@ paths:
             schema:
               type: object
               required: [text]
+              anyOf:
+                - required: [channelId]
+                - required: [channel]
               properties:
-                channelId: { type: string }
+                channelId: { type: string, minLength: 1 }
                 channel:
                   type: string
+                  minLength: 1
                   description: Channel name; ignored if `channelId` is provided.
-                text: { type: string }
+                text: { type: string, minLength: 1 }
                 threadRootId:
                   type: string
                   description: If set, post as a reply in this thread.
@@ -1043,13 +1049,17 @@ paths:
             schema:
               type: object
               required: [messageId, text]
+              anyOf:
+                - required: [channelId]
+                - required: [channel]
               properties:
-                channelId: { type: string }
-                channel: { type: string }
+                channelId: { type: string, minLength: 1 }
+                channel: { type: string, minLength: 1 }
                 messageId:
                   type: string
+                  minLength: 1
                   description: ID of the message to reply to (the thread root).
-                text: { type: string }
+                text: { type: string, minLength: 1 }
                 alsoSendToChannel:
                   type: boolean
                   description: If true, also broadcast the reply to the parent channel.
@@ -1089,8 +1099,8 @@ paths:
               type: object
               required: [userId, text]
               properties:
-                userId: { type: string }
-                text: { type: string }
+                userId: { type: string, minLength: 1 }
+                text: { type: string, minLength: 1 }
                 asBot: { type: boolean }
             example:
               userId: aaaaaaaaaaaaaaaaaaaa0002
@@ -1124,9 +1134,9 @@ paths:
               properties:
                 userIds:
                   type: array
-                  items: { type: string }
+                  items: { type: string, minLength: 1 }
                   minItems: 1
-                text: { type: string }
+                text: { type: string, minLength: 1 }
                 asBot: { type: boolean }
             example:
               userIds:
@@ -1150,6 +1160,7 @@ paths:
     get:
       operationId: fetchMessage
       tags: [Messages]
+      x-speakeasy-retries: *safeReadRetries
       summary: Fetch a single message by ID
       parameters:
         - name: messageId
@@ -1202,6 +1213,7 @@ paths:
     get:
       operationId: fetchThreadReplies
       tags: [Messages]
+      x-speakeasy-retries: *safeReadRetries
       summary: Fetch the replies of a thread
       description: |
         Returns the replies posted in the thread rooted at `rootMessageId`,
@@ -1278,6 +1290,7 @@ paths:
     post:
       operationId: searchMessages
       tags: [Messages]
+      x-speakeasy-retries: *safeReadRetries
       summary: Search messages
       description: |
         Searches messages by free text, sender, channel, and/or time window.
@@ -1385,6 +1398,7 @@ paths:
     get:
       operationId: listMessages
       tags: [Messages]
+      x-speakeasy-retries: *safeReadRetries
       summary: List messages in a channel
       description: |
         Retrieves a paginated list of messages from a channel. Pagination is
@@ -1578,11 +1592,12 @@ paths:
               type: object
               required: [channelId, text, sendAt]
               properties:
-                channelId: { type: string }
-                text: { type: string }
+                channelId: { type: string, minLength: 1 }
+                text: { type: string, minLength: 1 }
                 sendAt:
                   type: integer
                   format: int64
+                  minimum: 1
                   description: Delivery moment (epoch ms). Must be in the future.
                 blocks:
                   type: array
@@ -1618,6 +1633,7 @@ paths:
     get:
       operationId: fetchScheduledMessages
       tags: [Scheduled Messages]
+      x-speakeasy-retries: *safeReadRetries
       summary: Fetch a list of scheduled messages
       description: |
         Returns scheduled messages for the workspace (optionally filtered to
@@ -1665,6 +1681,7 @@ paths:
     get:
       operationId: fetchScheduledMessage
       tags: [Scheduled Messages]
+      x-speakeasy-retries: *safeReadRetries
       summary: Fetch a single scheduled message by ID
       parameters:
         - name: scheduledMessageId
@@ -1775,6 +1792,7 @@ paths:
     get:
       operationId: listUsers
       tags: [Users]
+      x-speakeasy-retries: *safeReadRetries
       summary: List all workspace users
       description: Returns every user in the workspace as a flat array.
       responses:
@@ -1807,6 +1825,7 @@ paths:
     get:
       operationId: listUserGroups
       tags: [Users]
+      x-speakeasy-retries: *safeReadRetries
       summary: List workspace user groups
       responses:
         "200":
@@ -1833,6 +1852,7 @@ paths:
     get:
       operationId: myInfo
       tags: [Users]
+      x-speakeasy-retries: *safeReadRetries
       summary: Get info about the authenticated user
       description: Returns the user record for whichever account owns the API key.
       responses:

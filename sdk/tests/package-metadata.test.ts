@@ -2,9 +2,11 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { parse } from "yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf8"));
+const gen = parse(readFileSync(join(__dirname, "../.speakeasy/gen.yaml"), "utf8"));
 
 describe("package metadata", () => {
   it("publishes only the supported CLI bins", () => {
@@ -60,5 +62,9 @@ describe("package metadata", () => {
       "esm",
       "src",
     ]);
+  });
+
+  it("keeps Speakeasy package file allowlist in parity with normalized package metadata", () => {
+    expect(gen.typescript.additionalPackageJSON.files).toEqual(pkg.files);
   });
 });

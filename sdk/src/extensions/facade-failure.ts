@@ -5,7 +5,7 @@ import {
   type ResolveUserCandidate,
 } from "./resolve.js";
 
-export type FacadeFailureReason = "not_found" | "ambiguous";
+export type FacadeFailureReason = "not_found" | "ambiguous" | "invalid_request";
 
 export interface FacadeFailure<TChoice> {
   ok: false;
@@ -19,7 +19,11 @@ export function isFacadeFailure(value: unknown): value is FacadeFailure<unknown>
   if (typeof value !== "object" || value === null) return false;
   const candidate = value as Partial<FacadeFailure<unknown>>;
   return candidate.ok === false
-    && (candidate.reason === "not_found" || candidate.reason === "ambiguous")
+    && (
+      candidate.reason === "not_found"
+      || candidate.reason === "ambiguous"
+      || candidate.reason === "invalid_request"
+    )
     && typeof candidate.summary === "string"
     && Array.isArray(candidate.choices)
     && Array.isArray(candidate.nextActions);
@@ -51,6 +55,19 @@ export function createFacadeFailure<TChoice>(
     nextActions: result.reason === "ambiguous"
       ? [`Use a more exact ${targetKind} value or pass one returned ${target} id.`]
       : [`Check the ${target} name, email, or id and try again.`],
+  };
+}
+
+export function createFacadeInvalidRequest(
+  summary: string,
+  nextAction: string,
+): FacadeFailure<never> {
+  return {
+    ok: false,
+    reason: "invalid_request",
+    summary,
+    choices: [],
+    nextActions: [nextAction],
   };
 }
 

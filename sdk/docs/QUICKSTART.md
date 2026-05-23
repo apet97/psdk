@@ -17,6 +17,8 @@ export PUMBLE_API_KEY="<pumble-api-key>"
 Keep API keys in environment variables or a local secret manager. Do not put
 them in source files.
 
+For error handling, see `docs/ERRORS.md`.
+
 ## Install
 
 ```bash
@@ -46,6 +48,9 @@ console.log(`authenticated as ${me.name} <${me.email}>`);
 The facade groups common operations under `identity`, `channels`, `users`,
 `messages`, and `threads`. The generated SDK remains available as
 `pumble.raw`.
+
+For repeated facade writes, exact IDs avoid ambiguity and
+`resolverCache: true` can reuse channel and user lists.
 
 ## Resolve Channel/User
 

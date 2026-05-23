@@ -83,27 +83,72 @@ describe("spec quality audit", () => {
     ]);
   });
 
-  it("requires idempotency documentation for new message-creating operations", () => {
-    const doc = documentWithOperation(
-      "/createBroadcastMessage",
-      "post",
-      baseOperation({
-        operationId: "createBroadcastMessage",
-        tags: ["Messages"],
-      }),
-    );
+  it("rejects new message-creating operations when automatic retries apply without idempotency", () => {
+    const doc = {
+      openapi: "3.1.0",
+      "x-speakeasy-retries": {
+        strategy: "backoff",
+        statusCodes: ["429", "5XX"],
+        retryConnectionErrors: true,
+      },
+      paths: {
+        "/createBroadcastMessage": {
+          post: baseOperation({
+            operationId: "createBroadcastMessage",
+            tags: ["Messages"],
+          }),
+        },
+      },
+    };
 
     expect(auditOpenApiDocument(doc)).toEqual([
       {
-        code: "message-create/idempotency",
+        code: "message-create/retry-unsafe",
         location: "POST /createBroadcastMessage",
         message:
-          "Message-creating operation must document Idempotency-Key support or be explicitly allowlisted as retry-unsafe.",
+          "Message-creating operation must document Idempotency-Key support or avoid generated automatic retries.",
       },
     ]);
   });
 
-  it("accepts documented Idempotency-Key support and the current retry-unsafe allowlist", () => {
+  it("rejects retry-unsafe message creation without explicit no-retry or idempotency", () => {
+    const doc = documentWithOperation(
+      "/sendMessage",
+      "post",
+      baseOperation({
+        operationId: "sendMessage",
+        tags: ["Messages"],
+        "x-speakeasy-retries": {
+          strategy: "backoff",
+          statusCodes: ["429", "5XX"],
+          retryConnectionErrors: true,
+        },
+      }),
+    );
+
+    expect(auditOpenApiDocument(doc)).toEqual([
+      expect.objectContaining({
+        code: "message-create/retry-unsafe",
+        location: "POST /sendMessage",
+      }),
+    ]);
+  });
+
+  it("accepts retry-unsafe message creation when retries are explicitly disabled", () => {
+    const doc = documentWithOperation(
+      "/sendMessage",
+      "post",
+      baseOperation({
+        operationId: "sendMessage",
+        tags: ["Messages"],
+        "x-speakeasy-retries": { strategy: "none" },
+      }),
+    );
+
+    expect(auditOpenApiDocument(doc)).toEqual([]);
+  });
+
+  it("accepts documented Idempotency-Key support", () => {
     const idempotentDoc = documentWithOperation(
       "/createBroadcastMessage",
       "post",
@@ -113,17 +158,8 @@ describe("spec quality audit", () => {
         parameters: [{ name: "Idempotency-Key", in: "header", schema: { type: "string" } }],
       }),
     );
-    const currentUnsafeDoc = documentWithOperation(
-      "/sendMessage",
-      "post",
-      baseOperation({
-        operationId: "sendMessage",
-        tags: ["Messages"],
-      }),
-    );
 
     expect(auditOpenApiDocument(idempotentDoc)).toEqual([]);
-    expect(auditOpenApiDocument(currentUnsafeDoc)).toEqual([]);
   });
 
   it("formats findings for CLI output", () => {

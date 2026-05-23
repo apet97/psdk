@@ -56,9 +56,9 @@ export const CreateScheduledMessageRequest$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   CreateScheduledMessageRequest
 > = z.object({
-  channelId: z.string(),
-  text: z.string(),
-  sendAt: z.number().int(),
+  channelId: z.string().min(1),
+  text: z.string().min(1),
+  sendAt: z.number().int().min(1),
   blocks: z.array(models.MessageBlock$outboundSchema).optional(),
   threadRootId: z.string().optional(),
   alsoSendToChannel: z.boolean().optional(),

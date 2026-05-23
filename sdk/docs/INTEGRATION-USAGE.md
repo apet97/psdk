@@ -3,6 +3,8 @@
 This package combines generated Pumble API coverage with hand-written helpers
 for application and MCP workflows.
 
+See `docs/STABILITY.md` for stable, beta, experimental, and internal surfaces.
+
 ## Generated And Hand-Written Boundary
 
 - `src/sdk/`, `src/models/`, and the raw MCP endpoint tools are generated from
@@ -30,6 +32,18 @@ for application and MCP workflows.
   `client.resolvers.clearCache()` when you need a fresh lookup.
 - Treat ambiguous and not-found resolve results as stop conditions until a
   user or policy selects the exact target ID.
+- Use `client.raw.scheduledMessages` for scheduled messages. They are raw-only
+  until the facade adds shared target resolution or receipt behavior.
+
+## Resolver Performance
+
+Facade resolution uses `listChannels` and `listUsers` because Pumble does not
+provide server-side lookup by channel name or user email for these flows.
+
+Use exact IDs when you already have them; exact IDs avoid ambiguity. Enable
+`resolverCache: true` and call `client.resolvers.refresh()` for repeated facade
+writes in large workspaces. The cache has no TTL, no background refresh, and no
+persistence.
 
 ## MCP Integration
 

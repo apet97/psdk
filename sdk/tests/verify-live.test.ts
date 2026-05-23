@@ -25,6 +25,20 @@ describe("verify-live script", () => {
     expect(output).toContain("verify:live skipped:");
   });
 
+  it("fails when live verification is required but no live environment exists", () => {
+    const missingEnv = join(tmpdir(), `missing-pumble-env-${Date.now()}`);
+
+    expect(() => execFileSync("node", ["scripts/verify-live.mjs", "--required"], {
+      cwd: new URL("..", import.meta.url),
+      env: {
+        ...scrubbedEnv(),
+        PUMBLE_LIVE_ENV_FILE: missingEnv,
+      },
+      encoding: "utf8",
+      stdio: "pipe",
+    })).toThrow(/verify:live required/);
+  });
+
   it("loads a local env file without printing secret values", () => {
     const temp = mkdtempSync(join(tmpdir(), "pumble-verify-live-"));
     try {

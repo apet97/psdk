@@ -234,6 +234,34 @@ describe("createFacadeWrites", () => {
     expect(raw.messages.sendReply).not.toHaveBeenCalled();
   });
 
+  it("returns facade failure values for missing send and reply channel targets", async () => {
+    const raw = createRawMessages();
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel: vi.fn(),
+      resolveFacadeUser: vi.fn(),
+    });
+
+    await expect(writes.sendFacadeMessage({ text: "missing target" }))
+      .resolves.toMatchObject({
+        ok: false,
+        reason: "invalid_request",
+        summary: "messages.send requires channel or channelId.",
+        choices: [],
+      });
+
+    await expect(writes.replyFacadeThread({ messageId: "root-1", text: "missing target" }))
+      .resolves.toMatchObject({
+        ok: false,
+        reason: "invalid_request",
+        summary: "threads.reply requires channel or channelId.",
+        choices: [],
+      });
+
+    expect(raw.messages.sendMessage).not.toHaveBeenCalled();
+    expect(raw.messages.sendReply).not.toHaveBeenCalled();
+  });
+
   it("returns facade failure values from user resolution without sending DMs", async () => {
     const raw = createRawMessages();
     const userAmbiguous: FacadeFailure<UserSummary> = {

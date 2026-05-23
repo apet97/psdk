@@ -44,14 +44,33 @@ function installAuditLogShim(path) {
     try {
       const res = await realFetch(req);
       const durationMs = Math.round(performance.now() - start);
-      write({ ts, method, url, status: res.status, durationMs });
+      write({ ts, method, url: redactAuditString(url), status: res.status, durationMs });
       return res;
     } catch (err) {
       const durationMs = Math.round(performance.now() - start);
       const errorClass = err instanceof Error ? err.constructor.name : "Unknown";
       const message = err instanceof Error ? err.message : String(err);
-      write({ ts, method, url, status: null, durationMs, errorClass, message });
+      write({
+        ts,
+        method,
+        url: redactAuditString(url),
+        status: null,
+        durationMs,
+        errorClass,
+        message: redactAuditString(message),
+      });
       throw err;
     }
   };
+}
+
+const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+const HEX_ID_PATTERN = /\b[0-9a-f]{24}\b/gi;
+const SECRET_QUERY_PATTERN = /([?&][^=]*(?:api[-_]?key|token|secret|signature|authorization)[^=]*=)[^&]*/gi;
+
+function redactAuditString(value) {
+  return String(value)
+    .replace(SECRET_QUERY_PATTERN, "$1<redacted>")
+    .replace(EMAIL_PATTERN, "<redacted>")
+    .replace(HEX_ID_PATTERN, "<redacted>");
 }

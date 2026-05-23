@@ -29,5 +29,6 @@ For OpenAPI or generator changes, also run:
 ```bash
 speakeasy lint openapi -s ../PumbleOpenApi.yaml
 speakeasy generate sdk -l typescript -s ../PumbleOpenApi.yaml -o . -y
+node scripts/patch-generated-runtime.mjs
 npm run build
 ```

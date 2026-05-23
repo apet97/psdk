@@ -13,6 +13,8 @@ const integrationUsage = readFileSync(
   "utf8",
 );
 const packageSplit = readFileSync(new URL("../docs/PACKAGE-SPLIT.md", import.meta.url), "utf8");
+const stability = readFileSync(new URL("../docs/STABILITY.md", import.meta.url), "utf8");
+const errorsGuide = readFileSync(new URL("../docs/ERRORS.md", import.meta.url), "utf8");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const context = readFileSync(new URL("../../CONTEXT.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
@@ -40,6 +42,14 @@ const architectureDecisionRecords = [
   {
     path: "docs/adr/0005-live-smoke-output-is-redacted.md",
     phrase: "Live smoke output is redacted",
+  },
+  {
+    path: "docs/adr/0006-non-idempotent-writes-do-not-retry.md",
+    phrase: "Non-idempotent writes do not retry",
+  },
+  {
+    path: "docs/adr/0007-sdk-debug-output-is-redacted.md",
+    phrase: "SDK debug output is redacted",
   },
 ];
 
@@ -202,7 +212,9 @@ describe("docs", () => {
       "Curated MCP",
       "Live smoke",
       "Replay fixtures",
+      "Generated runtime patch",
       "Generated directories are regenerated, not hand-edited",
+      "Generated runtime patches must live in `sdk/scripts/patch-generated-runtime.mjs`",
       "Facade failures are values",
       "Fresh writes should be proven with direct read endpoints",
       "MCP writes must remain preview/confirm",
@@ -278,5 +290,68 @@ describe("docs", () => {
     expect(packageSplit).toContain("Two live verification runs must be recorded");
     expect(packageSplit).toContain("Compatibility tests must prove existing `pumble-sdk` import paths");
     expect(packageSplit).not.toMatch(/will split|is split into|now publishes/i);
+  });
+
+  test("stability docs label public surfaces and socket mode boundary", () => {
+    expect(stability).toContain("Stable");
+    expect(stability).toContain("Beta");
+    expect(stability).toContain("Experimental");
+    expect(stability).toContain("Socket Mode is experimental");
+    expect(stability).toContain("Raw generated SDK");
+    expect(stability).toContain("Facade");
+    expect(stability).toContain("Curated MCP");
+  });
+
+  test("errors guide covers raw thrown errors and facade failure values", () => {
+    for (const phrase of [
+      "Facade failures are values",
+      "Raw SDK methods throw",
+      "ResponseValidationError",
+      "categorizeError",
+      "assertFacadeOk",
+      "lower-level Result",
+    ]) {
+      expect(errorsGuide).toContain(phrase);
+    }
+  });
+
+  test("docs state scheduled messages are raw-only today", () => {
+    expect(readme).toContain("Scheduled messages are raw-only today");
+    expect(integrationUsage).toContain("Use `client.raw.scheduledMessages` for scheduled messages");
+  });
+
+  test("repo includes support, security, changelog, and api reference docs", () => {
+    for (const relativePath of [
+      "../SECURITY.md",
+      "../CHANGELOG.md",
+      "docs/SUPPORT.md",
+      "docs/API-REFERENCE.md",
+    ]) {
+      expect(existsSync(resolve(sdkRoot, relativePath)), relativePath).toBe(true);
+    }
+
+    const security = readFileSync(resolve(sdkRoot, "../SECURITY.md"), "utf8");
+    expect(security).toContain("Do not report secrets");
+    expect(security).toContain("Pumble API keys");
+
+    const apiReference = readFileSync(resolve(sdkRoot, "docs/API-REFERENCE.md"), "utf8");
+    expect(apiReference).toContain("Raw SDK");
+    expect(apiReference).toContain("Facade");
+    expect(apiReference).toContain("MCP");
+  });
+
+  test("docs describe resolver performance and cache boundaries", () => {
+    expect(integrationUsage).toContain("Resolver Performance");
+    expect(integrationUsage).toContain("listChannels");
+    expect(integrationUsage).toContain("listUsers");
+    expect(integrationUsage).toContain("exact IDs avoid ambiguity");
+    expect(integrationUsage).toContain("no TTL");
+  });
+
+  test("root contribution and runtime docs exist", () => {
+    expect(existsSync(resolve(sdkRoot, "../CONTRIBUTING.md"))).toBe(true);
+    const support = readFileSync(resolve(sdkRoot, "docs/SUPPORT.md"), "utf8");
+    expect(support).toContain("Browser support");
+    expect(support).toContain("Node.js 20");
   });
 });

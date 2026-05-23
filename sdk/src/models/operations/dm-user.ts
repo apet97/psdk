@@ -37,8 +37,8 @@ export const DmUserRequest$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   DmUserRequest
 > = z.object({
-  userId: z.string(),
-  text: z.string(),
+  userId: z.string().min(1),
+  text: z.string().min(1),
   asBot: z.boolean().optional(),
 });
 

@@ -10,14 +10,6 @@ const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/g;
 const HEX_ID_PATTERN = /\b[0-9a-f]{24}\b/gi;
 const SDK_LIVETEST_PATTERN = /\bsdk[-_\s]?livetest\b/i;
 
-const RETRY_UNSAFE_MESSAGE_CREATE_ALLOWLIST = new Map([
-  ["sendMessage", "Retries are unsafe by default until API documents Idempotency-Key support."],
-  ["sendReply", "Retries are unsafe by default until API documents Idempotency-Key support."],
-  ["dmUser", "Retries are unsafe by default until API documents Idempotency-Key support."],
-  ["dmGroup", "Retries are unsafe by default until API documents Idempotency-Key support."],
-  ["createScheduledMessage", "Retries are unsafe by default until API documents Idempotency-Key support."],
-]);
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SPEC_PATH = resolve(__dirname, "../../PumbleOpenApi.yaml");
 
@@ -58,14 +50,15 @@ export function auditOpenApiDocument(doc) {
 
     if (
       isMessageCreatingOperation(path, method, operation) &&
+      hasRetryConfig(operation, doc) &&
       !hasIdempotencyKeySupport(pathItem.parameters, operation.parameters, operation.requestBody) &&
-      !RETRY_UNSAFE_MESSAGE_CREATE_ALLOWLIST.has(operationId)
+      !hasRetriesDisabled(operation)
     ) {
       findings.push({
-        code: "message-create/idempotency",
+        code: "message-create/retry-unsafe",
         location,
         message:
-          "Message-creating operation must document Idempotency-Key support or be explicitly allowlisted as retry-unsafe.",
+          "Message-creating operation must document Idempotency-Key support or avoid generated automatic retries.",
       });
     }
   }
@@ -185,6 +178,14 @@ function isMessageCreatingOperation(path, method, operation) {
 
 function hasIdempotencyKeySupport(...values) {
   return values.some((value) => containsIdempotencyKeyName(value));
+}
+
+function hasRetriesDisabled(operation) {
+  return operation?.["x-speakeasy-retries"]?.strategy === "none";
+}
+
+function hasRetryConfig(operation, doc) {
+  return Boolean(operation?.["x-speakeasy-retries"] ?? doc?.["x-speakeasy-retries"]);
 }
 
 function containsIdempotencyKeyName(value) {

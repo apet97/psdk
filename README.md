@@ -9,6 +9,11 @@ The package source and user docs live in [`sdk/`](sdk/).
 - [SDK README](sdk/README.md)
 - [Quickstart](sdk/docs/QUICKSTART.md)
 - [Integration usage](sdk/docs/INTEGRATION-USAGE.md)
+- [API reference](sdk/docs/API-REFERENCE.md)
+- [Support](sdk/docs/SUPPORT.md)
+- [Security](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
 - [Package split policy](sdk/docs/PACKAGE-SPLIT.md)
 
 ## Install

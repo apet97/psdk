@@ -28,9 +28,11 @@ jobs:
           cache-dependency-path: sdk/package-lock.json
 
       - name: Install Speakeasy CLI
+        env:
+          SPEAKEASY_INSTALLER_SHA256: 9e2c4f1054e214d05352597cfd9ed1ab117a089e9442f532dd4a0d168665d757
         run: |
           set -euo pipefail
-          curl -fsSL https://go.speakeasy.com/cli-install.sh | sh
+          node sdk/scripts/install-speakeasy.mjs
           echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
 
       - name: Install SDK deps
@@ -58,6 +60,7 @@ jobs:
         if: env.SPEAKEASY_API_KEY != ''
         run: |
           speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+          node sdk/scripts/patch-generated-runtime.mjs
 
       - name: Skip SDK regeneration without Speakeasy credentials
         if: env.SPEAKEASY_API_KEY == ''
@@ -118,8 +121,10 @@ jobs:
           cache-dependency-path: sdk/package-lock.json
 
       - name: Install Speakeasy CLI
+        env:
+          SPEAKEASY_INSTALLER_SHA256: 9e2c4f1054e214d05352597cfd9ed1ab117a089e9442f532dd4a0d168665d757
         run: |
-          curl -fsSL https://go.speakeasy.com/cli-install.sh | sh
+          node sdk/scripts/install-speakeasy.mjs
           echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
 
       - name: Install SDK deps
@@ -128,7 +133,9 @@ jobs:
 
       - name: Regenerate SDK
         if: env.SPEAKEASY_API_KEY != ''
-        run: speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+        run: |
+          speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
+          node sdk/scripts/patch-generated-runtime.mjs
 
       - name: Skip SDK regeneration without Speakeasy credentials
         if: env.SPEAKEASY_API_KEY == ''

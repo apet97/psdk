@@ -11,7 +11,8 @@ crashes.
 ## Decision
 
 Facade helpers return structured failure values for not-found and ambiguous
-target resolution. Callers that prefer exceptions can opt in through
+target resolution. Missing facade write targets also return failure values
+instead of thrown errors. Callers that prefer exceptions can opt in through
 `assertFacadeOk`.
 
 ## Consequences

@@ -21,6 +21,7 @@ import type {
   FacadeThreadReplyReceipt,
   UserSummary,
 } from "./client.js";
+import { createFacadeInvalidRequest } from "./facade-failure.js";
 
 interface FacadeWriteRawClient {
   messages: {
@@ -52,10 +53,6 @@ function displayUser(user: UserSummary): string {
   return user.name.trim().length > 0 ? user.name : user.email;
 }
 
-function missingTarget(helper: string, target: string): never {
-  throw new Error(`${helper}: ${target} is required`);
-}
-
 export function createFacadeWrites({
   raw,
   resolveFacadeChannel,
@@ -66,7 +63,13 @@ export function createFacadeWrites({
     options?: RequestOptions,
   ): Promise<FacadeSendReceipt | FacadeFailure<ChannelSummary>> {
     const { channel, channelId, ...rest } = request;
-    const input = channelId ?? channel ?? missingTarget("messages.send", "channel");
+    const input = channelId ?? channel;
+    if (input === undefined || input.trim().length === 0) {
+      return createFacadeInvalidRequest(
+        "messages.send requires channel or channelId.",
+        "Pass channel, channelId, or preflight the target before writing.",
+      );
+    }
     const resolved = await resolveFacadeChannel(input);
     if (!resolved.ok) return resolved;
 
@@ -113,7 +116,13 @@ export function createFacadeWrites({
     options?: RequestOptions,
   ): Promise<FacadeThreadReplyReceipt | FacadeFailure<ChannelSummary>> {
     const { channel, channelId, ...rest } = request;
-    const input = channelId ?? channel ?? missingTarget("threads.reply", "channel");
+    const input = channelId ?? channel;
+    if (input === undefined || input.trim().length === 0) {
+      return createFacadeInvalidRequest(
+        "threads.reply requires channel or channelId.",
+        "Pass channel, channelId, or preflight the target before writing.",
+      );
+    }
     const resolved = await resolveFacadeChannel(input);
     if (!resolved.ok) return resolved;
 

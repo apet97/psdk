@@ -114,18 +114,8 @@ async function $do(
     securitySource: client._options.apiKeyAuth,
     retryConfig: options?.retries
       || client._options.retryConfig
-      || {
-        strategy: "backoff",
-        backoff: {
-          initialInterval: 500,
-          maxInterval: 30000,
-          exponent: 1.5,
-          maxElapsedTime: 60000,
-        },
-        retryConnectionErrors: true,
-      }
       || { strategy: "none" },
-    retryCodes: options?.retryCodes || ["429", "5XX"],
+    retryCodes: options?.retryCodes || [],
   };
 
   const requestRes = client._createRequest(context, {

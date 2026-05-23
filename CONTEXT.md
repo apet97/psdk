@@ -35,9 +35,13 @@ emails, and live IDs in final output.
 **Replay fixtures**: sanitized recordings used for deterministic offline tests.
 They let the SDK replay live-like behavior without leaking workspace data.
 
+**Generated runtime patch**: narrow post-generation script for generator output
+that cannot be expressed through the OpenAPI spec or Speakeasy config.
+
 ## Non-Negotiables
 
 - Generated directories are regenerated, not hand-edited.
+- Generated runtime patches must live in `sdk/scripts/patch-generated-runtime.mjs`.
 - Facade failures are values, not thrown exceptions, unless callers use
   `assertFacadeOk`.
 - Fresh writes should be proven with direct read endpoints, not search indexing.
@@ -65,6 +69,8 @@ Do not edit these by hand:
 - [Curated MCP writes use preview and confirm](docs/adr/0003-curated-mcp-writes-use-preview-confirm.md)
 - [Resolver cache is explicit in-memory](docs/adr/0004-resolver-cache-is-explicit-in-memory.md)
 - [Live smoke output is redacted](docs/adr/0005-live-smoke-output-is-redacted.md)
+- [Non-idempotent writes do not retry](docs/adr/0006-non-idempotent-writes-do-not-retry.md)
+- [SDK debug output is redacted](docs/adr/0007-sdk-debug-output-is-redacted.md)
 
 ## Development Notes
 
