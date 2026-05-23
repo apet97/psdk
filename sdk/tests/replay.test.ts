@@ -5,6 +5,12 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createHash } from "node:crypto";
 import { formatArazzoContextSummary, sanitizeFixtureValue } from "../scripts/record-replay-common.mjs";
+import {
+  createFixtureKeyId,
+  formatReplayMiss,
+  loadReplayFixture,
+  scanFixtureText,
+} from "../scripts/replay-fixtures.mjs";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const replayerUrl = pathToFileURL(join(__dirname, "../scripts/replayer.mjs")).href;
@@ -110,6 +116,37 @@ describe("record/replay fetch shims", () => {
     expect(passThroughCalls).toBe(0);
   });
 
+  it("loads replay fixtures through a first-class fixture module", () => {
+    const key = {
+      method: "POST",
+      path: "/sendMessage?a=1&b=2",
+      bodyHash: bodyHash({ text: "[redacted]" }),
+    };
+    writeFileSync(
+      join(fixtureDir, "loaded.jsonl"),
+      `${JSON.stringify({
+        type: "meta",
+        name: "arazzo-context",
+        value: { channel: "000000000000000000000001" },
+      })}\n${JSON.stringify({
+        type: "http",
+        key,
+        response: { status: 200, body: JSON.stringify({ ok: true }) },
+      })}\n`,
+    );
+
+    const fixture = loadReplayFixture("loaded");
+
+    expect(createFixtureKeyId(key)).toBe(`${key.method}\n${key.path}\n${key.bodyHash}`);
+    expect(fixture.meta.get("arazzo-context")).toEqual({
+      channel: "000000000000000000000001",
+    });
+    expect(fixture.entries.get(createFixtureKeyId(key))).toHaveLength(1);
+    expect(formatReplayMiss(key)).toBe(
+      `PUMBLE_REPLAY miss for POST /sendMessage?a=1&b=2 bodyHash=${key.bodyHash}`,
+    );
+  });
+
   it("records sanitized requests and replayable responses", async () => {
     globalThis.fetch = (async () =>
       new Response(JSON.stringify({
@@ -194,6 +231,7 @@ describe("record/replay fetch shims", () => {
   it("keeps checked-in fixtures free of obvious secrets and PII", () => {
     for (const fixture of ["arazzo-26-workflows.jsonl", "search-all-live.jsonl"]) {
       const raw = readFileSync(join(__dirname, "fixtures", fixture), "utf8");
+      expect(scanFixtureText(fixture, raw)).toEqual([]);
       expect(raw, fixture).not.toMatch(/pmb_[A-Za-z0-9_-]+/);
       expect(raw, fixture).not.toMatch(/[A-Za-z0-9._%+-]+@(?!example\.invalid\b)[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
       expect(raw, fixture).not.toMatch(/\b(?!(?:0{20}|a{20}|b{20}|c{20}|d{20})\d{4}\b)[0-9a-f]{24}\b/i);

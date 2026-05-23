@@ -1,76 +1,6 @@
-import * as z from "zod/v3";
 import { describe, expect, it, vi } from "vitest";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { CURATED_TOOL_NAMES, registerCuratedTools } from "../src/mcp-server/curated/tools.js";
-
-type CapturedHandler = (
-  args: Record<string, unknown>,
-  extra: { signal?: AbortSignal },
-) => CallToolResult | Promise<CallToolResult>;
-
-interface CapturedTool {
-  readonly name: string;
-  readonly description: string;
-  readonly schema?: z.ZodRawShape;
-  readonly handler: CapturedHandler;
-}
-
-class FakeServer {
-  readonly tools = new Map<string, CapturedTool>();
-
-  tool(name: string, description: string, ...rest: unknown[]): void {
-    const handler = rest.at(-1);
-    if (typeof handler !== "function") {
-      throw new Error(`tool ${name} did not register a handler`);
-    }
-
-    const schema = rest.length === 2 ? rest[0] as z.ZodRawShape : undefined;
-    this.tools.set(name, {
-      name,
-      description,
-      schema,
-      handler: handler as CapturedHandler,
-    });
-  }
-}
-
-function register(client: unknown): FakeServer {
-  const server = new FakeServer();
-  registerCuratedTools(server as never, client as never);
-  return server;
-}
-
-function parseArgs(tool: CapturedTool, args: Record<string, unknown>): Record<string, unknown> {
-  return tool.schema === undefined ? args : z.object(tool.schema).parse(args);
-}
-
-async function invoke(
-  server: FakeServer,
-  name: string,
-  args: Record<string, unknown>,
-): Promise<CallToolResult> {
-  const tool = server.tools.get(name);
-  if (tool === undefined) {
-    throw new Error(`missing tool: ${name}`);
-  }
-  return tool.handler(parseArgs(tool, args), {});
-}
-
-function jsonContent<T = Record<string, unknown>>(result: CallToolResult): T {
-  expect(result.isError).toBeUndefined();
-  expect(result.content).toHaveLength(1);
-  const [content] = result.content;
-  expect(content?.type).toBe("text");
-  return JSON.parse(content?.type === "text" ? content.text : "") as T;
-}
-
-function errorText(result: CallToolResult): string {
-  expect(result.isError).toBe(true);
-  expect(result.content).toHaveLength(1);
-  const [content] = result.content;
-  expect(content?.type).toBe("text");
-  return content?.type === "text" ? content.text : "";
-}
+import { CURATED_TOOL_NAMES } from "../src/mcp-server/curated/tools.js";
+import { registerCuratedHarness } from "./helpers/curated-mcp.js";
 
 function writeClient() {
   return {
@@ -98,7 +28,7 @@ function writeClient() {
 
 describe("curated write workflow tools", () => {
   it("registers only preview/confirmed writes on the curated profile", () => {
-    const server = register(writeClient());
+    const harness = registerCuratedHarness(writeClient());
 
     expect(CURATED_TOOL_NAMES).toEqual(expect.arrayContaining([
       "send_message_preview",
@@ -106,29 +36,26 @@ describe("curated write workflow tools", () => {
       "reply_to_thread_preview",
       "reply_to_thread_confirmed",
     ]));
-    expect([...server.tools.keys()]).toEqual(CURATED_TOOL_NAMES);
-    expect(server.tools.has("send_message")).toBe(false);
-    expect(server.tools.has("reply_to_thread")).toBe(false);
-    expect(server.tools.has("delete_message")).toBe(false);
-    expect(server.tools.has("add_reaction")).toBe(false);
+    expect(harness.toolNames()).toEqual(CURATED_TOOL_NAMES);
+    expect(harness.tools.has("send_message")).toBe(false);
+    expect(harness.tools.has("reply_to_thread")).toBe(false);
+    expect(harness.tools.has("delete_message")).toBe(false);
+    expect(harness.tools.has("add_reaction")).toBe(false);
   });
 
   it("rejects send without the preview payload and confirmation token before SDK calls", () => {
     const client = writeClient();
-    const server = register(client);
-    const tool = server.tools.get("send_message_confirmed");
+    const harness = registerCuratedHarness(client);
 
-    expect(tool).toBeDefined();
-    expect(() => parseArgs(tool as CapturedTool, {
+    expect(harness.tool("send_message_confirmed")).toBeDefined();
+    expect(() => harness.parseArgs("send_message_confirmed", {
       request: { channelId: "channel-1", text: "ship it" },
     })).toThrow();
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
   });
 
   it("requires resolved channel IDs in confirmed write schemas", () => {
-    const server = register(writeClient());
-    const sendTool = server.tools.get("send_message_confirmed");
-    const replyTool = server.tools.get("reply_to_thread_confirmed");
+    const harness = registerCuratedHarness(writeClient());
     const preview = {
       actionType: "send_message",
       targetKind: "channel",
@@ -137,12 +64,12 @@ describe("curated write workflow tools", () => {
       riskLevel: "medium",
     };
 
-    expect(() => parseArgs(sendTool as CapturedTool, {
+    expect(() => harness.parseArgs("send_message_confirmed", {
       request: { channel: "#ops", text: "ship it" },
       preview,
       confirmationToken: "token",
     })).toThrow();
-    expect(() => parseArgs(replyTool as CapturedTool, {
+    expect(() => harness.parseArgs("reply_to_thread_confirmed", {
       request: { channel: "#ops", messageId: "root-1", text: "ship it" },
       preview: {
         ...preview,
@@ -156,9 +83,9 @@ describe("curated write workflow tools", () => {
 
   it("previews a send target by resolving channel names without calling the write SDK", async () => {
     const client = writeClient();
-    const server = register(client);
+    const harness = registerCuratedHarness(client);
 
-    const payload = jsonContent(await invoke(server, "send_message_preview", {
+    const payload = harness.json(await harness.invoke("send_message_preview", {
       channel: "#ops",
       text: "Ship this after approval.",
     }));
@@ -190,13 +117,13 @@ describe("curated write workflow tools", () => {
 
   it("rejects a tampered send preview before SDK calls", async () => {
     const client = writeClient();
-    const server = register(client);
-    const payload = jsonContent(await invoke(server, "send_message_preview", {
+    const harness = registerCuratedHarness(client);
+    const payload = harness.json(await harness.invoke("send_message_preview", {
       channelId: "channel-1",
       text: "Ship this after approval.",
     }));
 
-    const result = await invoke(server, "send_message_confirmed", {
+    const result = await harness.invoke("send_message_confirmed", {
       ...(payload.data as Record<string, unknown>),
       preview: {
         ...((payload.data as { preview: Record<string, unknown> }).preview),
@@ -204,20 +131,20 @@ describe("curated write workflow tools", () => {
       },
     });
 
-    expect(errorText(result)).toMatch(/confirmation/i);
+    expect(harness.errorText(result)).toMatch(/confirmation/i);
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
   });
 
   it("confirmed send calls the generated SDK once with the resolved request", async () => {
     const client = writeClient();
-    const server = register(client);
-    const payload = jsonContent(await invoke(server, "send_message_preview", {
+    const harness = registerCuratedHarness(client);
+    const payload = harness.json(await harness.invoke("send_message_preview", {
       channel: "#ops",
       text: "Ship this after approval.",
       asBot: true,
     }));
 
-    expect(jsonContent(await invoke(server, "send_message_confirmed", payload.data))).toMatchObject({
+    expect(harness.json(await harness.invoke("send_message_confirmed", payload.data))).toMatchObject({
       ok: true,
       summary: "Sent message sent-1.",
       ids: { channelId: "channel-1", messageId: "sent-1" },
@@ -234,8 +161,8 @@ describe("curated write workflow tools", () => {
 
   it("confirmed thread reply verifies the preview before calling the generated SDK", async () => {
     const client = writeClient();
-    const server = register(client);
-    const payload = jsonContent(await invoke(server, "reply_to_thread_preview", {
+    const harness = registerCuratedHarness(client);
+    const payload = harness.json(await harness.invoke("reply_to_thread_preview", {
       channel: "#ops",
       messageId: "root-1",
       text: "Reply after approval.",
@@ -265,7 +192,7 @@ describe("curated write workflow tools", () => {
       },
     });
 
-    expect(jsonContent(await invoke(server, "reply_to_thread_confirmed", payload.data))).toMatchObject({
+    expect(harness.json(await harness.invoke("reply_to_thread_confirmed", payload.data))).toMatchObject({
       ok: true,
       summary: "Sent reply reply-1.",
       ids: {

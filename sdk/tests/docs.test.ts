@@ -19,6 +19,29 @@ const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 ) as PackageJson;
 const sdkRoot = resolve(new URL("..", import.meta.url).pathname);
+const repoRoot = resolve(sdkRoot, "..");
+const architectureDecisionRecords = [
+  {
+    path: "docs/adr/0001-generated-sdk-is-regenerated.md",
+    phrase: "Generated SDK is regenerated",
+  },
+  {
+    path: "docs/adr/0002-facade-failures-are-values.md",
+    phrase: "Facade failures are values",
+  },
+  {
+    path: "docs/adr/0003-curated-mcp-writes-use-preview-confirm.md",
+    phrase: "Curated MCP writes use preview and confirm",
+  },
+  {
+    path: "docs/adr/0004-resolver-cache-is-explicit-in-memory.md",
+    phrase: "Resolver cache is explicit in-memory",
+  },
+  {
+    path: "docs/adr/0005-live-smoke-output-is-redacted.md",
+    phrase: "Live smoke output is redacted",
+  },
+];
 
 const requiredQuickstartHeadings = [
   "install",
@@ -186,6 +209,22 @@ describe("docs", () => {
       "Final live-smoke output must remain redacted",
     ]) {
       expect(context).toContain(phrase);
+    }
+  });
+
+  test("architecture decisions are captured as accepted ADRs from root context", () => {
+    expect(context).toContain("## Architecture Decisions");
+
+    for (const adr of architectureDecisionRecords) {
+      const absolute = resolve(repoRoot, adr.path);
+      expect(existsSync(absolute), adr.path).toBe(true);
+      const markdown = readFileSync(absolute, "utf8");
+      expect(markdown).toContain("Status: Accepted");
+      expect(markdown).toContain("## Context");
+      expect(markdown).toContain("## Decision");
+      expect(markdown).toContain("## Consequences");
+      expect(markdown).toContain(adr.phrase);
+      expect(context).toContain(adr.path);
     }
   });
 

@@ -1,39 +1,7 @@
-import * as z from "zod/v3";
 import { describe, expect, it, vi } from "vitest";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Message } from "../src/models/message.js";
-import { CURATED_TOOL_NAMES, registerCuratedTools } from "../src/mcp-server/curated/tools.js";
-
-type CapturedHandler = (
-  args: Record<string, unknown>,
-  extra: { signal?: AbortSignal },
-) => CallToolResult | Promise<CallToolResult>;
-
-interface CapturedTool {
-  readonly name: string;
-  readonly description: string;
-  readonly schema?: z.ZodRawShape;
-  readonly handler: CapturedHandler;
-}
-
-class FakeServer {
-  readonly tools = new Map<string, CapturedTool>();
-
-  tool(name: string, description: string, ...rest: unknown[]): void {
-    const handler = rest.at(-1);
-    if (typeof handler !== "function") {
-      throw new Error(`tool ${name} did not register a handler`);
-    }
-
-    const schema = rest.length === 2 ? rest[0] as z.ZodRawShape : undefined;
-    this.tools.set(name, {
-      name,
-      description,
-      schema,
-      handler: handler as CapturedHandler,
-    });
-  }
-}
+import { CURATED_TOOL_NAMES } from "../src/mcp-server/curated/tools.js";
+import { registerCuratedHarness } from "./helpers/curated-mcp.js";
 
 const generalChannel = {
   id: "channel-1",
@@ -60,40 +28,6 @@ function message(overrides: Partial<Message> = {}): Message {
   };
 }
 
-function register(client: unknown): FakeServer {
-  const server = new FakeServer();
-  registerCuratedTools(server as never, client as never);
-  return server;
-}
-
-function parseArgs(tool: CapturedTool, args: Record<string, unknown>): Record<string, unknown> {
-  return tool.schema === undefined ? args : z.object(tool.schema).parse(args);
-}
-
-async function invoke(
-  server: FakeServer,
-  name: string,
-  args: Record<string, unknown>,
-): Promise<CallToolResult> {
-  const tool = server.tools.get(name);
-  if (tool === undefined) {
-    throw new Error(`missing tool: ${name}`);
-  }
-  return tool.handler(parseArgs(tool, args), {});
-}
-
-function jsonContent<T = Record<string, unknown>>(result: CallToolResult): T {
-  expect(result.isError).toBeUndefined();
-  expect(result.content).toHaveLength(1);
-  const [content] = result.content;
-  expect(content?.type).toBe("text");
-  const text = content?.type === "text" ? content.text : "";
-  expect(text).not.toContain("attachments");
-  expect(text).not.toContain("reactions");
-  expect(text).not.toContain("highlightedBlocks");
-  return JSON.parse(text) as T;
-}
-
 function readClient(overrides: Record<string, unknown> = {}) {
   return {
     users: { myInfo: vi.fn() },
@@ -114,7 +48,7 @@ function readClient(overrides: Record<string, unknown> = {}) {
 
 describe("curated read workflow tools", () => {
   it("registers the task-oriented curated profile without old raw-style names", () => {
-    const server = register(readClient());
+    const harness = registerCuratedHarness(readClient());
 
     expect(CURATED_TOOL_NAMES).toEqual([
       "whoami",
@@ -129,16 +63,16 @@ describe("curated read workflow tools", () => {
       "reply_to_thread_preview",
       "reply_to_thread_confirmed",
     ]);
-    expect([...server.tools.keys()]).toEqual(CURATED_TOOL_NAMES);
-    expect(server.tools.has("messages-send-message")).toBe(false);
-    expect(server.tools.has("get_message")).toBe(false);
-    expect(server.tools.has("list_thread_replies")).toBe(false);
+    expect(harness.toolNames()).toEqual(CURATED_TOOL_NAMES);
+    expect(harness.tools.has("messages-send-message")).toBe(false);
+    expect(harness.tools.has("get_message")).toBe(false);
+    expect(harness.tools.has("list_thread_replies")).toBe(false);
   });
 
   it("lists channels in a clean MCP envelope", async () => {
-    const server = register(readClient());
+    const harness = registerCuratedHarness(readClient());
 
-    const payload = jsonContent(await invoke(server, "list_channels", {}));
+    const payload = harness.json(await harness.invoke("list_channels", {}), { compact: true });
 
     expect(payload).toEqual({
       ok: true,
@@ -176,12 +110,12 @@ describe("curated read workflow tools", () => {
         hasMore: false,
       },
     });
-    const server = register(readClient({ searchMessages }));
+    const harness = registerCuratedHarness(readClient({ searchMessages }));
 
-    const payload = jsonContent(await invoke(server, "search_messages", {
+    const payload = harness.json(await harness.invoke("search_messages", {
       text: "release",
       in: ["channel-1"],
-    }));
+    }), { compact: true });
 
     expect(searchMessages).toHaveBeenCalledWith({
       text: "release",
@@ -213,11 +147,11 @@ describe("curated read workflow tools", () => {
         hasMoreAfter: null,
       },
     });
-    const server = register(readClient({ listMessages }));
+    const harness = registerCuratedHarness(readClient({ listMessages }));
 
-    const payload = jsonContent(await invoke(server, "get_channel_context", {
+    const payload = harness.json(await harness.invoke("get_channel_context", {
       channel: "#general",
-    }));
+    }), { compact: true });
 
     expect(listMessages).toHaveBeenCalledWith({ channelId: "channel-1", limit: 10 }, undefined);
     expect(payload).toMatchObject({
@@ -242,12 +176,12 @@ describe("curated read workflow tools", () => {
     const fetchThreadReplies = vi.fn().mockResolvedValue({
       result: [message({ id: "reply-1", text: "Reply text", author: "user-reply" })],
     });
-    const server = register(readClient({ fetchMessage, fetchThreadReplies }));
+    const harness = registerCuratedHarness(readClient({ fetchMessage, fetchThreadReplies }));
 
-    const payload = jsonContent(await invoke(server, "get_thread_context", {
+    const payload = harness.json(await harness.invoke("get_thread_context", {
       channel: "#general",
       messageId: "root-1",
-    }));
+    }), { compact: true });
 
     expect(fetchMessage).toHaveBeenCalledWith({
       channelId: "channel-1",
@@ -278,7 +212,7 @@ describe("curated read workflow tools", () => {
     const searchMessages = vi.fn();
     const listMessages = vi.fn();
     const fetchThreadReplies = vi.fn();
-    const server = register(readClient({ searchMessages, listMessages, fetchThreadReplies }));
+    const harness = registerCuratedHarness(readClient({ searchMessages, listMessages, fetchThreadReplies }));
 
     for (const [toolName, args] of [
       ["search_messages", { text: "release", limit: 0 }],
@@ -286,9 +220,8 @@ describe("curated read workflow tools", () => {
       ["get_channel_context", { channelId: "channel-1", limit: 51 }],
       ["get_thread_context", { channelId: "channel-1", messageId: "root-1", replyLimit: 1.5 }],
     ] as const) {
-      const tool = server.tools.get(toolName);
-      expect(tool, toolName).toBeDefined();
-      expect(() => parseArgs(tool as CapturedTool, args)).toThrow();
+      expect(harness.tool(toolName), toolName).toBeDefined();
+      expect(() => harness.parseArgs(toolName, args)).toThrow();
     }
 
     expect(searchMessages).not.toHaveBeenCalled();

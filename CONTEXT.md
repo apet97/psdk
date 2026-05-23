@@ -58,6 +58,14 @@ Do not edit these by hand:
 - `sdk/src/hooks`
 - `sdk/src/mcp-server/tools`
 
+## Architecture Decisions
+
+- [Generated SDK is regenerated](docs/adr/0001-generated-sdk-is-regenerated.md)
+- [Facade failures are values](docs/adr/0002-facade-failures-are-values.md)
+- [Curated MCP writes use preview and confirm](docs/adr/0003-curated-mcp-writes-use-preview-confirm.md)
+- [Resolver cache is explicit in-memory](docs/adr/0004-resolver-cache-is-explicit-in-memory.md)
+- [Live smoke output is redacted](docs/adr/0005-live-smoke-output-is-redacted.md)
+
 ## Development Notes
 
 Prefer small handwritten seams over broad rewrites. If a behavior belongs to
