@@ -27,7 +27,8 @@ commands:
   - "cd sdk && npm run goals:check"
 adversarial_checks:
   - "Test fails when any required field is removed."
-  - "Script falls back to a zeroed tarball SHA when no tarball is on disk."
+  - "Script refuses to write evidence when no tarball is on disk."
+  - "Test rejects `/actions/runs/0`, an all-zero tarball SHA, and any Provenance value outside the {attested, none, unverified} enum."
 links:
   docs:
     - sdk/docs/verification/v0.3.21.md
