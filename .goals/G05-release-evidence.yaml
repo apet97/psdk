@@ -1,13 +1,14 @@
 id: G05
 title: Release evidence script + test
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Every release must produce an auditable verification doc with commit, CI URLs, npm URL, provenance, tarball SHA-256, and live smoke artifact pointer."
 scope:
   allowed:
     - sdk/scripts/write-release-evidence.mjs
     - sdk/docs/verification/**
     - sdk/tests/release-evidence.test.ts
+    - .github/workflows/release.yml
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -18,12 +19,18 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "sdk/scripts/write-release-evidence.mjs renders a per-version verification doc."
+  - "tests/release-evidence.test.ts asserts every required field is present in every v*.md doc."
+  - ".github/workflows/release.yml runs the script before npm publish and uploads the redacted smoke log."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/release-evidence.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Test fails when any required field is removed."
+  - "Script falls back to a zeroed tarball SHA when no tarball is on disk."
 links:
-  docs: []
-  tests: []
+  docs:
+    - sdk/docs/verification/v0.3.21.md
+  tests:
+    - sdk/tests/release-evidence.test.ts
 rollback: "Revert this commit; no production impact until the owning task lands."

@@ -157,6 +157,32 @@ jobs:
             echo "already_published=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Pack tarball for evidence
+        if: steps.check.outputs.already_published != 'true'
+        working-directory: sdk
+        run: |
+          set -euo pipefail
+          npm pack
+          echo "TARBALL_PATH=$(ls pumble-sdk-*.tgz | head -n1)" >> "$GITHUB_ENV"
+
+      - name: Write release evidence
+        if: steps.check.outputs.already_published != 'true'
+        env:
+          CI_RUN_URL: ${{ format('https://github.com/{0}/actions/runs/{1}', github.repository, github.run_id) }}
+          RELEASE_RUN_URL: ${{ format('https://github.com/{0}/actions/runs/{1}', github.repository, github.run_id) }}
+          NPM_PROVENANCE: attested
+          TARBALL_PATH: ${{ env.TARBALL_PATH }}
+        run: node scripts/write-release-evidence.mjs
+        working-directory: sdk
+
+      - name: Upload redacted live smoke log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-smoke-${{ steps.tag.outputs.version }}
+          path: sdk/ci-artifacts/*.log
+          if-no-files-found: warn
+
       - name: Publish to npm with provenance
         if: steps.check.outputs.already_published != 'true'
         working-directory: sdk
