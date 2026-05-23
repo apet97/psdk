@@ -200,17 +200,24 @@ Common rules:
 
 ## Stability
 
+| Export key | Import path | Surface | Tier |
+| --- | --- | --- | --- |
+| `.` | `pumble-sdk` | Raw SDK + façade re-exports | stable |
+| `./extensions/index.js` | `pumble-sdk/extensions/index.js` | Façade helpers | stable |
+| `./extensions/webhooks.js` | `pumble-sdk/extensions/webhooks.js` | Webhook verification | stable |
+| `./extensions/telemetry.js` | `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | beta |
+| `./extensions/testing/index.js` | `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |
+| `./extensions/app/index.js` | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |
+| `./extensions/app/socket-mode.js` | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |
+
+Legacy table — the previous row format is kept for tooling that greps for it:
+
 | Import path | Surface | Stability |
 | --- | --- | --- |
-| `pumble-sdk` | Raw SDK | Stable |
-| `pumble-sdk/extensions/index.js` | Facade helpers | Stable |
-| `pumble-sdk/extensions/webhooks.js` | Webhook verification | Stable |
-| Curated MCP stdio/read/confirmed-write tools | Agent tools | Stable |
-| `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | Beta |
-| Audit-log helpers | Audit-log helpers | Beta |
-| `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | Beta |
 | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |
 | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |
+| Curated MCP stdio/read/confirmed-write tools | Agent tools | Stable |
+| Audit-log helpers | Audit-log helpers | Beta |
 | Package split | Future packaging shape | Experimental |
 | Generated internals and patch scripts | Generated/runtime maintenance | Internal |
 

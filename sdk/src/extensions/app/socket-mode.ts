@@ -1,3 +1,9 @@
+/**
+ * Experimental — Socket Mode without a bundled WebSocket transport.
+ * Callers inject `createSocket` and own reconnect/heartbeat policy.
+ * See docs/EXPERIMENTAL.md before using.
+ */
+
 import type {
   PumbleWebhookBodyByType,
   PumbleWebhookEvent,

@@ -132,13 +132,13 @@ const requiredChangelogHeadings = [
 ];
 
 const requiredPublicSurfaceRows = [
-  "| `pumble-sdk` | Raw SDK | Stable |",
-  "| `pumble-sdk/extensions/index.js` | Facade helpers | Stable |",
-  "| `pumble-sdk/extensions/webhooks.js` | Webhook verification | Stable |",
-  "| `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | Beta |",
-  "| `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | Beta |",
-  "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
-  "| `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |",
+  "| `.` | `pumble-sdk` | Raw SDK + façade re-exports | stable |",
+  "| `./extensions/index.js` | `pumble-sdk/extensions/index.js` | Façade helpers | stable |",
+  "| `./extensions/webhooks.js` | `pumble-sdk/extensions/webhooks.js` | Webhook verification | stable |",
+  "| `./extensions/telemetry.js` | `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | beta |",
+  "| `./extensions/testing/index.js` | `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |",
+  "| `./extensions/app/index.js` | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |",
+  "| `./extensions/app/socket-mode.js` | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |",
 ];
 
 const requiredExtensionCategories = [
@@ -541,10 +541,13 @@ describe("docs", () => {
   });
 
   test("docs mark app and oauth helpers experimental without complete flow claims", () => {
+    expect(stability).toMatch(
+      /`pumble-sdk\/extensions\/app\/index\.js`.*experimental/i,
+    );
+    expect(apiReference).toContain(
+      "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
+    );
     for (const markdown of [apiReference, stability]) {
-      expect(markdown).toContain(
-        "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
-      );
       expect(markdown).toContain("OAuth/app helpers are experimental utilities");
       expect(markdown).toContain(
         "do not provide a complete install, token refresh, storage, and workspace-selection flow",

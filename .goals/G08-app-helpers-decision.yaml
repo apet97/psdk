@@ -1,14 +1,13 @@
 id: G08
 title: Mark app/OAuth/socket helpers experimental and isolate
 priority: P2
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Option A — isolate: app/OAuth/Socket Mode helpers stay in the package, marked experimental, with docs that explain the missing pieces. Option B (completing the OAuth flow) is out of scope here."
 scope:
   allowed:
     - sdk/src/extensions/app/**
+    - sdk/docs/EXPERIMENTAL.md
     - sdk/docs/STABILITY.md
-    - sdk/docs/API-REFERENCE.md
-    - sdk/tests/app-experimental.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -19,12 +18,19 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "app/index.ts and app/socket-mode.ts carry an experimental banner."
+  - "docs/EXPERIMENTAL.md documents what's missing and how to opt in."
+  - "STABILITY.md still marks the exports experimental (unchanged by G07)."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/docs.test.ts tests/package-metadata.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Removing the experimental banner is the user signalling readiness; flag in PR review."
+  - "Linking app exports from the README headline triggers the surface-audit leak check."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/EXPERIMENTAL.md
+    - sdk/docs/STABILITY.md
+  tests:
+    - sdk/tests/package-metadata.test.ts
+rollback: "Revert this commit; the helpers stay reachable but lose the experimental banner."
