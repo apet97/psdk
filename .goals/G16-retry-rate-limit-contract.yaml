@@ -1,13 +1,13 @@
 id: G16
 title: Retries, timeouts, rate-limit contract
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Users need one place that states exactly how the SDK retries, when it gives up, and what createRateLimiter / withRetries actually guarantee."
 scope:
   allowed:
     - sdk/src/extensions/**
     - sdk/docs/RETRIES-TIMEOUTS-RATE-LIMITS.md
-    - sdk/tests/retry-rate-limit.test.ts
+    - sdk/tests/retries-doc.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -18,12 +18,17 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "docs/RETRIES-TIMEOUTS-RATE-LIMITS.md captures defaults, timeouts, rate limiter, and withRetries."
+  - "tests/retries-doc.test.ts pins the four contract bullets (no-retry writes, Retry-After, process-local limiter, withRetries opt-in)."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/retries-doc.test.ts tests/with-retries.test.ts tests/retries.test.ts tests/rate-limiter.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Removing the Retry-After mention fails the doc test."
+  - "Removing the process-local note fails the limiter test."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/RETRIES-TIMEOUTS-RATE-LIMITS.md
+  tests:
+    - sdk/tests/retries-doc.test.ts
+rollback: "Revert this commit; existing retry/limiter implementations remain."
