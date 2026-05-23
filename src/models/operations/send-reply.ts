@@ -6,10 +6,26 @@ import * as z from "zod/v3";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import * as types from "../../types/primitives.js";
+import { smartUnion } from "../../types/smart-union.js";
 import { SDKValidationError } from "../errors/sdk-validation-error.js";
 
-export type SendReplyRequest = {
+export type SendReplyRequestBody2 = {
   channelId?: string | undefined;
+  channel: string;
+  /**
+   * ID of the message to reply to (the thread root).
+   */
+  messageId: string;
+  text: string;
+  /**
+   * If true, also broadcast the reply to the parent channel.
+   */
+  alsoSendToChannel?: boolean | undefined;
+  asBot?: boolean | undefined;
+};
+
+export type SendReplyRequestBody1 = {
+  channelId: string;
   channel?: string | undefined;
   /**
    * ID of the message to reply to (the thread root).
@@ -23,13 +39,69 @@ export type SendReplyRequest = {
   asBot?: boolean | undefined;
 };
 
+export type SendReplyRequest = SendReplyRequestBody1 | SendReplyRequestBody2;
+
 /** @internal */
-export const SendReplyRequest$inboundSchema: z.ZodType<
-  SendReplyRequest,
+export const SendReplyRequestBody2$inboundSchema: z.ZodType<
+  SendReplyRequestBody2,
   z.ZodTypeDef,
   unknown
 > = z.object({
   channelId: types.optional(types.string()),
+  channel: types.string(),
+  messageId: types.string(),
+  text: types.string(),
+  alsoSendToChannel: types.optional(types.boolean()),
+  asBot: types.optional(types.boolean()),
+});
+/** @internal */
+export type SendReplyRequestBody2$Outbound = {
+  channelId?: string | undefined;
+  channel: string;
+  messageId: string;
+  text: string;
+  alsoSendToChannel?: boolean | undefined;
+  asBot?: boolean | undefined;
+};
+
+/** @internal */
+export const SendReplyRequestBody2$outboundSchema: z.ZodType<
+  SendReplyRequestBody2$Outbound,
+  z.ZodTypeDef,
+  SendReplyRequestBody2
+> = z.object({
+  channelId: z.string().optional(),
+  channel: z.string(),
+  messageId: z.string(),
+  text: z.string(),
+  alsoSendToChannel: z.boolean().optional(),
+  asBot: z.boolean().optional(),
+});
+
+export function sendReplyRequestBody2ToJSON(
+  sendReplyRequestBody2: SendReplyRequestBody2,
+): string {
+  return JSON.stringify(
+    SendReplyRequestBody2$outboundSchema.parse(sendReplyRequestBody2),
+  );
+}
+export function sendReplyRequestBody2FromJSON(
+  jsonString: string,
+): SafeParseResult<SendReplyRequestBody2, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => SendReplyRequestBody2$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'SendReplyRequestBody2' from JSON`,
+  );
+}
+
+/** @internal */
+export const SendReplyRequestBody1$inboundSchema: z.ZodType<
+  SendReplyRequestBody1,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  channelId: types.string(),
   channel: types.optional(types.string()),
   messageId: types.string(),
   text: types.string(),
@@ -37,8 +109,8 @@ export const SendReplyRequest$inboundSchema: z.ZodType<
   asBot: types.optional(types.boolean()),
 });
 /** @internal */
-export type SendReplyRequest$Outbound = {
-  channelId?: string | undefined;
+export type SendReplyRequestBody1$Outbound = {
+  channelId: string;
   channel?: string | undefined;
   messageId: string;
   text: string;
@@ -47,18 +119,59 @@ export type SendReplyRequest$Outbound = {
 };
 
 /** @internal */
-export const SendReplyRequest$outboundSchema: z.ZodType<
-  SendReplyRequest$Outbound,
+export const SendReplyRequestBody1$outboundSchema: z.ZodType<
+  SendReplyRequestBody1$Outbound,
   z.ZodTypeDef,
-  SendReplyRequest
+  SendReplyRequestBody1
 > = z.object({
-  channelId: z.string().optional(),
+  channelId: z.string(),
   channel: z.string().optional(),
   messageId: z.string(),
   text: z.string(),
   alsoSendToChannel: z.boolean().optional(),
   asBot: z.boolean().optional(),
 });
+
+export function sendReplyRequestBody1ToJSON(
+  sendReplyRequestBody1: SendReplyRequestBody1,
+): string {
+  return JSON.stringify(
+    SendReplyRequestBody1$outboundSchema.parse(sendReplyRequestBody1),
+  );
+}
+export function sendReplyRequestBody1FromJSON(
+  jsonString: string,
+): SafeParseResult<SendReplyRequestBody1, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => SendReplyRequestBody1$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'SendReplyRequestBody1' from JSON`,
+  );
+}
+
+/** @internal */
+export const SendReplyRequest$inboundSchema: z.ZodType<
+  SendReplyRequest,
+  z.ZodTypeDef,
+  unknown
+> = smartUnion([
+  z.lazy(() => SendReplyRequestBody1$inboundSchema),
+  z.lazy(() => SendReplyRequestBody2$inboundSchema),
+]);
+/** @internal */
+export type SendReplyRequest$Outbound =
+  | SendReplyRequestBody1$Outbound
+  | SendReplyRequestBody2$Outbound;
+
+/** @internal */
+export const SendReplyRequest$outboundSchema: z.ZodType<
+  SendReplyRequest$Outbound,
+  z.ZodTypeDef,
+  SendReplyRequest
+> = smartUnion([
+  z.lazy(() => SendReplyRequestBody1$outboundSchema),
+  z.lazy(() => SendReplyRequestBody2$outboundSchema),
+]);
 
 export function sendReplyRequestToJSON(
   sendReplyRequest: SendReplyRequest,

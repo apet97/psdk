@@ -6,11 +6,33 @@ import * as z from "zod/v3";
 import { safeParse } from "../../lib/schemas.js";
 import { Result as SafeParseResult } from "../../types/fp.js";
 import * as types from "../../types/primitives.js";
+import { smartUnion } from "../../types/smart-union.js";
 import { SDKValidationError } from "../errors/sdk-validation-error.js";
 import * as models from "../index.js";
 
-export type SendMessageRequest = {
+export type SendMessageRequestBody2 = {
   channelId?: string | undefined;
+  /**
+   * Channel name; ignored if `channelId` is provided.
+   */
+  channel: string;
+  text: string;
+  /**
+   * If set, post as a reply in this thread.
+   */
+  threadRootId?: string | undefined;
+  /**
+   * If true, the message is authored by the addon's bot identity instead of the API-key owner.
+   */
+  asBot?: boolean | undefined;
+  /**
+   * Pumble rich-text blocks. If provided, takes precedence over `text` for rendering.
+   */
+  blocks?: Array<models.MessageBlock> | undefined;
+};
+
+export type SendMessageRequestBody1 = {
+  channelId: string;
   /**
    * Channel name; ignored if `channelId` is provided.
    */
@@ -30,13 +52,71 @@ export type SendMessageRequest = {
   blocks?: Array<models.MessageBlock> | undefined;
 };
 
+export type SendMessageRequest =
+  | SendMessageRequestBody1
+  | SendMessageRequestBody2;
+
 /** @internal */
-export const SendMessageRequest$inboundSchema: z.ZodType<
-  SendMessageRequest,
+export const SendMessageRequestBody2$inboundSchema: z.ZodType<
+  SendMessageRequestBody2,
   z.ZodTypeDef,
   unknown
 > = z.object({
   channelId: types.optional(types.string()),
+  channel: types.string(),
+  text: types.string(),
+  threadRootId: types.optional(types.string()),
+  asBot: types.optional(types.boolean()),
+  blocks: types.optional(z.array(models.MessageBlock$inboundSchema)),
+});
+/** @internal */
+export type SendMessageRequestBody2$Outbound = {
+  channelId?: string | undefined;
+  channel: string;
+  text: string;
+  threadRootId?: string | undefined;
+  asBot?: boolean | undefined;
+  blocks?: Array<models.MessageBlock$Outbound> | undefined;
+};
+
+/** @internal */
+export const SendMessageRequestBody2$outboundSchema: z.ZodType<
+  SendMessageRequestBody2$Outbound,
+  z.ZodTypeDef,
+  SendMessageRequestBody2
+> = z.object({
+  channelId: z.string().optional(),
+  channel: z.string(),
+  text: z.string(),
+  threadRootId: z.string().optional(),
+  asBot: z.boolean().optional(),
+  blocks: z.array(models.MessageBlock$outboundSchema).optional(),
+});
+
+export function sendMessageRequestBody2ToJSON(
+  sendMessageRequestBody2: SendMessageRequestBody2,
+): string {
+  return JSON.stringify(
+    SendMessageRequestBody2$outboundSchema.parse(sendMessageRequestBody2),
+  );
+}
+export function sendMessageRequestBody2FromJSON(
+  jsonString: string,
+): SafeParseResult<SendMessageRequestBody2, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => SendMessageRequestBody2$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'SendMessageRequestBody2' from JSON`,
+  );
+}
+
+/** @internal */
+export const SendMessageRequestBody1$inboundSchema: z.ZodType<
+  SendMessageRequestBody1,
+  z.ZodTypeDef,
+  unknown
+> = z.object({
+  channelId: types.string(),
   channel: types.optional(types.string()),
   text: types.string(),
   threadRootId: types.optional(types.string()),
@@ -44,8 +124,8 @@ export const SendMessageRequest$inboundSchema: z.ZodType<
   blocks: types.optional(z.array(models.MessageBlock$inboundSchema)),
 });
 /** @internal */
-export type SendMessageRequest$Outbound = {
-  channelId?: string | undefined;
+export type SendMessageRequestBody1$Outbound = {
+  channelId: string;
   channel?: string | undefined;
   text: string;
   threadRootId?: string | undefined;
@@ -54,18 +134,59 @@ export type SendMessageRequest$Outbound = {
 };
 
 /** @internal */
-export const SendMessageRequest$outboundSchema: z.ZodType<
-  SendMessageRequest$Outbound,
+export const SendMessageRequestBody1$outboundSchema: z.ZodType<
+  SendMessageRequestBody1$Outbound,
   z.ZodTypeDef,
-  SendMessageRequest
+  SendMessageRequestBody1
 > = z.object({
-  channelId: z.string().optional(),
+  channelId: z.string(),
   channel: z.string().optional(),
   text: z.string(),
   threadRootId: z.string().optional(),
   asBot: z.boolean().optional(),
   blocks: z.array(models.MessageBlock$outboundSchema).optional(),
 });
+
+export function sendMessageRequestBody1ToJSON(
+  sendMessageRequestBody1: SendMessageRequestBody1,
+): string {
+  return JSON.stringify(
+    SendMessageRequestBody1$outboundSchema.parse(sendMessageRequestBody1),
+  );
+}
+export function sendMessageRequestBody1FromJSON(
+  jsonString: string,
+): SafeParseResult<SendMessageRequestBody1, SDKValidationError> {
+  return safeParse(
+    jsonString,
+    (x) => SendMessageRequestBody1$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'SendMessageRequestBody1' from JSON`,
+  );
+}
+
+/** @internal */
+export const SendMessageRequest$inboundSchema: z.ZodType<
+  SendMessageRequest,
+  z.ZodTypeDef,
+  unknown
+> = smartUnion([
+  z.lazy(() => SendMessageRequestBody1$inboundSchema),
+  z.lazy(() => SendMessageRequestBody2$inboundSchema),
+]);
+/** @internal */
+export type SendMessageRequest$Outbound =
+  | SendMessageRequestBody1$Outbound
+  | SendMessageRequestBody2$Outbound;
+
+/** @internal */
+export const SendMessageRequest$outboundSchema: z.ZodType<
+  SendMessageRequest$Outbound,
+  z.ZodTypeDef,
+  SendMessageRequest
+> = smartUnion([
+  z.lazy(() => SendMessageRequestBody1$outboundSchema),
+  z.lazy(() => SendMessageRequestBody2$outboundSchema),
+]);
 
 export function sendMessageRequestToJSON(
   sendMessageRequest: SendMessageRequest,

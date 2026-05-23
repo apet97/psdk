@@ -61,7 +61,7 @@ export function serverURLFromOptions(options: SDKOptions): URL | null {
 export const SDK_METADATA = {
   language: "typescript",
   openapiDocVersion: "1.1.0",
-  sdkVersion: "0.3.22",
+  sdkVersion: "0.3.21",
   genVersion: "2.884.13",
-  userAgent: "speakeasy-sdk/typescript 0.3.22 2.884.13 1.1.0 pumble-sdk",
+  userAgent: "speakeasy-sdk/typescript 0.3.21 2.884.13 1.1.0 pumble-sdk",
 } as const;
