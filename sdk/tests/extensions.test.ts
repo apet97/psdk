@@ -226,6 +226,7 @@ describe("branded ids", () => {
     expect(() => asChannelId("not-an-id")).toThrow(/expected a 24-character hex string/);
     expect(() => asChannelId("bbbbbbbbbbbbbbbbbbbb000z")).toThrow();
     expect(() => asMessageId("")).toThrow();
+    expect(() => asUserId("aaaaaaaaaaaaaaaaaaaa000z")).toThrow();
   });
 
   it("isPumbleIdLike: shape check, no throw", () => {

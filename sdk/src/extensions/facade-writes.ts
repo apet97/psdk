@@ -26,6 +26,11 @@ import {
   createFacadeInvalidRequest,
   createFacadeOperationFailure,
 } from "./facade-failure.js";
+import {
+  asChannelId,
+  asMessageId,
+  asUserId,
+} from "./branded-ids.js";
 
 interface FacadeWriteRawClient {
   messages: {
@@ -107,7 +112,7 @@ export function createFacadeWrites({
       return {
         ok: true,
         summary: `Sent message ${message.id} to channel ${channelId}.`,
-        ids: { channelId, messageId: message.id },
+        ids: { channelId: asChannelId(channelId), messageId: asMessageId(message.id) },
         message,
       };
     }
@@ -129,7 +134,10 @@ export function createFacadeWrites({
     return {
       ok: true,
       summary: `Sent message ${message.id} to ${displayChannel(resolved.channel)}.`,
-      ids: { channelId: resolved.channel.id, messageId: message.id },
+      ids: {
+        channelId: asChannelId(resolved.channel.id),
+        messageId: asMessageId(message.id),
+      },
       channel: resolved.channel,
       message,
     };
@@ -164,9 +172,9 @@ export function createFacadeWrites({
         ok: true,
         summary: `Sent DM ${message.id} to user ${userId}.`,
         ids: {
-          userId,
-          messageId: message.id,
-          channelId: message.channelId,
+          userId: asUserId(userId),
+          messageId: asMessageId(message.id),
+          channelId: asChannelId(message.channelId),
         },
         message,
       };
@@ -190,9 +198,9 @@ export function createFacadeWrites({
       ok: true,
       summary: `Sent DM ${message.id} to ${displayUser(resolved.user)}.`,
       ids: {
-        userId: resolved.user.id,
-        messageId: message.id,
-        channelId: message.channelId,
+        userId: asUserId(resolved.user.id),
+        messageId: asMessageId(message.id),
+        channelId: asChannelId(message.channelId),
       },
       user: resolved.user,
       message,
@@ -228,9 +236,9 @@ export function createFacadeWrites({
         ok: true,
         summary: `Replied with ${message.id} in channel ${channelId}.`,
         ids: {
-          channelId,
-          messageId: message.id,
-          rootMessageId: request.messageId,
+          channelId: asChannelId(channelId),
+          messageId: asMessageId(message.id),
+          rootMessageId: asMessageId(request.messageId),
         },
         message,
       };
@@ -254,9 +262,9 @@ export function createFacadeWrites({
       ok: true,
       summary: `Replied with ${message.id} in ${displayChannel(resolved.channel)}.`,
       ids: {
-        channelId: resolved.channel.id,
-        messageId: message.id,
-        rootMessageId: request.messageId,
+        channelId: asChannelId(resolved.channel.id),
+        messageId: asMessageId(message.id),
+        rootMessageId: asMessageId(request.messageId),
       },
       channel: resolved.channel,
       message,

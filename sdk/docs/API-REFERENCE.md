@@ -45,6 +45,10 @@ Facade methods:
 - `resolvers.refresh`
 - `resolvers.cacheInfo`
 
+Facade request and receipt types enforce branded `ChannelId`, `MessageId`, and
+`UserId` values for exact-ID write paths. Raw generated SDK request/response
+types still use plain strings; branded IDs are opt-in outside the facade.
+
 Facade result shape:
 
 ```ts

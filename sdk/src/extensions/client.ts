@@ -43,6 +43,11 @@ import {
   type ThreadContextOptions,
   type ThreadContextRequest,
 } from "./thread-context.js";
+import type {
+  ChannelId,
+  MessageId,
+  UserId,
+} from "./branded-ids.js";
 
 type MethodArgs<T, K extends keyof T> =
   T[K] extends (...args: infer Args) => unknown ? Args : never;
@@ -94,7 +99,7 @@ export type FacadeSendMessageRequest =
   & Omit<SendMessageRequest, "channelId" | "channel">
   & {
     channel?: string | undefined;
-    channelId?: string | undefined;
+    channelId?: ChannelId | undefined;
     validateTarget?: boolean | undefined;
   };
 
@@ -102,22 +107,23 @@ export type FacadeDmRequest =
   & Omit<DmUserRequest, "userId">
   & {
     user?: string | undefined;
-    userId?: string | undefined;
+    userId?: UserId | undefined;
     validateTarget?: boolean | undefined;
   };
 
 export type FacadeThreadReplyRequest =
-  & Omit<SendReplyRequest, "channelId" | "channel">
+  & Omit<SendReplyRequest, "channelId" | "channel" | "messageId">
   & {
     channel?: string | undefined;
-    channelId?: string | undefined;
+    channelId?: ChannelId | undefined;
+    messageId: MessageId;
     validateTarget?: boolean | undefined;
   };
 
 export interface FacadeSendReceipt {
   ok: true;
   summary: string;
-  ids: { channelId: string; messageId: string };
+  ids: { channelId: ChannelId; messageId: MessageId };
   channel?: ChannelSummary;
   message: MessageRef;
 }
@@ -125,7 +131,7 @@ export interface FacadeSendReceipt {
 export interface FacadeDmReceipt {
   ok: true;
   summary: string;
-  ids: { userId: string; messageId: string; channelId: string };
+  ids: { userId: UserId; messageId: MessageId; channelId: ChannelId };
   user?: UserSummary;
   message: MessageRef;
 }
@@ -133,7 +139,7 @@ export interface FacadeDmReceipt {
 export interface FacadeThreadReplyReceipt {
   ok: true;
   summary: string;
-  ids: { channelId: string; messageId: string; rootMessageId: string };
+  ids: { channelId: ChannelId; messageId: MessageId; rootMessageId: MessageId };
   channel?: ChannelSummary;
   message: MessageRef;
 }

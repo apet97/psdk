@@ -151,11 +151,11 @@ function numberField(record: Record<string, unknown>, key: string): number | und
 }
 
 function hasValidationStyleField(record: Record<string, unknown>): boolean {
-  if (typeof record.message !== "string") return false;
-  return typeof record.field === "string"
-    || Array.isArray(record.fields)
-    || Array.isArray(record.errors)
-    || Array.isArray(record.violations);
+  if (typeof record["message"] !== "string") return false;
+  return typeof record["field"] === "string"
+    || Array.isArray(record["fields"])
+    || Array.isArray(record["errors"])
+    || Array.isArray(record["violations"]);
 }
 
 function networkCodeOf(e: unknown): string | null {
