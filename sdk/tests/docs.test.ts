@@ -1,6 +1,6 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { describe, expect, test } from "vitest";
+import { existsSync, globSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { describe, expect, it, test } from "vitest";
 
 type PackageJson = {
   name: string;
@@ -634,5 +634,36 @@ describe("docs", () => {
     expect(support).toContain("Support Matrix");
     expect(support).toContain("| Browser/edge runtime | Not supported in `0.3.x` |");
     expect(support).toContain("For organization deployments:");
+  });
+});
+
+describe("product identity guard", () => {
+  const guardRepoRoot = resolve(__dirname, "..", "..");
+  const FORBIDDEN = [
+    "SDK generator platform",
+    "Stainless competitor",
+    "multi-language generator",
+    "production-grade",
+    "industrial-strength",
+    "world-class",
+    "best-in-class",
+  ];
+  const ALLOWED_FILES = ["docs/product/sdk-generator-product-boundary.md"];
+  const docFiles = globSync("**/*.md", {
+    cwd: guardRepoRoot,
+    exclude: (path) =>
+      path.includes("node_modules") ||
+      path.includes("esm/") ||
+      path.includes("dist/") ||
+      path.includes(".remember/") ||
+      path.includes("docs/superpowers/") ||
+      path.includes("docs/product/"),
+  });
+
+  it.each(FORBIDDEN)("'%s' appears only in the boundary doc", (phrase) => {
+    const hits = docFiles
+      .filter((rel) => !ALLOWED_FILES.includes(rel))
+      .filter((rel) => readFileSync(join(guardRepoRoot, rel), "utf8").includes(phrase));
+    expect(hits).toEqual([]);
   });
 });

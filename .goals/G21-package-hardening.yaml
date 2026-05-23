@@ -1,0 +1,29 @@
+id: G21
+title: Package contents audit
+priority: P2
+status: planned
+why: "Filled in by the task that owns this goal."
+scope:
+  allowed:
+    - sdk/package.json
+    - sdk/scripts/**
+    - sdk/tests/package-contents.test.ts
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "To be filled in by the task that owns this goal."
+commands:
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "To be filled in by the task that owns this goal."
+links:
+  docs: []
+  tests: []
+rollback: "Revert this commit; no production impact until the owning task lands."
