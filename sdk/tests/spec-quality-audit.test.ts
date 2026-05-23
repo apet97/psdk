@@ -141,11 +141,53 @@ describe("spec quality audit", () => {
       baseOperation({
         operationId: "sendMessage",
         tags: ["Messages"],
-        "x-speakeasy-retries": { strategy: "none" },
+        "x-speakeasy-retries": { strategy: "none", statusCodes: ["5XX"] },
       }),
     );
 
     expect(auditOpenApiDocument(doc)).toEqual([]);
+  });
+
+  it("flags x-speakeasy-retries blocks missing statusCodes (matches speakeasy lint)", () => {
+    const doc = documentWithOperation(
+      "/sendMessage",
+      "post",
+      baseOperation({
+        operationId: "sendMessage",
+        tags: ["Messages"],
+        "x-speakeasy-retries": { strategy: "none" },
+      }),
+    );
+
+    expect(auditOpenApiDocument(doc)).toEqual([
+      {
+        code: "retries/missing-statuscodes",
+        location: "POST /sendMessage",
+        message:
+          "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
+      },
+    ]);
+  });
+
+  it("flags document-level x-speakeasy-retries missing statusCodes", () => {
+    const doc = {
+      openapi: "3.1.0",
+      "x-speakeasy-retries": { strategy: "backoff" },
+      paths: {
+        "/list": {
+          get: baseOperation({ operationId: "list", tags: ["Channels"] }),
+        },
+      },
+    };
+
+    expect(auditOpenApiDocument(doc)).toEqual([
+      {
+        code: "retries/missing-statuscodes",
+        location: "<document>",
+        message:
+          "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
+      },
+    ]);
   });
 
   it("accepts documented Idempotency-Key support", () => {
@@ -196,5 +238,12 @@ describe("spec quality audit (extended)", () => {
 
   it("no live emails or 24-char IDs leak into examples", () => {
     expect(report.leakedSecrets).toEqual([]);
+  });
+
+  it("every x-speakeasy-retries block declares statusCodes (matches speakeasy lint)", () => {
+    const missing = report.findings.filter(
+      (finding: { code: string }) => finding.code === "retries/missing-statuscodes",
+    );
+    expect(missing).toEqual([]);
   });
 });

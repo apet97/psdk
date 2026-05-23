@@ -49,6 +49,8 @@ x-sdk-safe-read-retries: &safeReadRetries
 
 x-sdk-no-write-retries: &noWriteRetries
   strategy: none
+  statusCodes:
+    - 5XX
 
 tags:
   - name: Channels

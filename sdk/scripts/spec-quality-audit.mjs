@@ -16,6 +16,15 @@ const DEFAULT_SPEC_PATH = resolve(__dirname, "../../PumbleOpenApi.yaml");
 export function auditOpenApiDocument(doc) {
   const findings = [];
 
+  if (isRecord(doc) && isRecord(doc["x-speakeasy-retries"]) && !hasNonEmptyStatusCodes(doc["x-speakeasy-retries"])) {
+    findings.push({
+      code: "retries/missing-statuscodes",
+      location: "<document>",
+      message:
+        "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
+    });
+  }
+
   for (const { path, method, operation, pathItem } of listOperations(doc)) {
     const location = `${method.toUpperCase()} ${path}`;
     const operationId = typeof operation.operationId === "string" ? operation.operationId.trim() : "";
@@ -49,6 +58,18 @@ export function auditOpenApiDocument(doc) {
     }
 
     if (
+      isRecord(operation["x-speakeasy-retries"]) &&
+      !hasNonEmptyStatusCodes(operation["x-speakeasy-retries"])
+    ) {
+      findings.push({
+        code: "retries/missing-statuscodes",
+        location,
+        message:
+          "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
+      });
+    }
+
+    if (
       isMessageCreatingOperation(path, method, operation) &&
       hasRetryConfig(operation, doc) &&
       !hasIdempotencyKeySupport(pathItem.parameters, operation.parameters, operation.requestBody) &&
@@ -65,6 +86,10 @@ export function auditOpenApiDocument(doc) {
 
   scanExamples(doc, "$", findings, false);
   return findings;
+}
+
+function hasNonEmptyStatusCodes(retries) {
+  return Array.isArray(retries.statusCodes) && retries.statusCodes.length > 0;
 }
 
 export function formatAuditFindings(findings) {
