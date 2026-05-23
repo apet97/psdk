@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const sdkRoot = resolve(__dirname, "..");
 
-const PATCH_REGISTRY = [
+export const PATCH_REGISTRY = [
   {
     id: "non-idempotent-write-retries",
     owner: "sdk-maintainers",
@@ -47,16 +47,24 @@ const unsafeWriteFunctionFiles = [
   "src/funcs/scheduled-messages-create-scheduled-message.ts",
 ];
 
-for (const relativePath of unsafeWriteFunctionFiles) {
-  patchFile(resolve(sdkRoot, relativePath), [
-    {
-      before: 'retryCodes: options?.retryCodes || ["429", "500", "502", "503", "504"],',
-      after: "retryCodes: options?.retryCodes || [],",
-    },
-  ]);
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  applyPatches();
 }
 
-patchFile(resolve(sdkRoot, "src/lib/sdks.ts"), [
+function applyPatches() {
+  for (const relativePath of unsafeWriteFunctionFiles) {
+    patchFile(resolve(sdkRoot, relativePath), [
+      {
+        before: 'retryCodes: options?.retryCodes || ["429", "500", "502", "503", "504"],',
+        after: "retryCodes: options?.retryCodes || [],",
+      },
+    ]);
+  }
+
+  patchFile(resolve(sdkRoot, "src/lib/sdks.ts"), [
   {
     before: 'import { SDKHooks } from "../hooks/hooks.js";',
     after: 'import { redactDebugHeaders, redactDebugValue } from "../extensions/debug-redaction.js";\nimport { SDKHooks } from "../hooks/hooks.js";',
@@ -107,7 +115,7 @@ patchFile(resolve(sdkRoot, "src/lib/sdks.ts"), [
   },
 ]);
 
-patchFile(resolve(sdkRoot, "src/lib/matchers.ts"), [
+  patchFile(resolve(sdkRoot, "src/lib/matchers.ts"), [
   {
     before: `      case "json":
         body = await response.text();
@@ -134,7 +142,7 @@ patchFile(resolve(sdkRoot, "src/lib/matchers.ts"), [
   },
 ]);
 
-patchFile(resolve(sdkRoot, "src/lib/retries.ts"), [
+  patchFile(resolve(sdkRoot, "src/lib/retries.ts"), [
   {
     before: `      let retryInterval = 0;
       if (err instanceof TemporaryError) {
@@ -180,34 +188,35 @@ async function delay(delay: number): Promise<void> {`,
   },
 ]);
 
-patchFile(resolve(sdkRoot, "src/models/operations/send-message.ts"), [
-  { before: "channel: z.string(),", after: "channel: z.string().min(1)," },
-  { before: "channelId: z.string(),", after: "channelId: z.string().min(1)," },
-  { before: "text: z.string(),", after: "text: z.string().min(1)," },
-]);
+  patchFile(resolve(sdkRoot, "src/models/operations/send-message.ts"), [
+    { before: "channel: z.string(),", after: "channel: z.string().min(1)," },
+    { before: "channelId: z.string(),", after: "channelId: z.string().min(1)," },
+    { before: "text: z.string(),", after: "text: z.string().min(1)," },
+  ]);
 
-patchFile(resolve(sdkRoot, "src/models/operations/send-reply.ts"), [
-  { before: "channel: z.string(),", after: "channel: z.string().min(1)," },
-  { before: "channelId: z.string(),", after: "channelId: z.string().min(1)," },
-  { before: "messageId: z.string(),", after: "messageId: z.string().min(1)," },
-  { before: "text: z.string(),", after: "text: z.string().min(1)," },
-]);
+  patchFile(resolve(sdkRoot, "src/models/operations/send-reply.ts"), [
+    { before: "channel: z.string(),", after: "channel: z.string().min(1)," },
+    { before: "channelId: z.string(),", after: "channelId: z.string().min(1)," },
+    { before: "messageId: z.string(),", after: "messageId: z.string().min(1)," },
+    { before: "text: z.string(),", after: "text: z.string().min(1)," },
+  ]);
 
-patchFile(resolve(sdkRoot, "src/models/operations/dm-user.ts"), [
-  { before: "userId: z.string(),", after: "userId: z.string().min(1)," },
-  { before: "text: z.string(),", after: "text: z.string().min(1)," },
-]);
+  patchFile(resolve(sdkRoot, "src/models/operations/dm-user.ts"), [
+    { before: "userId: z.string(),", after: "userId: z.string().min(1)," },
+    { before: "text: z.string(),", after: "text: z.string().min(1)," },
+  ]);
 
-patchFile(resolve(sdkRoot, "src/models/operations/dm-group.ts"), [
-  { before: "userIds: z.array(z.string()),", after: "userIds: z.array(z.string().min(1)).min(1)," },
-  { before: "text: z.string(),", after: "text: z.string().min(1)," },
-]);
+  patchFile(resolve(sdkRoot, "src/models/operations/dm-group.ts"), [
+    { before: "userIds: z.array(z.string()),", after: "userIds: z.array(z.string().min(1)).min(1)," },
+    { before: "text: z.string(),", after: "text: z.string().min(1)," },
+  ]);
 
-patchFile(resolve(sdkRoot, "src/models/operations/create-scheduled-message.ts"), [
-  { before: "channelId: z.string(),", after: "channelId: z.string().min(1)," },
-  { before: "text: z.string(),", after: "text: z.string().min(1)," },
-  { before: "sendAt: z.number().int(),", after: "sendAt: z.number().int().min(1)," },
-]);
+  patchFile(resolve(sdkRoot, "src/models/operations/create-scheduled-message.ts"), [
+    { before: "channelId: z.string(),", after: "channelId: z.string().min(1)," },
+    { before: "text: z.string(),", after: "text: z.string().min(1)," },
+    { before: "sendAt: z.number().int(),", after: "sendAt: z.number().int().min(1)," },
+  ]);
+}
 
 function patchFile(filePath, replacements) {
   let source = readFileSync(filePath, "utf8");
