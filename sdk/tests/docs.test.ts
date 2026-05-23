@@ -153,6 +153,27 @@ const requiredExtensionCategories = [
   "Webhook verification",
 ];
 
+const requiredFeedbackCoveragePhrases = [
+  "package docs",
+  "API reference",
+  "facade failures",
+  "error categorization",
+  "exact-ID fast paths",
+  "branded facade IDs",
+  "MCP SSE host/auth",
+  "search pagination overlap",
+  "publish gate",
+  "public surface labels",
+  "runtime patch guard",
+  "retry backoff",
+  "examples packaging decision",
+  "OAuth/app status",
+  "package split decision",
+  "resolver cache performance docs",
+  "CLI docs",
+  "architecture diagram",
+];
+
 function markdownHeadings(markdown: string): string[] {
   return markdown
     .split("\n")
@@ -556,6 +577,15 @@ describe("docs", () => {
       expect(packageSplit).toContain(phrase);
     }
     expect(packageSplit).not.toMatch(/now publishes|already split|split packages now/i);
+  });
+
+  test("feedback coverage section lists implemented feedback areas", () => {
+    const coverageDocs = `${apiReference}\n${stability}`;
+
+    expect(coverageDocs).toContain("## Feedback Coverage");
+    for (const phrase of requiredFeedbackCoveragePhrases) {
+      expect(coverageDocs).toContain(phrase);
+    }
   });
 
   test("root contribution and runtime docs exist", () => {

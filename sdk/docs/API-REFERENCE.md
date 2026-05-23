@@ -144,3 +144,5 @@ middleware in front of webhook verification routes.
 | Generated internals and patch scripts | Generated/runtime maintenance | Internal |
 
 OAuth/app helpers are experimental utilities; they do not provide a complete install, token refresh, storage, and workspace-selection flow.
+
+Feedback coverage is recorded in `docs/STABILITY.md`.

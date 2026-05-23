@@ -54,3 +54,24 @@
 - Testing/replay helpers
 - App/OAuth helpers
 - Webhook verification
+
+## Feedback Coverage
+
+- package docs
+- API reference
+- facade failures
+- error categorization
+- exact-ID fast paths
+- branded facade IDs
+- MCP SSE host/auth
+- search pagination overlap
+- publish gate
+- public surface labels
+- runtime patch guard
+- retry backoff
+- examples packaging decision
+- OAuth/app status
+- package split decision
+- resolver cache performance docs
+- CLI docs
+- architecture diagram
