@@ -100,6 +100,24 @@ jobs:
         working-directory: sdk
         run: npm run verify:offline
 
+      - name: CI gate summary
+        if: always()
+        env:
+          SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## CI gate matrix"
+            echo "| Gate | Status |"
+            echo "| --- | --- |"
+            echo "| Offline verification | $JOB_STATUS |"
+            if [ -n "$SPEAKEASY_API_KEY" ]; then
+              echo "| Speakeasy regeneration | ran |"
+            else
+              echo "| Speakeasy regeneration | skipped (no secret) |"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
   live-arazzo:
     # Optional nightly job that runs the live arazzo runner against the
     # sacrificial Pumble workspace. Requires PUMBLE_API_KEY repo secret.
