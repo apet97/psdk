@@ -1,5 +1,17 @@
 # Stability
 
+## Supported Surfaces
+
+| Import path | Surface | Stability |
+| --- | --- | --- |
+| `pumble-sdk` | Raw SDK | Stable |
+| `pumble-sdk/extensions/index.js` | Facade helpers | Stable |
+| `pumble-sdk/extensions/webhooks.js` | Webhook verification | Stable |
+| `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | Beta |
+| `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | Beta |
+| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |
+| `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |
+
 ## Stable
 
 - Raw generated SDK imports from `pumble-sdk`.
@@ -27,3 +39,17 @@
 - Generated internals under `src/funcs`, `src/models`, `src/sdk`, `src/lib`,
   `src/hooks`, and `src/mcp-server/tools`.
 - Patch scripts under `scripts/`.
+
+## Extension Barrel Categories
+
+- Facade helpers
+- Pagination helpers
+- Thread/context helpers
+- Write confirmation helpers
+- Resolver helpers
+- Retry/error/rate-limit helpers
+- Branded ID helpers
+- Telemetry helpers
+- Testing/replay helpers
+- App/OAuth helpers
+- Webhook verification

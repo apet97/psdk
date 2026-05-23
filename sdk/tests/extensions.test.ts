@@ -1,6 +1,7 @@
 // Mocked unit tests for the hand-written extensions (other than
 // searchAllMessages, which has its own test file).
 
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
   listAllMessages,
@@ -12,6 +13,8 @@ import {
   asUserId,
   isPumbleIdLike,
 } from "../src/extensions/index.js";
+
+const extensionBarrel = readFileSync(new URL("../src/extensions/index.ts", import.meta.url), "utf8");
 
 describe("listAllMessages", () => {
   it("walks history until hasMoreBefore is falsy", async () => {
@@ -229,5 +232,30 @@ describe("branded ids", () => {
     expect(isPumbleIdLike("bbbbbbbbbbbbbbbbbbbb0001")).toBe(true);
     expect(isPumbleIdLike("xx")).toBe(false);
     expect(isPumbleIdLike(123 as any)).toBe(false);
+  });
+});
+
+describe("extension barrel public categories", () => {
+  it("keeps the documented extension category exports in the barrel", () => {
+    for (const sourcePath of [
+      "./client.js",
+      "./search-all.js",
+      "./list-all-messages.js",
+      "./thread-context.js",
+      "./write-plan.js",
+      "./find.js",
+      "./resolve.js",
+      "./with-retries.js",
+      "./categorize-error.js",
+      "./rate-limiter.js",
+      "./branded-ids.js",
+      "./telemetry.js",
+      "./testing/index.js",
+      "./app/index.js",
+      "./webhooks.js",
+      "./webhook-events.js",
+    ]) {
+      expect(extensionBarrel).toContain(`from "${sourcePath}"`);
+    }
   });
 });

@@ -128,6 +128,30 @@ const requiredChangelogHeadings = [
   "migration notes",
 ];
 
+const requiredPublicSurfaceRows = [
+  "| `pumble-sdk` | Raw SDK | Stable |",
+  "| `pumble-sdk/extensions/index.js` | Facade helpers | Stable |",
+  "| `pumble-sdk/extensions/webhooks.js` | Webhook verification | Stable |",
+  "| `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | Beta |",
+  "| `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | Beta |",
+  "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
+  "| `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |",
+];
+
+const requiredExtensionCategories = [
+  "Facade helpers",
+  "Pagination helpers",
+  "Thread/context helpers",
+  "Write confirmation helpers",
+  "Resolver helpers",
+  "Retry/error/rate-limit helpers",
+  "Branded ID helpers",
+  "Telemetry helpers",
+  "Testing/replay helpers",
+  "App/OAuth helpers",
+  "Webhook verification",
+];
+
 function markdownHeadings(markdown: string): string[] {
   return markdown
     .split("\n")
@@ -374,6 +398,19 @@ describe("docs", () => {
     expect(stability).toContain("Raw generated SDK");
     expect(stability).toContain("Facade");
     expect(stability).toContain("Curated MCP");
+  });
+
+  test("stability docs and api reference list supported public import paths", () => {
+    for (const row of requiredPublicSurfaceRows) {
+      expect(stability).toContain(row);
+      expect(apiReference).toContain(row);
+    }
+  });
+
+  test("stability docs represent every extension barrel category", () => {
+    for (const category of requiredExtensionCategories) {
+      expect(stability).toContain(category);
+    }
   });
 
   test("errors guide covers raw thrown errors and facade failure values", () => {

@@ -115,14 +115,12 @@ middleware in front of webhook verification routes.
 | --- | --- | --- |
 | `pumble-sdk` | Raw SDK | Stable |
 | `pumble-sdk/extensions/index.js` | Facade helpers | Stable |
-| Webhook verification helpers | Webhook verification | Stable |
+| `pumble-sdk/extensions/webhooks.js` | Webhook verification | Stable |
 | Curated MCP stdio/read/confirmed-write tools | Agent tools | Stable |
-| CLI | `pumble` and `pumble-mcp` commands | Beta |
-| Telemetry | Telemetry helpers | Beta |
-| Audit-log | Audit-log helpers | Beta |
-| Testing/replay helpers | Test utilities | Beta |
-| OAuth helpers | App auth utilities | Experimental |
-| App framework | App helper utilities | Experimental |
-| Socket Mode | Realtime app utilities | Experimental |
+| `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | Beta |
+| Audit-log helpers | Audit-log helpers | Beta |
+| `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | Beta |
+| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |
+| `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |
 | Package split | Future packaging shape | Experimental |
 | Generated internals and patch scripts | Generated/runtime maintenance | Internal |
