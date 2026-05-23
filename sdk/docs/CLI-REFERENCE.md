@@ -9,9 +9,16 @@ Run `pumble --help` for a top-level overview. Every command supports `--json` un
 - `--api-key-stdin`
 - `--base-url <url>`
 - `--timeout-ms <n>`
-- `-v` / `--verbose` — print success messages for writes
+- `-v` / `--verbose` — print extra detail
+- `-q` / `--quiet` — suppress the default one-line success output for writes
 - `--version` — print the package version
 - `-h` / `--help`
+
+## Write command output
+
+Write commands (`send`, `dm`, `channels create`, `status set`/`clear`,
+`schedule cancel`) print a one-line success message by default. Pass `--quiet`
+to suppress it, or `--json` to emit the full structured receipt instead.
 
 ## Commands
 

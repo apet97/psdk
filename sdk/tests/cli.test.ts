@@ -121,7 +121,7 @@ describe("pumble CLI", () => {
 
   it("resolves channel names before dry-run sending a message", async () => {
     const { stdout } = await runCliDryRun(["send", "#general", "hello from cli"]);
-    expect(stdout).toBe("");
+    expect(stdout).toMatch(/^sent /);
 
     expect(readRequests().map((r) => r.path)).toContain("/listChannels");
     const audit = readDryRunAudit().at(-1);

@@ -1,14 +1,14 @@
 id: G04
-title: CLI write output by default
+title: CLI prints write success by default
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Silent writes hide that they happened; agents and humans both want a confirmation line by default with --quiet to opt out."
 scope:
   allowed:
     - sdk/bin/**
-    - sdk/src/cli/**
-    - sdk/docs/API-REFERENCE.md
+    - sdk/docs/CLI-REFERENCE.md
     - sdk/tests/cli-quiet.test.ts
+    - sdk/tests/cli.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -19,12 +19,18 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "Default write commands print a one-line success message."
+  - "--quiet suppresses the default success line."
+  - "--json still emits structured output."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/cli-quiet.test.ts tests/cli.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Removing --quiet handling fails the suppression test."
+  - "Reverting printMutation to verbose-only fails the default-output test."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/CLI-REFERENCE.md
+  tests:
+    - sdk/tests/cli-quiet.test.ts
+rollback: "Revert this commit; CLI again silent for writes."
