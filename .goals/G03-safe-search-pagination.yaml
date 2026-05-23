@@ -1,14 +1,16 @@
 id: G03
 title: Make searchAllMessages the default full-walk path
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Raw searchMessages can skip same-second boundary results; the facade must steer users to searchAllMessages for full walks."
 scope:
   allowed:
     - sdk/src/extensions/**
     - sdk/docs/API-REFERENCE.md
     - sdk/docs/QUICKSTART.md
-    - sdk/tests/search-walk.test.ts
+    - sdk/README.md
+    - sdk/tests/search-all.test.ts
+    - sdk/tests/docs.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -19,12 +21,23 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "client.search.all delegates to searchAllMessages."
+  - "API-REFERENCE.md marks searchAllMessages as recommended for full walks."
+  - "Quickstart and README include a searchAllMessages example."
+  - "tests/search-all.test.ts asserts the facade method exists; tests/docs.test.ts enforces the documentation copy."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/search-all.test.ts tests/docs.test.ts"
+  - "cd sdk && npm run lint"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Removing the search.all key from the facade fails the facade test."
+  - "Stripping 'recommended' from API-REFERENCE fails the docs test."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/API-REFERENCE.md
+    - sdk/docs/QUICKSTART.md
+    - sdk/README.md
+  tests:
+    - sdk/tests/search-all.test.ts
+    - sdk/tests/docs.test.ts
+rollback: "Revert this commit; raw search remains available on client.raw."

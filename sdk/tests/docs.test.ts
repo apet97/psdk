@@ -667,3 +667,17 @@ describe("product identity guard", () => {
     expect(hits).toEqual([]);
   });
 });
+
+describe("safe search pagination", () => {
+  it("API reference recommends searchAllMessages for full walks", () => {
+    expect(apiReference).toMatch(/searchAllMessages.*recommended/i);
+  });
+
+  it("Quickstart shows a searchAllMessages example", () => {
+    expect(quickstart).toContain("searchAllMessages");
+  });
+
+  it("README links the safe search helper", () => {
+    expect(readme).toContain("searchAllMessages");
+  });
+});

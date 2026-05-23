@@ -128,6 +128,18 @@ if (!preflight.ok) {
 }
 ```
 
+## Walk The Full Search Result Set
+
+`searchAllMessages` (exposed as `pumble.search.all`) is the recommended way to
+walk a full result set — it caps page count, respects an `AbortSignal`, and
+dedupes overlapping timestamps.
+
+```typescript
+for await (const hit of pumble.search.all({ text: "release notes", limit: 50 })) {
+  console.log(hit.id, hit.text);
+}
+```
+
 ## Reply To Thread
 
 ```typescript

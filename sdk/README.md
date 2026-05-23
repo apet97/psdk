@@ -100,6 +100,12 @@ const search = await pumble.search.recent({
   query: "incident",
   limit: 5,
 });
+
+// Full search walks: use `pumble.search.all(...)` (`searchAllMessages`) —
+// it handles same-second overlap, dedupes by message ID, and respects aborts.
+for await (const hit of pumble.search.all({ text: "incident" })) {
+  console.log(hit.id);
+}
 ```
 
 If a name or email is ambiguous, write helpers return choices and do not call

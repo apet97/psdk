@@ -115,6 +115,19 @@ if (!result.ok) {
 Raw generated pagination is lower level and follows endpoint-specific response
 shapes. For search walks, prefer `searchAllMessages`.
 
+### Searching messages
+
+`searchAllMessages` is **recommended** for full search walks. It dedupes
+timestamp-boundary overlaps, caps page count, and respects abort signals. Raw
+`searchMessages` is available via `client.raw.messages.searchMessages` for
+direct cursor control, but can skip same-second boundary results.
+
+```ts
+for await (const hit of client.search.all({ text: "release" }, { signal })) {
+  console.log(hit.id, hit.text);
+}
+```
+
 `searchAllMessages` is the safer helper for search walks because it manages
 timestamp cursors, overlaps same-second boundaries, and dedupes by message ID.
 Very high-volume identical timestamp bursts may still require narrower query
