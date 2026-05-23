@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const goalsDir = resolve(__dirname, "..", "..", ".goals");
+const repoRoot = resolve(__dirname, "..", "..");
 
 const VALID_PRIORITY = new Set(["P0", "P1", "P2", "P3"]);
 const VALID_STATUS = new Set(["planned", "active", "blocked", "done"]);
@@ -56,6 +57,20 @@ for (const file of found) {
     "adversarial_checks required",
   );
   must(typeof doc?.rollback === "string" && doc.rollback.length > 0, "rollback required");
+
+  if (doc?.status === "done") {
+    const testLinks = Array.isArray(doc?.links?.tests) ? doc.links.tests : [];
+    must(testLinks.length > 0, "status: done requires at least one entry in links.tests");
+    for (const entry of testLinks) {
+      if (typeof entry !== "string" || entry.length === 0) {
+        fail(`${file}: links.tests entries must be non-empty strings`);
+        continue;
+      }
+      if (!existsSync(resolve(repoRoot, entry))) {
+        fail(`${file}: links.tests entry does not exist on disk: ${entry}`);
+      }
+    }
+  }
 }
 
 if (process.exitCode) {
