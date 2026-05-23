@@ -35,7 +35,22 @@ IDs before writes:
 - `send-channel-by-name.ts` sends to `PUMBLE_CHANNEL` such as `#general`.
 - `dm-by-email.ts` sends a DM to `PUMBLE_USER_EMAIL`.
 - `search-and-reply.ts` searches recent messages and replies to the first hit.
+- `schedule-message.ts` schedules a future message through `client.scheduled`.
 - `webhook-server.ts` runs an Express webhook receiver.
+
+## Stable Workflow Examples
+
+- Send channel message: `send-channel-by-name.ts`
+- DM by email: `dm-by-email.ts`
+- Reply to thread: `reply-to-thread.ts`
+- Search and reply: `search-and-reply.ts`
+- List channels: `list-channels.ts`
+- Webhook server: `webhook-server.ts`
+- Curated MCP read-only: `mcp-readonly.md`
+- Curated MCP preview/confirm writes: `mcp-curated-write.md`
+- Add/remove reaction through raw SDK: `add-reaction.ts`
+- Schedule/cancel through facade: `schedule-message.ts`
+- OpenTelemetry span example: `opentelemetry.ts`
 
 Facade examples export small helpers for config parsing and injected-client
 execution. Importing them is safe in tests; live network calls happen only when

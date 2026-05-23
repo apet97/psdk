@@ -52,6 +52,40 @@ describe("pumble CLI", () => {
     expect(readRequests().at(-1)).toMatchObject({ method: "GET", path: "/myInfo" });
   });
 
+  it("reads API keys from a local file before env or legacy flags", async () => {
+    const keyPath = join(tempDir, "api-key");
+    writeFileSync(keyPath, "file-key\n");
+
+    const { stdout } = await runCliNoEnv(["--api-key-file", keyPath, "whoami", "--json"]);
+
+    expect(JSON.parse(stdout)).toMatchObject({ id: "aaaaaaaaaaaaaaaaaaaa0001" });
+    expect(readRequests().at(-1)).toMatchObject({ method: "GET", path: "/myInfo" });
+  });
+
+  it("reads API keys from stdin", async () => {
+    const command = `printf 'stdin-key\\n' | node ${JSON.stringify(cliPath)} --api-key-stdin whoami --json`;
+    const { stdout } = await execFile("bash", ["-lc", command], {
+      cwd: sdkRoot,
+      env: cliEnvNoApiKey(),
+    });
+
+    expect(JSON.parse(stdout)).toMatchObject({ id: "aaaaaaaaaaaaaaaaaaaa0001" });
+    expect(readRequests().at(-1)).toMatchObject({ method: "GET", path: "/myInfo" });
+  });
+
+  it("documents safer API key sources in help", async () => {
+    const { stdout } = await execFile("node", [cliPath, "--help"], {
+      cwd: sdkRoot,
+      env: cliEnvNoApiKey(),
+    });
+
+    expect(stdout).toContain("--api-key-file <path>");
+    expect(stdout).toContain("--api-key-stdin");
+    expect(stdout).toContain(
+      "Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin` over command-line keys.",
+    );
+  });
+
   it("lists channels in human-readable form by default", async () => {
     const { stdout } = await runCli(["channels", "list"]);
     expect(stdout).toContain("#general");
@@ -235,6 +269,13 @@ describe("pumble CLI", () => {
     });
   }
 
+  async function runCliNoEnv(args: string[]) {
+    return execFile("node", [cliPath, ...args], {
+      cwd: sdkRoot,
+      env: cliEnvNoApiKey(),
+    });
+  }
+
   async function runCliDryRun(args: string[]) {
     return execFile("node", [cliPath, ...args], {
       cwd: sdkRoot,
@@ -256,6 +297,20 @@ describe("pumble CLI", () => {
 
   function readDryRunAudit(): Array<Record<string, any>> {
     return readJsonl(dryRunLogPath);
+  }
+
+  function cliEnvNoApiKey() {
+    const {
+      PUMBLE_API_KEY: _pumbleApiKey,
+      PUMBLESDK_API_KEY_AUTH: _pumbleSdkApiKey,
+      ...env
+    } = process.env;
+    return {
+      ...env,
+      NODE_OPTIONS: `--import ${pathToFileURL(mockShimPath).href}`,
+      PUMBLE_BASE_URL: "https://pumble.test",
+      PUMBLE_CLI_MOCK_LOG: requestLogPath,
+    };
   }
 });
 

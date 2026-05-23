@@ -28,6 +28,7 @@ vi.mock("../src/extensions/resolve.js", async (importOriginal) => {
 import {
   asChannelId,
   asMessageId,
+  asScheduledMessageId,
   asUserId,
   assertFacadeOk,
   createPumbleClient,
@@ -54,6 +55,8 @@ const REPLY_MESSAGE_ID = asMessageId("cccccccccccccccccccc0006");
 const REPLY_MESSAGE_ID_2 = asMessageId("cccccccccccccccccccc0007");
 const FAST_REPLY_MESSAGE_ID = asMessageId("cccccccccccccccccccc0008");
 const FAST_ROOT_MESSAGE_ID = asMessageId("cccccccccccccccccccc0009");
+const SCHEDULED_MESSAGE_ID = asScheduledMessageId("dddddddddddddddddddd0001");
+const FUTURE_SEND_AT = 1_893_456_000_000;
 
 describe("createPumbleClient", () => {
   beforeEach(() => {
@@ -522,5 +525,172 @@ describe("createPumbleClient", () => {
       messageId: FAST_ROOT_MESSAGE_ID,
       text: "fast reply",
     }, undefined);
+  });
+
+  it("scheduled.create resolves channel names before writing and returns a receipt", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveChannel.mockResolvedValue({
+      ok: true,
+      value: { id: CHANNEL_ID, name: "general", channelType: "PUBLIC" },
+    });
+    const createScheduledMessage = vi.spyOn(client.raw.scheduledMessages, "createScheduledMessage")
+      .mockResolvedValue({ id: SCHEDULED_MESSAGE_ID, channelId: CHANNEL_ID });
+
+    await expect(client.scheduled.create({
+      channel: "#general",
+      text: "later",
+      sendAt: FUTURE_SEND_AT,
+    })).resolves.toEqual({
+      ok: true,
+      summary: `Scheduled message ${SCHEDULED_MESSAGE_ID} in #general.`,
+      ids: { channelId: CHANNEL_ID, scheduledMessageId: SCHEDULED_MESSAGE_ID },
+      channel: { id: CHANNEL_ID, name: "general", channelType: "PUBLIC" },
+      scheduledMessage: { id: SCHEDULED_MESSAGE_ID, channelId: CHANNEL_ID },
+    });
+    expect(createScheduledMessage).toHaveBeenCalledWith({
+      channelId: CHANNEL_ID,
+      text: "later",
+      sendAt: FUTURE_SEND_AT,
+    }, undefined);
+  });
+
+  it("scheduled.create exact channel IDs bypass resolver unless validation is requested", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const createScheduledMessage = vi.spyOn(client.raw.scheduledMessages, "createScheduledMessage")
+      .mockResolvedValue({ id: SCHEDULED_MESSAGE_ID, channelId: FAST_CHANNEL_ID });
+
+    await expect(client.scheduled.create({
+      channelId: FAST_CHANNEL_ID,
+      text: "fast schedule",
+      sendAt: FUTURE_SEND_AT,
+    })).resolves.toMatchObject({
+      ok: true,
+      summary: `Scheduled message ${SCHEDULED_MESSAGE_ID} in channel ${FAST_CHANNEL_ID}.`,
+      ids: { channelId: FAST_CHANNEL_ID, scheduledMessageId: SCHEDULED_MESSAGE_ID },
+    });
+    expect(delegates.resolveChannel).not.toHaveBeenCalled();
+    expect(createScheduledMessage).toHaveBeenCalledWith({
+      channelId: FAST_CHANNEL_ID,
+      text: "fast schedule",
+      sendAt: FUTURE_SEND_AT,
+    }, undefined);
+
+    delegates.resolveChannel.mockResolvedValue({
+      ok: true,
+      value: { id: FAST_CHANNEL_ID, name: "fast", channelType: "PUBLIC" },
+    });
+    await client.scheduled.create({
+      channelId: FAST_CHANNEL_ID,
+      validateTarget: true,
+      text: "validated schedule",
+      sendAt: FUTURE_SEND_AT,
+    });
+    expect(delegates.resolveChannel).toHaveBeenCalledWith(client.raw, FAST_CHANNEL_ID, undefined);
+  });
+
+  it("scheduled.create rejects missing targets and non-future sendAt values", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const createScheduledMessage = vi.spyOn(client.raw.scheduledMessages, "createScheduledMessage");
+
+    await expect(client.scheduled.create({
+      text: "missing target",
+      sendAt: FUTURE_SEND_AT,
+    })).resolves.toMatchObject({
+      ok: false,
+      reason: "invalid_request",
+      summary: "scheduled.create requires channel or channelId.",
+    });
+    await expect(client.scheduled.create({
+      channelId: FAST_CHANNEL_ID,
+      text: "past target",
+      sendAt: Date.now() - 1,
+    })).resolves.toMatchObject({
+      ok: false,
+      reason: "invalid_request",
+      summary: "scheduled.create requires sendAt to be in the future.",
+    });
+    expect(createScheduledMessage).not.toHaveBeenCalled();
+  });
+
+  it("scheduled list, get, edit, and cancel delegate to raw scheduled-message methods", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveChannel.mockResolvedValue({
+      ok: true,
+      value: { id: CHANNEL_ID, name: "general", channelType: "PUBLIC" },
+    });
+    const page = { [Symbol.asyncIterator]: async function* () {} };
+    const listScheduled = vi.spyOn(client.raw.scheduledMessages, "fetchScheduledMessages")
+      .mockResolvedValue(page as never);
+    const getScheduled = vi.spyOn(client.raw.scheduledMessages, "fetchScheduledMessage")
+      .mockResolvedValue({
+        id: SCHEDULED_MESSAGE_ID,
+        channelId: CHANNEL_ID,
+        workspaceId: "workspace-1",
+        author: USER_ID,
+        text: "later",
+        sendAt: FUTURE_SEND_AT,
+      });
+    const editScheduled = vi.spyOn(client.raw.scheduledMessages, "editScheduledMessage")
+      .mockResolvedValue({
+        id: SCHEDULED_MESSAGE_ID,
+        channelId: CHANNEL_ID,
+        workspaceId: "workspace-1",
+        author: USER_ID,
+        text: "updated",
+        sendAt: FUTURE_SEND_AT,
+      });
+    const cancelScheduled = vi.spyOn(client.raw.scheduledMessages, "deleteScheduledMessage")
+      .mockResolvedValue(undefined);
+
+    await expect(client.scheduled.list({ channel: "#general", limit: 20 })).resolves.toBe(page);
+    expect(listScheduled).toHaveBeenCalledWith({
+      channelId: CHANNEL_ID,
+      limit: 20,
+    }, undefined);
+
+    await expect(client.scheduled.get({ scheduledMessageId: SCHEDULED_MESSAGE_ID }))
+      .resolves.toMatchObject({ id: SCHEDULED_MESSAGE_ID });
+    expect(getScheduled).toHaveBeenCalledWith({ scheduledMessageId: SCHEDULED_MESSAGE_ID }, undefined);
+
+    await expect(client.scheduled.edit({
+      scheduledMessageId: SCHEDULED_MESSAGE_ID,
+      channel: "#general",
+      text: "updated",
+      sendAt: FUTURE_SEND_AT,
+    })).resolves.toMatchObject({
+      ok: true,
+      ids: { channelId: CHANNEL_ID, scheduledMessageId: SCHEDULED_MESSAGE_ID },
+    });
+    expect(editScheduled).toHaveBeenCalledWith({
+      scheduledMessageId: SCHEDULED_MESSAGE_ID,
+      channelId: CHANNEL_ID,
+      text: "updated",
+      sendAt: FUTURE_SEND_AT,
+    }, undefined);
+
+    await expect(client.scheduled.cancel({ scheduledMessageId: SCHEDULED_MESSAGE_ID }))
+      .resolves.toEqual({
+        ok: true,
+        summary: `Canceled scheduled message ${SCHEDULED_MESSAGE_ID}.`,
+        ids: { scheduledMessageId: SCHEDULED_MESSAGE_ID },
+      });
+    expect(cancelScheduled).toHaveBeenCalledWith({ scheduledMessageId: SCHEDULED_MESSAGE_ID }, undefined);
+  });
+
+  it("scheduled facade converts raw SDK errors to operation failures", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const error = new Error("socket reset");
+    vi.spyOn(client.raw.scheduledMessages, "createScheduledMessage").mockRejectedValue(error);
+
+    await expect(client.scheduled.create({
+      channelId: FAST_CHANNEL_ID,
+      text: "will fail",
+      sendAt: FUTURE_SEND_AT,
+    })).resolves.toMatchObject({
+      ok: false,
+      reason: "transport_error",
+      summary: "Pumble API rejected scheduled.create.",
+      cause: error,
+    });
   });
 });

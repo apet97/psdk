@@ -21,6 +21,8 @@ const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const rootReadme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
 const changelog = readFileSync(new URL("../../CHANGELOG.md", import.meta.url), "utf8");
 const context = readFileSync(new URL("../../CONTEXT.md", import.meta.url), "utf8");
+const security = readFileSync(new URL("../../SECURITY.md", import.meta.url), "utf8");
+const support = readFileSync(new URL("../docs/SUPPORT.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 ) as PackageJson;
@@ -377,8 +379,6 @@ describe("docs", () => {
   expect(readme).toContain("npm run verify:live");
   expect(integrationUsage).toContain("curated MCP live smoke");
   expect(integrationUsage).toContain("import-safe");
-  expect(integrationUsage).not.toMatch(/\bOAuth\b/i);
-  expect(integrationUsage).not.toMatch(/\bsocket mode\b/i);
 });
 
   test("package split policy documents extraction gates without promising a split", () => {
@@ -446,11 +446,15 @@ describe("docs", () => {
     ]) {
       expect(errorsGuide).toContain(phrase);
     }
+    expect(errorsGuide).toContain("Error Model By Surface");
+    expect(errorsGuide).toContain("| Raw SDK (`new PumbleSDK`) |");
+    expect(errorsGuide).toContain("| Facade (`createPumbleClient`) |");
+    expect(errorsGuide).toContain("| MCP (`pumble-mcp`) |");
   });
 
-  test("docs state scheduled messages are raw-only today", () => {
-    expect(readme).toContain("Scheduled messages are raw-only today");
-    expect(integrationUsage).toContain("Use `client.raw.scheduledMessages` for scheduled messages");
+  test("docs state scheduled messages use the facade", () => {
+    expect(readme).toContain("client.scheduled.create");
+    expect(integrationUsage).toContain("Use `client.scheduled` for scheduled messages");
   });
 
   test("repo includes support, security, changelog, and api reference docs", () => {
@@ -463,9 +467,9 @@ describe("docs", () => {
       expect(existsSync(resolve(sdkRoot, relativePath)), relativePath).toBe(true);
     }
 
-    const security = readFileSync(resolve(sdkRoot, "../SECURITY.md"), "utf8");
     expect(security).toContain("Do not report secrets");
     expect(security).toContain("Pumble API keys");
+    expect(security).toContain("GitHub private vulnerability reporting");
 
     expect(apiReference).toContain("Raw SDK");
     expect(apiReference).toContain("Facade");
@@ -486,6 +490,8 @@ describe("docs", () => {
     expect(markdownHeadings(changelog)).toEqual(
       expect.arrayContaining(requiredChangelogHeadings),
     );
+    expect(changelog).toContain("## 0.3.21");
+    expect(changelog).toContain("### Migration Notes");
   });
 
   test("docs describe resolver performance and cache boundaries", () => {
@@ -493,7 +499,10 @@ describe("docs", () => {
     expect(integrationUsage).toContain("listChannels");
     expect(integrationUsage).toContain("listUsers");
     expect(integrationUsage).toContain("exact IDs avoid ambiguity");
-    expect(integrationUsage).toContain("no TTL");
+    expect(integrationUsage).toContain("resolverCache: { enabled: true, ttlMs: 60_000 }");
+    expect(integrationUsage).toContain("process-local");
+    expect(integrationUsage).toContain("Redis");
+    expect(integrationUsage).toContain("Do not add Redis as a core dependency");
   });
 
   test("product docs use pumble-sdk naming and keep examples repository-scoped", () => {
@@ -512,6 +521,23 @@ describe("docs", () => {
 
     expect(readme).toContain("Repository examples live in the source tree under `examples/`");
     expect(readme).toContain("They are not included in the npm tarball");
+    expect(rootReadme).toContain("Pumble TypeScript SDK / Developer Toolkit");
+    expect(readme).toContain("Pumble TypeScript SDK / Developer Toolkit");
+    expect(readme).toContain("generated with Speakeasy");
+    expect(readme).not.toMatch(/\bSDK generator\b/i);
+    expect(apiReference).not.toMatch(/\bStainless\b/i);
+    expect(apiReference).not.toMatch(/\bSpeakeasy-class SDK platform\b/i);
+    expect(apiReference).not.toMatch(/after branch implementation/i);
+    expect(apiReference).toContain(
+      "Facade operations return value failures for resolver failures and operation failures.",
+    );
+    expect(readme).toContain("Stable, Beta, Experimental");
+    expect(readme).toContain("docs/verification/v0.3.21.md");
+    expect(apiReference).toContain("docs/verification/v0.3.21.md");
+    expect(existsSync(resolve(sdkRoot, "docs/verification/v0.3.21.md"))).toBe(true);
+    expect(packageJson.files).toContain("docs/verification/v0.3.21.md");
+    expect(readme).toContain("docs/MIGRATING.md");
+    expect(apiReference).toContain("docs/MIGRATING.md");
   });
 
   test("docs mark app and oauth helpers experimental without complete flow claims", () => {
@@ -523,6 +549,9 @@ describe("docs", () => {
       expect(markdown).toContain(
         "do not provide a complete install, token refresh, storage, and workspace-selection flow",
       );
+      expect(markdown).toContain(
+        "OAuth/app helpers and Socket Mode are experimental.",
+      );
     }
 
     expect(apiReference).toContain("API-key SDK auth is stable");
@@ -532,10 +561,15 @@ describe("docs", () => {
     for (const phrase of [
       "pumble --help",
       "pumble-mcp start --help",
+      "--api-key-file",
+      "--api-key-stdin",
+      "Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin`",
       "--transport stdio",
       "--transport sse",
       "--host 127.0.0.1",
       "--auth-token \"$PUMBLE_MCP_TOKEN\"",
+      "--allow-raw-writes",
+      "--audit-log",
     ]) {
       expect(apiReference).toContain(phrase);
       expect(readme).toContain(phrase);
@@ -559,9 +593,8 @@ describe("docs", () => {
   test("resolver cache docs state defaults, promise shape, and manual controls", () => {
     for (const markdown of [readme, integrationUsage]) {
       expect(markdown).toContain("resolverCache` defaults to `false`");
-      expect(markdown).toContain("one in-memory `listChannels` promise");
-      expect(markdown).toContain("one in-memory `listUsers` promise");
-      expect(markdown).toContain("no TTL");
+      expect(markdown).toContain("one in-memory channel/user list per client");
+      expect(markdown).toContain("ttlMs");
       expect(markdown).toContain("manual `refresh()` and `clearCache()`");
     }
   });
@@ -590,8 +623,16 @@ describe("docs", () => {
 
   test("root contribution and runtime docs exist", () => {
     expect(existsSync(resolve(sdkRoot, "../CONTRIBUTING.md"))).toBe(true);
-    const support = readFileSync(resolve(sdkRoot, "docs/SUPPORT.md"), "utf8");
-    expect(support).toContain("Browser support");
-    expect(support).toContain("Node.js 20");
+    expect(support).toContain("Runtime Support");
+    expect(support).toContain("Node.js 20+ ESM");
+    expect(support).toContain("Browser");
+    expect(support).toContain("not claimed");
+    expect(readme).toContain("Node.js 20+ ESM");
+    expect(apiReference).toContain("Release Evidence Checklist");
+    expect(apiReference).toContain("npm provenance");
+    expect(apiReference).toContain("Live verification result with redacted output");
+    expect(support).toContain("Support Matrix");
+    expect(support).toContain("| Browser/edge runtime | Not supported in `0.3.x` |");
+    expect(support).toContain("For organization deployments:");
   });
 });

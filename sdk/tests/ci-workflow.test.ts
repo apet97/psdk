@@ -18,7 +18,8 @@ describe("CI workflow", () => {
     expect(ciWorkflow).toContain("SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}");
     expect(ciWorkflow).toContain("if: env.SPEAKEASY_API_KEY != ''");
     expect(ciWorkflow).toContain("if: env.SPEAKEASY_API_KEY == ''");
-    expect(ciWorkflow).toContain("skipping SDK regeneration drift check");
+    expect(ciWorkflow).toContain("offline verification only");
+    expect(ciWorkflow).toContain("release regeneration requires SPEAKEASY_API_KEY");
     expect(ciWorkflow).toContain("node sdk/scripts/patch-generated-runtime.mjs");
   });
 });

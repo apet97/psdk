@@ -11,38 +11,79 @@ export interface ResolverCacheInfo {
 
 type ResolverSource = ResolveChannelClient & ResolveUserClient;
 
-export function createResolverCache(source: ResolverSource) {
-  let channelCache: Promise<ChannelListEntry[]> | undefined;
-  let userCache: Promise<User[]> | undefined;
+export interface ResolverCacheConfig {
+  ttlMs?: number | undefined;
+  refreshOnMiss?: boolean | undefined;
+}
+
+type CacheEntry<T> = {
+  promise: Promise<T>;
+  loadedAt: number;
+};
+
+function isFresh<T>(entry: CacheEntry<T>, ttlMs: number | undefined): boolean {
+  return ttlMs === undefined || Date.now() - entry.loadedAt <= ttlMs;
+}
+
+export function createResolverCache(
+  source: ResolverSource,
+  config: ResolverCacheConfig = {},
+) {
+  let channelCache: CacheEntry<ChannelListEntry[]> | undefined;
+  let userCache: CacheEntry<User[]> | undefined;
 
   function loadChannels() {
-    const cached = source.channels.listChannels().catch((error: unknown) => {
-      if (channelCache === cached) channelCache = undefined;
-      throw error;
-    });
-    channelCache = cached;
-    return cached;
+    const entry: CacheEntry<ChannelListEntry[]> = {
+      loadedAt: Date.now(),
+      promise: source.channels.listChannels().catch((error: unknown) => {
+        if (channelCache === entry) channelCache = undefined;
+        throw error;
+      }),
+    };
+    channelCache = entry;
+    return entry.promise;
   }
 
   function loadUsers() {
-    const cached = source.users.listUsers().catch((error: unknown) => {
-      if (userCache === cached) userCache = undefined;
-      throw error;
-    });
-    userCache = cached;
-    return cached;
+    const entry: CacheEntry<User[]> = {
+      loadedAt: Date.now(),
+      promise: source.users.listUsers().catch((error: unknown) => {
+        if (userCache === entry) userCache = undefined;
+        throw error;
+      }),
+    };
+    userCache = entry;
+    return entry.promise;
+  }
+
+  function cachedChannels() {
+    const cached = channelCache;
+    if (cached !== undefined) {
+      if (isFresh(cached, config.ttlMs)) return cached.promise;
+      if (config.refreshOnMiss === false) return cached.promise;
+    }
+    return loadChannels();
+  }
+
+  function cachedUsers() {
+    const cached = userCache;
+    if (cached !== undefined) {
+      if (isFresh(cached, config.ttlMs)) return cached.promise;
+      if (config.refreshOnMiss === false) return cached.promise;
+    }
+    return loadUsers();
   }
 
   return {
     client: {
       channels: {
         listChannels() {
-          return channelCache ?? loadChannels();
+          return cachedChannels();
         },
       },
       users: {
         listUsers() {
-          return userCache ?? loadUsers();
+          return cachedUsers();
         },
       },
     },
@@ -53,7 +94,7 @@ export function createResolverCache(source: ResolverSource) {
     async refresh() {
       loadChannels();
       loadUsers();
-      await Promise.all([channelCache, userCache]);
+      await Promise.all([channelCache?.promise, userCache?.promise]);
     },
     cacheInfo(): ResolverCacheInfo {
       return {

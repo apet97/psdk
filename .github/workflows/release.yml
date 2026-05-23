@@ -70,6 +70,11 @@ jobs:
         working-directory: sdk
         run: npm run spec:audit
 
+      - name: Require Speakeasy credentials for release regeneration
+        run: test -n "${SPEAKEASY_API_KEY}"
+        env:
+          SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
+
       - name: Regenerate SDK from YAML
         # Releases always ship a fresh regen so we never publish stale
         # generated code that drifted from the spec.

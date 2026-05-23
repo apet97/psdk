@@ -87,6 +87,8 @@ try {
     "docs/QUICKSTART.md",
     "docs/STABILITY.md",
     "docs/SUPPORT.md",
+    "docs/MIGRATING.md",
+    "docs/verification/v0.3.21.md",
     "bin/mcp-server.js",
     "bin/pumble-cli.mjs",
     "bin/pumble-mcp-curated.js",
@@ -122,6 +124,7 @@ try {
   await writeFile(smokeModule, `
 const checks = [
   ["pumble-sdk", "PumbleSDK"],
+  ["pumble-sdk/core.js", "PumbleSDKCore"],
   ["pumble-sdk/models/errors", "PumbleSDKError"],
   ["pumble-sdk/extensions/index.js", "searchAllMessages"],
   ["pumble-sdk/extensions/webhooks.js", "createWebhookHandler"],

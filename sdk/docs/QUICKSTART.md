@@ -17,6 +17,12 @@ export PUMBLE_API_KEY="<pumble-api-key>"
 Keep API keys in environment variables or a local secret manager. Do not put
 them in source files.
 
+CLI workflows can also read keys from a local file:
+
+```bash
+pumble whoami --api-key-file ~/.config/pumble/api-key
+```
+
 For error handling, see `docs/ERRORS.md`.
 
 ## Install
@@ -46,7 +52,7 @@ console.log(`authenticated as ${me.name} <${me.email}>`);
 ```
 
 The facade groups common operations under `identity`, `channels`, `users`,
-`messages`, and `threads`. The generated SDK remains available as
+`messages`, `scheduled`, and `threads`. The generated SDK remains available as
 `pumble.raw`.
 
 For repeated facade writes, exact IDs avoid ambiguity and
@@ -143,6 +149,25 @@ console.log("visible replies:", thread.replies.length, "of", thread.replyCount);
 `getContext` returns the root message, visible replies, participants, and the
 server-reported reply count.
 
+## Schedule Message
+
+```typescript
+const scheduled = await pumble.scheduled.create({
+  channel: "#general",
+  text: "Deploy reminder",
+  sendAt: Date.now() + 60 * 60 * 1000,
+});
+
+if (!scheduled.ok) {
+  console.error(scheduled.summary);
+  process.exit(1);
+}
+
+await pumble.scheduled.cancel({
+  scheduledMessageId: scheduled.ids.scheduledMessageId,
+});
+```
+
 ## Verify Webhook
 
 Use `createWebhookHandler` when your app receives signed Pumble callbacks.
@@ -237,7 +262,24 @@ Curated read tools return clean envelopes with `{ ok, summary, ids, data,
 nextActions }`.
 
 Use `--profile readwrite` only when you intentionally want the raw generated
-write surface.
+write surface:
+
+```bash
+PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
+```
+
+## Stable Workflow Examples
+
+- Send channel message: `examples/send-channel-by-name.ts`
+- DM by email: `examples/dm-by-email.ts`
+- Reply to thread: `examples/reply-to-thread.ts`
+- Search and reply: `examples/search-and-reply.ts`
+- List channels: `examples/list-channels.ts`
+- Webhook server: `examples/webhook-server.ts`
+- Curated MCP read-only: `examples/mcp-readonly.md`
+- Curated MCP preview/confirm writes: `examples/mcp-curated-write.md`
+- Add/remove reaction through raw SDK: `examples/add-reaction.ts`
+- Schedule/cancel through facade: `examples/schedule-message.ts`
 
 ## Live Test Command List
 

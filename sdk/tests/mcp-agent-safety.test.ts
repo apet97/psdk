@@ -129,6 +129,7 @@ describe("MCP agent safety evals", () => {
       env: {},
       generatedMcp: "/tmp/raw-mcp-server.js",
       curatedMcp: "/tmp/pumble-mcp-curated.js",
+      auditLogShimUrl: "file:///tmp/audit-log-shim.mjs",
     });
 
     expect(invocation.effectiveProfile).toBe("curated");
@@ -182,10 +183,13 @@ describe("MCP agent safety evals", () => {
       env: {},
       generatedMcp: "/tmp/raw-mcp-server.js",
       curatedMcp: "/tmp/pumble-mcp-curated.js",
+      auditLogShimUrl: "file:///tmp/audit-log-shim.mjs",
     });
 
     expect(invocation.effectiveProfile).toBe("readwrite");
     expect(invocation.nodeArgs).toEqual([
+      "--import",
+      "file:///tmp/audit-log-shim.mjs",
       "/tmp/raw-mcp-server.js",
       "start",
       "--transport",

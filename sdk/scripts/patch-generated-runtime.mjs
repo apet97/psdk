@@ -9,23 +9,33 @@ const sdkRoot = resolve(__dirname, "..");
 const PATCH_REGISTRY = [
   {
     id: "non-idempotent-write-retries",
+    owner: "sdk-maintainers",
     purpose: "Remove default retries from non-idempotent generated write operations.",
+    removalCondition: "Speakeasy config/templates support operation-level no-retry generation for these writes.",
   },
   {
     id: "debug-redaction",
+    owner: "sdk-maintainers",
     purpose: "Redact sensitive headers and bodies in generated debug output.",
+    removalCondition: "Generator supports safe debug logger hooks.",
   },
   {
     id: "malformed-json-response",
+    owner: "sdk-maintainers",
     purpose: "Wrap malformed JSON responses in ResponseValidationError.",
+    removalCondition: "Generator wraps JSON parse failures as ResponseValidationError.",
   },
   {
     id: "outbound-write-validation",
+    owner: "sdk-maintainers",
     purpose: "Validate generated write request bodies before sending.",
+    removalCondition: "OpenAPI/schema generation emits the current outbound constraints without patching.",
   },
   {
     id: "retry-backoff-first-delay",
+    owner: "sdk-maintainers",
     purpose: "Start non-Retry-After generated backoff after the initial interval.",
+    removalCondition: "Generator backoff starts after the configured initial interval.",
   },
 ];
 

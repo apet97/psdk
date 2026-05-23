@@ -25,7 +25,16 @@
   },
   "wrongConfirmationToken": "pumble-write-plan-v1.wrong-token",
   "defaultArgv": ["start", "--transport", "stdio"],
-  "rawProfileArgv": ["start", "--transport", "stdio", "--profile", "readwrite"],
+  "rawProfileArgv": [
+    "start",
+    "--transport",
+    "stdio",
+    "--profile",
+    "readwrite",
+    "--allow-raw-writes",
+    "--audit-log",
+    "/tmp/pumble-audit.jsonl"
+  ],
   "destructiveToolNames": [
     "delete_message",
     "edit_message",

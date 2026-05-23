@@ -1,6 +1,14 @@
 # pumble-sdk
 
-TypeScript SDK, CLI, and MCP server for the Pumble API-Keys add-on.
+Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
+
+Use it when you want a typed raw SDK plus safer Pumble workflows: facade-first channel/user/message helpers, CLI commands, curated MCP tools, webhook verification, redaction, replay/live testing, and release verification.
+
+This package is not a general generator for SDKs. The generated raw SDK comes from `PumbleOpenApi.yaml`; the handwritten layers make Pumble API-key workflows safer and more ergonomic than raw endpoints.
+
+[![npm version](https://img.shields.io/npm/v/pumble-sdk.svg)](https://www.npmjs.com/package/pumble-sdk)
+[![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Install
 
@@ -11,10 +19,26 @@ npm install pumble-sdk
 The package is ESM-only and requires Node.js 20 or newer. CommonJS callers can
 load it with `await import("pumble-sdk")`.
 
+Runtime support: Node.js 20+ ESM. Browser and edge runtimes are not supported in `0.3.x`.
+
 Surface stability is listed in [`docs/STABILITY.md`](docs/STABILITY.md).
 Error handling is covered in [`docs/ERRORS.md`](docs/ERRORS.md).
 Support and API surfaces are listed in [`docs/SUPPORT.md`](docs/SUPPORT.md)
 and [`docs/API-REFERENCE.md`](docs/API-REFERENCE.md).
+Migration notes are in [`docs/MIGRATING.md`](docs/MIGRATING.md).
+Redacted release proof for `0.3.21`: [`docs/verification/v0.3.21.md`](docs/verification/v0.3.21.md).
+
+## Stable, Beta, Experimental
+
+| Surface | Status | Use for |
+| --- | --- | --- |
+| `pumble-sdk` raw SDK | Stable | Direct typed endpoint access generated from `PumbleOpenApi.yaml`. |
+| `pumble-sdk/extensions/index.js` facade | Stable | Resolver-first users, channels, messages, threads, search, and scheduled-message workflows. |
+| `pumble-sdk/extensions/webhooks.js` | Stable | Signed webhook verification and routing helpers. |
+| Curated MCP profile | Stable | Agent-facing read tools and preview/confirm writes. |
+| `pumble-sdk/extensions/telemetry.js` | Beta | Local telemetry hooks and examples. |
+| `pumble-sdk/extensions/testing/index.js` | Beta | Replay fixtures and test helpers. |
+| `pumble-sdk/extensions/app/*` and Socket Mode | Experimental | App/OAuth/socket helpers that are not a complete production app framework. |
 
 ## Authentication
 
@@ -87,12 +111,12 @@ if (!result.ok) {
 ```
 
 Resolver lists are uncached by default. Opt in per client when repeated facade
-calls should reuse one channel list and one user list per client instance:
+calls should reuse one channel/user list per client instance:
 
 ```typescript
 const pumble = createPumbleClient({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
-  resolverCache: true,
+  resolverCache: { enabled: true, ttlMs: 60_000 },
 });
 
 await pumble.resolvers.refresh();
@@ -101,11 +125,7 @@ await pumble.resolvers.preflight({ channel: "#general", user: "ada@example.com" 
 pumble.resolvers.clearCache();
 ```
 
-`resolverCache` defaults to `false`. When enabled, it keeps one in-memory `listChannels` promise
-and one in-memory `listUsers` promise per client instance. There is no TTL, persistence, background refresh, or hidden
-invalidation except that a failed list promise is cleared so the next facade
-call can retry. Use manual `refresh()` and `clearCache()` when you need to
-preload or discard cached resolver lists.
+`resolverCache` defaults to `false`. Use `resolverCache: true` for one in-memory channel/user list per client, or `resolverCache: { enabled: true, ttlMs: 60_000 }` when large workspaces need bounded refresh. Exact IDs remain the fastest hot path because they avoid resolver scans and ambiguity checks. Use manual `refresh()` and `clearCache()` when you need to preload or discard cached resolver lists.
 
 ## Raw SDK Usage
 
@@ -121,8 +141,28 @@ await pumble.raw.messages.sendMessage({
 });
 ```
 
-Scheduled messages are raw-only today. Use `pumble.raw.scheduledMessages`
-until the facade adds target resolution or receipt behavior for that surface.
+Use `client.scheduled` for scheduled messages when you want target resolution
+and printable receipts:
+
+```typescript
+const client = pumble;
+const scheduled = await client.scheduled.create({
+  channel: "#ops",
+  text: "Deploy reminder",
+  sendAt: Date.now() + 60 * 60 * 1000,
+});
+
+if (!scheduled.ok) {
+  console.error(scheduled.summary);
+  process.exit(1);
+}
+
+await client.scheduled.cancel({
+  scheduledMessageId: scheduled.ids.scheduledMessageId,
+});
+```
+
+Keep the raw escape hatch as `client.raw.scheduledMessages` for direct endpoint access.
 
 ## CLI
 
@@ -132,6 +172,8 @@ The package ships a `pumble` binary for one-shot shell use:
 export PUMBLE_API_KEY="<pumble-api-key>"
 
 pumble --help
+pumble whoami --api-key-file ~/.config/pumble/api-key
+pumble whoami --api-key-stdin
 pumble whoami
 pumble channels list
 pumble channels find general
@@ -146,6 +188,7 @@ pumble thread <message-id> --channel '#general' --json
 Text output is the default for read commands. Pass `--json` on commands that
 support it for scripting. Mutating commands are quiet on success unless you pass
 `-v`, `--verbose`, or `--json`.
+Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin` over command-line keys. Legacy direct key flags can leak through shell history, process listings, CI logs, and terminal recordings.
 
 ## MCP Server
 
@@ -171,7 +214,11 @@ npx -y --package pumble-sdk -- pumble-mcp start \
 ```
 
 Use `readwrite` only when you intentionally want the raw generated endpoint
-surface.
+surface, and require an audit log:
+
+```bash
+PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
+```
 
 SSE is for local HTTP clients. Bind to localhost and require a bearer token:
 
@@ -266,6 +313,19 @@ temporary app, and checks the exported package surface and bins.
   `examples/`, `scripts/`, and `tests/`.
 - Package split planning is tracked in
   [`docs/PACKAGE-SPLIT.md`](docs/PACKAGE-SPLIT.md). This repository currently publishes one package: `pumble-sdk`.
+
+## Stable Workflow Examples
+
+- Send channel message: [`examples/send-channel-by-name.ts`](examples/send-channel-by-name.ts)
+- DM by email: [`examples/dm-by-email.ts`](examples/dm-by-email.ts)
+- Reply to thread: [`examples/reply-to-thread.ts`](examples/reply-to-thread.ts)
+- Search and reply: [`examples/search-and-reply.ts`](examples/search-and-reply.ts)
+- List channels: [`examples/list-channels.ts`](examples/list-channels.ts)
+- Webhook server: [`examples/webhook-server.ts`](examples/webhook-server.ts)
+- Curated MCP read-only: [`examples/mcp-readonly.md`](examples/mcp-readonly.md)
+- Curated MCP preview/confirm writes: [`examples/mcp-curated-write.md`](examples/mcp-curated-write.md)
+- Add/remove reaction through raw SDK: [`examples/add-reaction.ts`](examples/add-reaction.ts)
+- Schedule/cancel through facade: [`examples/schedule-message.ts`](examples/schedule-message.ts)
 
 More examples are in [`docs/QUICKSTART.md`](docs/QUICKSTART.md). Repository examples live in the source tree under `examples/`.
 They are not included in the npm tarball. Integration guidance is in

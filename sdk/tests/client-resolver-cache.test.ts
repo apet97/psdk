@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   asChannelId,
   asMessageId,
@@ -75,6 +75,10 @@ function cachedClient() {
 }
 
 describe("createPumbleClient resolverCache", () => {
+  beforeEach(() => {
+    vi.useRealTimers();
+  });
+
   it("does not cache resolver lists by default", async () => {
     const client = createPumbleClient({ apiKeyAuth: "x" });
     const listChannels = vi.spyOn(client.raw.channels, "listChannels")
@@ -102,6 +106,50 @@ describe("createPumbleClient resolverCache", () => {
 
     expect(listChannels).toHaveBeenCalledTimes(1);
     expect(listUsers).toHaveBeenCalledTimes(1);
+  });
+
+  it("reuses cached resolver lists before ttl expiry", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+    const client = createPumbleClient({
+      apiKeyAuth: "x",
+      resolverCache: { enabled: true, ttlMs: 1_000 },
+    });
+    const listChannels = vi.spyOn(client.raw.channels, "listChannels")
+      .mockResolvedValue(channelEntries);
+    const listUsers = vi.spyOn(client.raw.users, "listUsers")
+      .mockResolvedValue(users);
+
+    await client.channels.find("general");
+    await client.users.find("ada@example.invalid");
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.900Z"));
+    await client.channels.find("ops");
+    await client.users.find("grace@example.invalid");
+
+    expect(listChannels).toHaveBeenCalledTimes(1);
+    expect(listUsers).toHaveBeenCalledTimes(1);
+  });
+
+  it("reloads resolver lists after ttl expiry", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+    const client = createPumbleClient({
+      apiKeyAuth: "x",
+      resolverCache: { enabled: true, ttlMs: 1_000 },
+    });
+    const listChannels = vi.spyOn(client.raw.channels, "listChannels")
+      .mockResolvedValue(channelEntries);
+    const listUsers = vi.spyOn(client.raw.users, "listUsers")
+      .mockResolvedValue(users);
+
+    await client.channels.find("general");
+    await client.users.find("ada@example.invalid");
+    vi.setSystemTime(new Date("2026-01-01T00:00:01.001Z"));
+    await client.channels.find("ops");
+    await client.users.find("grace@example.invalid");
+
+    expect(listChannels).toHaveBeenCalledTimes(2);
+    expect(listUsers).toHaveBeenCalledTimes(2);
   });
 
   it("clears a rejected cached channel list so the next facade resolution retries", async () => {

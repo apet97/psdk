@@ -62,10 +62,10 @@ jobs:
           speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
           node sdk/scripts/patch-generated-runtime.mjs
 
-      - name: Skip SDK regeneration without Speakeasy credentials
+      - name: Full regeneration verification unavailable without SPEAKEASY_API_KEY
         if: env.SPEAKEASY_API_KEY == ''
         run: |
-          echo "::notice::SPEAKEASY_API_KEY is not configured; skipping SDK regeneration drift check"
+          echo "Public CI ran offline verification only; release regeneration requires SPEAKEASY_API_KEY."
 
       - name: Normalize generated package metadata
         run: node sdk/scripts/normalize-package.mjs
@@ -137,10 +137,10 @@ jobs:
           speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
           node sdk/scripts/patch-generated-runtime.mjs
 
-      - name: Skip SDK regeneration without Speakeasy credentials
+      - name: Full regeneration verification unavailable without SPEAKEASY_API_KEY
         if: env.SPEAKEASY_API_KEY == ''
         run: |
-          echo "::notice::SPEAKEASY_API_KEY is not configured; skipping SDK regeneration drift check"
+          echo "Public CI ran offline verification only; release regeneration requires SPEAKEASY_API_KEY."
 
       - name: Normalize generated package metadata
         run: node sdk/scripts/normalize-package.mjs

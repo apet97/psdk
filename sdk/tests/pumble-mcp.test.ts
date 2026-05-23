@@ -26,7 +26,15 @@ function runAuthMiddleware(authToken: string | undefined, authorization: string 
 describe("pumble-mcp wrapper args", () => {
   it("lets --tool=... caller whitelists override profile defaults", () => {
     const invocation = buildMcpInvocation({
-      argv: ["start", "--transport", "stdio", "--tool=messages-send-message"],
+      argv: [
+        "start",
+        "--transport",
+        "stdio",
+        "--tool=messages-send-message",
+        "--allow-raw-writes",
+        "--audit-log",
+        "/tmp/pumble-audit.jsonl",
+      ],
       env: {},
     });
 
@@ -42,6 +50,34 @@ describe("pumble-mcp wrapper args", () => {
     expect(invocation.args).toContain("--tool");
     expect(invocation.args).toContain("users-my-info");
     expect(invocation.args).not.toContain("messages-send-message");
+  });
+
+  it("rejects raw readwrite profile without explicit raw-write acknowledgement", () => {
+    expect(() =>
+      buildMcpInvocation({
+        argv: ["start", "--transport", "stdio", "--profile", "readwrite"],
+        env: {},
+      })
+    ).toThrow(/--allow-raw-writes/);
+  });
+
+  it("allows raw readwrite profile with acknowledgement and audit log", () => {
+    const invocation = buildMcpInvocation({
+      argv: [
+        "start",
+        "--transport",
+        "stdio",
+        "--profile",
+        "readwrite",
+        "--allow-raw-writes",
+        "--audit-log",
+        "/tmp/pumble-audit.jsonl",
+      ],
+      env: {},
+    });
+
+    expect(invocation.effectiveProfile).toBe("readwrite");
+    expect(invocation.auditLog).toBe("/tmp/pumble-audit.jsonl");
   });
 
   it("injects api-key auth from env when the caller omits the flag", () => {

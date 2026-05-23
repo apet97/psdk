@@ -5,6 +5,7 @@
 // through sdk/.speakeasy/gen.yaml additionalPackageJSON.bin.
 
 import { parseArgs } from "node:util";
+import { readFileSync } from "node:fs";
 import { PumbleSDK } from "../esm/index.js";
 import { resolveChannel, resolveUser } from "../esm/extensions/resolve.js";
 
@@ -66,7 +67,9 @@ async function main(argv) {
 
 function parseGlobalOptions(argv) {
   const globals = {
-    apiKey: process.env.PUMBLE_API_KEY ?? process.env.PUMBLESDK_API_KEY_AUTH ?? null,
+    apiKey: null,
+    apiKeyFile: null,
+    apiKeyStdin: false,
     baseURL: process.env.PUMBLE_BASE_URL ?? process.env.PUMBLESDK_SERVER_URL ?? DEFAULT_BASE_URL,
     timeoutMs: undefined,
     verbose: false,
@@ -86,6 +89,18 @@ function parseGlobalOptions(argv) {
     }
     if (arg.startsWith("--api-key=")) {
       globals.apiKey = arg.slice("--api-key=".length);
+      continue;
+    }
+    if (arg === "--api-key-file") {
+      globals.apiKeyFile = requireValue(argv, ++i, arg);
+      continue;
+    }
+    if (arg.startsWith("--api-key-file=")) {
+      globals.apiKeyFile = arg.slice("--api-key-file=".length);
+      continue;
+    }
+    if (arg === "--api-key-stdin") {
+      globals.apiKeyStdin = true;
       continue;
     }
     if (arg === "--base-url") {
@@ -119,16 +134,30 @@ function parseGlobalOptions(argv) {
 }
 
 function createClient(globals) {
-  if (!globals.apiKey) {
+  const apiKey = resolveApiKey(globals);
+  if (!apiKey) {
     throw new UsageError(
-      "missing API key; set PUMBLE_API_KEY or pass --api-key-auth <key>",
+      "missing API key; set PUMBLE_API_KEY or pass --api-key-file <path>",
     );
   }
   return new PumbleSDK({
-    apiKeyAuth: globals.apiKey,
+    apiKeyAuth: apiKey,
     serverURL: globals.baseURL,
     timeoutMs: globals.timeoutMs,
   });
+}
+
+function readStdin() {
+  return readFileSync(0, "utf8").trim();
+}
+
+function resolveApiKey(globals) {
+  if (globals.apiKeyFile) return readFileSync(globals.apiKeyFile, "utf8").trim();
+  if (globals.apiKeyStdin) return readStdin();
+  return process.env.PUMBLE_API_KEY
+    ?? process.env.PUMBLESDK_API_KEY_AUTH
+    ?? globals.apiKey
+    ?? "";
 }
 
 async function cmdWhoami(sdk, args) {
@@ -527,11 +556,17 @@ Usage:
   pumble [global options] schedule cancel <id> [--json]
 
 Global options:
-  --api-key-auth <key>  API key. Defaults to PUMBLE_API_KEY, then PUMBLESDK_API_KEY_AUTH.
+  --api-key-file <path>  Read API key from a local file.
+  --api-key-stdin        Read API key from stdin.
+  --api-key-auth <key>   Legacy direct API key flag. Prefer env, file, or stdin;
+                          command-line secrets can leak through shell history,
+                          process listings, CI logs, and terminal recordings.
   --base-url <url>      API base URL. Defaults to PUMBLE_BASE_URL, then the production endpoint.
   --timeout-ms <ms>     Per-request timeout in milliseconds.
   -v, --verbose         Print success messages for write commands.
   -h, --help            Show this help.
+
+Prefer \`PUMBLE_API_KEY\`, \`--api-key-file\`, or \`--api-key-stdin\` over command-line keys.
 
 Examples:
   pumble whoami

@@ -1,5 +1,10 @@
 # API Reference
 
+Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
+
+Redacted release proof for `0.3.21`: [`docs/verification/v0.3.21.md`](docs/verification/v0.3.21.md).
+Migration notes: [`docs/MIGRATING.md`](docs/MIGRATING.md).
+
 ## Raw SDK
 
 Use the generated SDK when you need direct endpoint coverage.
@@ -49,6 +54,11 @@ Facade methods:
 
 - `messages.send`
 - `messages.dm`
+- `scheduled.create`
+- `scheduled.list`
+- `scheduled.get`
+- `scheduled.edit`
+- `scheduled.cancel`
 - `threads.reply`
 - `search.recent`
 - `resolvers.preflight`
@@ -68,17 +78,35 @@ type FacadeResult<T> =
   | { ok: false; reason: string; summary: string; choices: unknown[]; nextActions: string[] };
 ```
 
-The facade operations return value failures after the operation failure handling in
-this branch is implemented. Raw SDK methods still throw.
+Facade operations return value failures for resolver failures and operation failures.
+In short: facade operations return value failures instead of throwing for these cases.
+Raw SDK methods throw generated SDK errors. Use `assertFacadeOk(result)` when
+application code wants thrown failures from facade results.
 
 ## Errors
 
 Raw SDK methods throw SDK errors such as response validation, status, and
-transport errors. The facade returns value failures for resolver failures and,
-after the operation failure handling in this branch, API and transport failures.
+transport errors. The facade returns value failures for resolver failures and
+API or transport failures.
 
 Use `assertFacadeOk` when a caller wants thrown failures from facade results.
 Use `categorizeError` to map thrown raw SDK errors into application categories.
+
+See [`docs/ERRORS.md`](docs/ERRORS.md) for the error model by surface.
+
+```ts
+try {
+  await sdk.messages.sendMessage({ channelId, text });
+} catch (error) {
+  const categorized = categorizeError(error);
+  console.error(categorized.summary);
+}
+
+const result = await pumble.messages.send({ channel: "#ops", text });
+if (!result.ok) {
+  console.error(result.summary);
+}
+```
 
 ## Pagination
 
@@ -111,6 +139,12 @@ pumble-mcp start --transport sse --host 127.0.0.1 --auth-token "$PUMBLE_MCP_TOKE
 Curated MCP read tools and confirmed-write tools are the stable agent-facing
 surface.
 
+Raw readwrite mode is intentionally loud:
+
+```bash
+PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
+```
+
 ## CLI
 
 The package provides these binaries:
@@ -120,6 +154,15 @@ The package provides these binaries:
 
 Use `pumble --help` for SDK shell commands and `pumble-mcp start --help` for MCP
 transport/profile flags.
+
+Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin` over command-line keys.
+
+```bash
+export PUMBLE_API_KEY="<pumble-api-key>"
+pumble whoami
+pumble whoami --api-key-file ~/.config/pumble/api-key
+printf '%s\n' "$PUMBLE_API_KEY" | pumble --api-key-stdin whoami
+```
 
 ## Webhooks
 
@@ -144,5 +187,29 @@ middleware in front of webhook verification routes.
 | Generated internals and patch scripts | Generated/runtime maintenance | Internal |
 
 OAuth/app helpers are experimental utilities; they do not provide a complete install, token refresh, storage, and workspace-selection flow.
+OAuth/app helpers and Socket Mode are experimental. They do not provide a complete install, token refresh, durable token storage, workspace-selection flow, bundled WebSocket transport, deployment recipe, or live app test suite.
+
+## Release Evidence Checklist
+
+Every release should link or attach:
+
+- OpenAPI spec audit result.
+- Generated diff summary.
+- Offline verification result.
+- Live verification result with redacted output.
+- Pack smoke result.
+- npm provenance confirmation.
+- Changelog entry.
+- Known limitations.
+
+## Rate Limits
+
+The built-in rate limiter is process-local. It does not coordinate across workers, serverless instances, containers, or machines.
+
+For distributed deployments, place rate-limit coordination outside the SDK. Use a shared store such as Redis in application code, then call the SDK only after the shared limiter grants a slot. Do not add Redis as a core dependency of `pumble-sdk`.
+
+## OpenTelemetry
+
+OpenTelemetry integration is an optional example, not a core dependency. See `examples/opentelemetry.ts`.
 
 Feedback coverage is recorded in `docs/STABILITY.md`.

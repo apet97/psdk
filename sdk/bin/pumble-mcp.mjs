@@ -61,12 +61,15 @@ Wrapper-only options:
   --profile readonly      Expose only read-only tools (${READONLY_TOOLS.length} tools).
                           Mutating tools are hidden from the agent entirely.
   --profile readwrite     Expose all ${READWRITE_TOOLS.length} generated raw tools.
+  --allow-raw-writes      Required with --profile readwrite. Confirms that raw
+                          generated mutating tools will be exposed to the MCP host.
   --dry-run               Expose all ${READWRITE_TOOLS.length} tools but intercept
                           mutating HTTP (POST/PUT/PATCH/DELETE) at the fetch
                           layer, returning synthetic 200s. Lets the agent
                           exercise the full tool surface without writes.
                           Mutually exclusive with --profile readonly.
-  --audit-log <path>      Append one JSON line per outbound fetch to <path>.
+  --audit-log <path>      Required with --profile readwrite. Append one JSON line
+                          per outbound fetch to <path>.
                           In --dry-run mode, each entry includes the sanitized
                           request body and the synthesised response. In live
                           modes, each entry includes URL, method, status, and
@@ -84,7 +87,7 @@ Examples:
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile curated
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readonly
-  PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite
+  PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
   PUMBLE_API_KEY=... pumble-mcp start --transport stdio --dry-run
 `);
 }
@@ -117,6 +120,8 @@ if (invocation.dryRun) {
   console.error(`[pumble-mcp] DRY-RUN: all ${READWRITE_TOOLS.length} tools exposed; mutating HTTP intercepted at the fetch layer.`);
 } else if (invocation.effectiveProfile === "curated") {
   console.error(`[pumble-mcp] Profile: curated (${CURATED_TOOLS.length} curated tools).`);
+} else if (invocation.effectiveProfile === "readwrite") {
+  console.error(`[pumble-mcp] WARNING: raw readwrite profile exposes ${READWRITE_TOOLS.length} generated tools, including destructive edit/delete operations. Audit log: ${invocation.auditLog}`);
 } else if (invocation.profile) {
   console.error(`[pumble-mcp] Profile: ${invocation.effectiveProfile} (${invocation.tools.length} tools).`);
 }

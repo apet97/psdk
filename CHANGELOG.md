@@ -5,6 +5,41 @@ This project follows semver tags such as `v0.3.21`.
 Release notes are generated on GitHub releases. Keep notable hand-written SDK,
 CLI, MCP, security, and docs changes summarized here when preparing a release.
 
+## 0.3.21
+
+### Generated API
+
+- Regenerated the TypeScript SDK from `PumbleOpenApi.yaml`.
+- Kept scheduled-message raw endpoints available under `pumble.raw.scheduledMessages`.
+
+### Facade
+
+- Added facade failure values for resolver and operation failures.
+- Added branded ID helpers for safer facade receipts.
+
+### CLI/MCP
+
+- Published `pumble` and `pumble-mcp` bins.
+- Kept curated MCP as the default profile with preview/confirm write tools.
+
+### Webhooks/App Helpers
+
+- Kept webhook verification stable.
+- Marked app/OAuth/socket helpers experimental.
+
+### Security
+
+- Kept debug redaction, non-idempotent write retry suppression, fixture redaction, and pack smoke gates.
+
+### Docs
+
+- Updated README, API reference, support, stability, package split, and quickstart docs.
+
+### Migration Notes
+
+- Package remains Node.js 20+ ESM.
+- Experimental helpers should not be treated as production app-framework contracts.
+
 ## Generated API
 
 - Generated SDK changes remain gated by `npm run verify:offline` before publish.

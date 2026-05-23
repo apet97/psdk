@@ -108,6 +108,7 @@ describe("examples", () => {
       const sendRecipe = await import("../examples/send-channel-by-name.js");
       const dmRecipe = await import("../examples/dm-by-email.js");
       const searchRecipe = await import("../examples/search-and-reply.js");
+      const scheduleRecipe = await import("../examples/schedule-message.js");
 
       expect(sendRecipe.sendChannelRequiredEnv).toEqual(["PUMBLE_API_KEY"]);
       expect(sendRecipe.buildSendChannelRequest({
@@ -162,6 +163,24 @@ describe("examples", () => {
         reply: { ok: true, ids: { messageId: "r1" } },
       });
 
+      expect(scheduleRecipe.scheduleMessageRequiredEnv).toEqual(["PUMBLE_API_KEY"]);
+      expect(scheduleRecipe.buildScheduleMessageRequest({
+        channel: " #ops ",
+        text: " Deploy reminder. ",
+        delayMs: "60000",
+      })).toEqual({
+        channel: "#ops",
+        text: "Deploy reminder.",
+        sendAt: expect.any(Number),
+      });
+      const scheduled = { ok: true, ids: { scheduledMessageId: "s1" } };
+      const create = vi.fn().mockResolvedValue(scheduled);
+      await expect(scheduleRecipe.scheduleMessage({ scheduled: { create } }, {
+        channel: "#ops",
+        text: "Deploy reminder.",
+        sendAt: 1893456000000,
+      })).resolves.toBe(scheduled);
+
       expect(liveFetch).not.toHaveBeenCalled();
     } finally {
       if (previousApiKey === undefined) {
@@ -200,5 +219,21 @@ describe("examples", () => {
 
     expect(packSmoke).toContain("examples directory");
     expect(packSmoke).toContain("^package\\/examples\\/");
+  });
+
+  it("import-checks stable workflow examples without adding core dependencies", async () => {
+    const addReaction = await import("../examples/add-reaction.js");
+    const otel = await import("../examples/opentelemetry.js");
+
+    expect(addReaction.buildAddReactionRequest([
+      "bbbbbbbbbbbbbbbbbbbb0001",
+      "cccccccccccccccccccc0001",
+      ":white_check_mark:",
+    ])).toEqual({
+      channelId: "bbbbbbbbbbbbbbbbbbbb0001",
+      messageId: "cccccccccccccccccccc0001",
+      code: ":white_check_mark:",
+    });
+    expect(otel.openTelemetryExampleRequiredEnv).toEqual(["PUMBLE_API_KEY"]);
   });
 });

@@ -1,6 +1,10 @@
 # pumble-sdk
 
-TypeScript SDK, CLI, and MCP server for the Pumble API-Keys add-on.
+Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
+
+Use it when you want a typed raw SDK plus safer Pumble workflows: facade-first channel/user/message helpers, CLI commands, curated MCP tools, webhook verification, redaction, replay/live testing, and release verification.
+
+This package is not a general generator for SDKs. The generated raw SDK comes from `PumbleOpenApi.yaml`; the handwritten layers make Pumble API-key workflows safer and more ergonomic than raw endpoints.
 
 The package source and user docs live in [`sdk/`](sdk/).
 
@@ -19,6 +23,7 @@ SDK docs listed by `sdk/package.json`.
 - [Contributing](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
 - [Package split policy](sdk/docs/PACKAGE-SPLIT.md)
+- [SDK generator boundary](docs/product/sdk-generator-product-boundary.md)
 
 ## Install
 

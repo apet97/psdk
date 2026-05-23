@@ -21,6 +21,27 @@ describe("package metadata", () => {
     expect(pkg.description).toBe("TypeScript SDK and MCP server for the Pumble API-Keys add-on");
     expect(pkg.license).toBe("MIT");
     expect(pkg.engines).toEqual({ node: ">=20" });
+    expect(pkg.repository).toEqual({
+      type: "git",
+      url: "git+https://github.com/apet97/psdk.git",
+      directory: "sdk",
+    });
+    expect(pkg.homepage).toBe("https://github.com/apet97/psdk#readme");
+    expect(pkg.bugs).toEqual({ url: "https://github.com/apet97/psdk/issues" });
+    expect(pkg.keywords).toEqual([
+      "pumble",
+      "sdk",
+      "typescript",
+      "api-client",
+      "mcp",
+      "cli",
+      "webhooks",
+    ]);
+  });
+
+  it("does not expose wildcard package exports", () => {
+    expect(Object.keys(pkg.exports)).not.toContain("./*.js");
+    expect(Object.keys(pkg.exports)).not.toContain("./*");
   });
 
   it("declares release parity and package planning scripts", () => {
@@ -65,6 +86,8 @@ describe("package metadata", () => {
       "docs/QUICKSTART.md",
       "docs/STABILITY.md",
       "docs/SUPPORT.md",
+      "docs/MIGRATING.md",
+      "docs/verification/v0.3.21.md",
       "esm",
       "src",
     ]);

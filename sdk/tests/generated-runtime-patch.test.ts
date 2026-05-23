@@ -26,6 +26,8 @@ describe("generated runtime patch", () => {
     const source = readFileSync(join(__dirname, "../scripts/patch-generated-runtime.mjs"), "utf8");
 
     expect(source).toContain("const PATCH_REGISTRY =");
+    expect(source).toContain("owner:");
+    expect(source).toContain("removalCondition:");
     for (const id of expectedPatchIds) {
       expect(source).toContain(id);
     }
@@ -46,6 +48,7 @@ describe("generated runtime patch", () => {
     ]) {
       expect(markdown).toContain(phrase);
     }
+    expect(markdown).toContain("| Patch | Owner | Why it remains | Removal condition |");
   });
 
   it("keeps message-creating writes without default retry codes", () => {

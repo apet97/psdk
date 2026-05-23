@@ -2,11 +2,16 @@ import type { SDKOptions } from "../lib/config.js";
 import type { Channel } from "../models/channel.js";
 import type { MessageRef } from "../models/message-ref.js";
 import type {
+  CreateScheduledMessageRequest,
   DmUserRequest,
+  EditScheduledMessageRequest,
+  FetchScheduledMessagesRequest,
   SendMessageRequest,
   SendReplyRequest,
 } from "../models/operations/index.js";
 import type { SearchHit } from "../models/search-hit.js";
+import type { ScheduledMessage } from "../models/scheduled-message.js";
+import type { ScheduledMessageRef } from "../models/scheduled-message-ref.js";
 import type { User } from "../models/user.js";
 import type { Channels } from "../sdk/channels.js";
 import type { Messages } from "../sdk/messages.js";
@@ -31,6 +36,7 @@ import {
   createResolverCache,
   type ResolverCacheInfo,
 } from "./resolver-cache.js";
+import { createScheduledFacade } from "./scheduled.js";
 import {
   preflightResolvers,
   type ResolverPreflightRequest,
@@ -46,6 +52,7 @@ import {
 import type {
   ChannelId,
   MessageId,
+  ScheduledMessageId,
   UserId,
 } from "./branded-ids.js";
 
@@ -74,14 +81,19 @@ export type CreatePumbleClientOptions = SDKOptions & {
    * Opt in to one in-memory `listChannels` and one in-memory `listUsers`
    * resolver result per client instance.
    *
-   * Defaults to `false`. Cached resolver lists have no TTL, no background
-   * refresh, and no hidden invalidation beyond clearing a failed list promise
-   * so the next resolver call can retry. Use `client.resolvers.refresh()` to
-   * preload or replace both lists, and `client.resolvers.clearCache()` to drop
-   * cached lists manually.
+   * Defaults to `false`. Use `true` for unbounded per-client cache reuse or
+   * pass `{ enabled: true, ttlMs }` for bounded refresh.
    */
-  resolverCache?: boolean | undefined;
+  resolverCache?: ResolverCacheOptions | undefined;
 };
+
+export type ResolverCacheOptions =
+  | boolean
+  | {
+    enabled?: boolean | undefined;
+    ttlMs?: number | undefined;
+    refreshOnMiss?: boolean | undefined;
+  };
 
 export interface ChannelSummary {
   id: string;
@@ -120,6 +132,31 @@ export type FacadeThreadReplyRequest =
     validateTarget?: boolean | undefined;
   };
 
+export type FacadeScheduleCreateRequest =
+  & Omit<CreateScheduledMessageRequest, "channelId">
+  & {
+    channel?: string | undefined;
+    channelId?: ChannelId | undefined;
+    validateTarget?: boolean | undefined;
+  };
+
+export type FacadeScheduleListRequest =
+  & Omit<FetchScheduledMessagesRequest, "channelId">
+  & {
+    channel?: string | undefined;
+    channelId?: ChannelId | undefined;
+    validateTarget?: boolean | undefined;
+  };
+
+export type FacadeScheduleEditRequest =
+  & Omit<EditScheduledMessageRequest, "scheduledMessageId" | "channelId">
+  & {
+    scheduledMessageId: ScheduledMessageId;
+    channel?: string | undefined;
+    channelId?: ChannelId | undefined;
+    validateTarget?: boolean | undefined;
+  };
+
 export interface FacadeSendReceipt {
   ok: true;
   summary: string;
@@ -142,6 +179,28 @@ export interface FacadeThreadReplyReceipt {
   ids: { channelId: ChannelId; messageId: MessageId; rootMessageId: MessageId };
   channel?: ChannelSummary;
   message: MessageRef;
+}
+
+export interface FacadeScheduledCreateReceipt {
+  ok: true;
+  summary: string;
+  ids: { channelId: ChannelId; scheduledMessageId: ScheduledMessageId };
+  channel?: ChannelSummary;
+  scheduledMessage: ScheduledMessageRef;
+}
+
+export interface FacadeScheduledEditReceipt {
+  ok: true;
+  summary: string;
+  ids: { channelId: ChannelId; scheduledMessageId: ScheduledMessageId };
+  channel?: ChannelSummary;
+  scheduledMessage: ScheduledMessage;
+}
+
+export interface FacadeScheduledCancelReceipt {
+  ok: true;
+  summary: string;
+  ids: { scheduledMessageId: ScheduledMessageId };
 }
 
 export interface FacadeSearchRecentRequest {
@@ -184,6 +243,16 @@ export type ResolverPreflightResult =
     FacadeFindUserResult
   >;
 
+function normalizeResolverCacheOptions(options: ResolverCacheOptions | undefined) {
+  if (options === true) return { enabled: true };
+  if (options === false || options === undefined) return { enabled: false };
+  return {
+    enabled: options.enabled ?? true,
+    ttlMs: options.ttlMs,
+    refreshOnMiss: options.refreshOnMiss,
+  };
+}
+
 function channelSummary(channel: Channel): ChannelSummary {
   return {
     id: channel.id,
@@ -211,9 +280,10 @@ function displayUser(user: UserSummary): string {
 export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
   const { resolverCache = false, ...sdkOptions } = options;
   const raw = new PumbleSDK(sdkOptions);
-  const resolverCacheState = createResolverCache(raw);
+  const resolverCacheOptions = normalizeResolverCacheOptions(resolverCache);
+  const resolverCacheState = createResolverCache(raw, resolverCacheOptions);
 
-  const resolverClient = resolverCache ? resolverCacheState.client : raw;
+  const resolverClient = resolverCacheOptions.enabled ? resolverCacheState.client : raw;
   const resolvers = {
     /**
      * Drop both in-memory resolver lists for this client instance.
@@ -282,6 +352,10 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
     resolveFacadeChannel,
     resolveFacadeUser,
   });
+  const scheduledFacade = createScheduledFacade({
+    raw,
+    resolveFacadeChannel,
+  });
 
   return {
     raw,
@@ -346,6 +420,7 @@ export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
     search: {
       recent: facadeWrites.searchRecent,
     },
+    scheduled: scheduledFacade,
     threads: {
       getContext: (
         request: ThreadContextRequest,

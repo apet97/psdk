@@ -21,6 +21,7 @@ describe("release workflow parity", () => {
 
   it("requires Speakeasy credentials before release regeneration", () => {
     expect(releaseWorkflow).toContain("SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}");
+    expect(releaseWorkflow).toContain("Require Speakeasy credentials for release regeneration");
     expect(releaseWorkflow).toContain("SPEAKEASY_API_KEY secret is required");
     expect(releaseWorkflow).toContain("speakeasy generate sdk");
     expect(releaseWorkflow).toContain("node sdk/scripts/patch-generated-runtime.mjs");

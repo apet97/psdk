@@ -58,6 +58,7 @@ export function parseWrapperArgs(argv) {
   let profile = null;
   let dryRun = false;
   let auditLog = null;
+  let allowRawWrites = false;
   let help = false;
   const passthrough = [];
   for (let i = 0; i < args.length; i++) {
@@ -75,6 +76,10 @@ export function parseWrapperArgs(argv) {
       dryRun = true;
       continue;
     }
+    if (a === "--allow-raw-writes") {
+      allowRawWrites = true;
+      continue;
+    }
     if (a === "--audit-log") {
       auditLog = args[i + 1];
       i++;
@@ -90,7 +95,7 @@ export function parseWrapperArgs(argv) {
     }
     passthrough.push(a);
   }
-  return { profile, dryRun, auditLog, help, passthrough };
+  return { profile, dryRun, auditLog, allowRawWrites, help, passthrough };
 }
 
 function hasApiKeyAuth(args) {
@@ -117,6 +122,17 @@ export function buildMcpInvocation({ argv, env, generatedMcp, curatedMcp, dryRun
   const effectiveProfile = parsed.profile ?? (parsed.dryRun || callerSuppliedTool ? "readwrite" : "curated");
   if (effectiveProfile !== "readonly" && effectiveProfile !== "readwrite" && effectiveProfile !== "curated") {
     throw new WrapperUsageError(`pumble-mcp: --profile must be 'readonly', 'readwrite', or 'curated', got: ${effectiveProfile}`);
+  }
+  const exposesRawWrites = effectiveProfile === "readwrite" && !parsed.dryRun;
+  if (exposesRawWrites && !parsed.allowRawWrites) {
+    throw new WrapperUsageError(
+      "pumble-mcp: --profile readwrite exposes raw mutating tools; pass --allow-raw-writes and --audit-log <path> to acknowledge.",
+    );
+  }
+  if (exposesRawWrites && !parsed.auditLog) {
+    throw new WrapperUsageError(
+      "pumble-mcp: raw readwrite mode requires --audit-log <path>.",
+    );
   }
 
   const usesCuratedServer = effectiveProfile === "curated";

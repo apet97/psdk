@@ -10,16 +10,13 @@ templates, or the upstream spec.
 
 ## Accepted Patches
 
-- `non-idempotent-write-retries`: remove default retries from non-idempotent
-  generated write operations.
-- `debug-redaction`: redact sensitive headers and bodies in generated debug
-  output.
-- `malformed-json-response`: wrap malformed JSON responses in
-  `ResponseValidationError`.
-- `outbound-write-validation`: validate generated write request bodies before
-  sending.
-- `retry-backoff-first-delay`: start non-`Retry-After` generated backoff after
-  the initial interval.
+| Patch | Owner | Why it remains | Removal condition |
+| --- | --- | --- | --- |
+| `non-idempotent-write-retries` | `sdk-maintainers` | Removes default retries from non-idempotent generated writes. | Speakeasy config/templates support operation-level no-retry generation. |
+| `debug-redaction` | `sdk-maintainers` | Redacts sensitive headers and bodies in generated debug output. | Generator supports safe debug logger hooks. |
+| `malformed-json-response` | `sdk-maintainers` | Wraps malformed JSON responses in `ResponseValidationError`. | Generator wraps JSON parse failures as `ResponseValidationError`. |
+| `outbound-write-validation` | `sdk-maintainers` | Validates generated write request bodies before sending. | OpenAPI/schema generation emits the current outbound constraints without patching. |
+| `retry-backoff-first-delay` | `sdk-maintainers` | Starts non-`Retry-After` generated backoff after the initial interval. | Generator backoff starts after the configured initial interval. |
 
 ## Test Requirement
 

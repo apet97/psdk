@@ -26,6 +26,8 @@
     "docs/QUICKSTART.md",
     "docs/STABILITY.md",
     "docs/SUPPORT.md",
+    "docs/MIGRATING.md",
+    "docs/verification/v0.3.21.md",
     "esm",
     "src"
   ],
@@ -43,35 +45,65 @@
       "default": "./esm/index.js"
     },
     "./package.json": "./package.json",
+    "./core.js": {
+      "source": "./src/core.ts",
+      "types": "./esm/core.d.ts",
+      "default": "./esm/core.js"
+    },
     "./types": {
       "source": "./src/types/index.ts",
       "types": "./esm/types/index.d.ts",
       "default": "./esm/types/index.js"
-    },
-    "./models/errors": {
-      "source": "./src/models/errors/index.ts",
-      "types": "./esm/models/errors/index.d.ts",
-      "default": "./esm/models/errors/index.js"
     },
     "./models": {
       "source": "./src/models/index.ts",
       "types": "./esm/models/index.d.ts",
       "default": "./esm/models/index.js"
     },
+    "./models/errors": {
+      "source": "./src/models/errors/index.ts",
+      "types": "./esm/models/errors/index.d.ts",
+      "default": "./esm/models/errors/index.js"
+    },
     "./models/operations": {
       "source": "./src/models/operations/index.ts",
       "types": "./esm/models/operations/index.d.ts",
       "default": "./esm/models/operations/index.js"
     },
-    "./*.js": {
-      "source": "./src/*.ts",
-      "types": "./esm/*.d.ts",
-      "default": "./esm/*.js"
+    "./extensions/index.js": {
+      "source": "./src/extensions/index.ts",
+      "types": "./esm/extensions/index.d.ts",
+      "default": "./esm/extensions/index.js"
     },
-    "./*": {
-      "source": "./src/*.ts",
-      "types": "./esm/*.d.ts",
-      "default": "./esm/*.js"
+    "./extensions/webhooks.js": {
+      "source": "./src/extensions/webhooks.ts",
+      "types": "./esm/extensions/webhooks.d.ts",
+      "default": "./esm/extensions/webhooks.js"
+    },
+    "./extensions/telemetry.js": {
+      "source": "./src/extensions/telemetry.ts",
+      "types": "./esm/extensions/telemetry.d.ts",
+      "default": "./esm/extensions/telemetry.js"
+    },
+    "./extensions/testing/index.js": {
+      "source": "./src/extensions/testing/index.ts",
+      "types": "./esm/extensions/testing/index.d.ts",
+      "default": "./esm/extensions/testing/index.js"
+    },
+    "./extensions/app/index.js": {
+      "source": "./src/extensions/app/index.ts",
+      "types": "./esm/extensions/app/index.d.ts",
+      "default": "./esm/extensions/app/index.js"
+    },
+    "./extensions/app/socket-mode.js": {
+      "source": "./src/extensions/app/socket-mode.ts",
+      "types": "./esm/extensions/app/socket-mode.d.ts",
+      "default": "./esm/extensions/app/socket-mode.js"
+    },
+    "./lib/http": {
+      "source": "./src/lib/http.ts",
+      "types": "./esm/lib/http.d.ts",
+      "default": "./esm/lib/http.js"
     }
   },
   "sideEffects": false,
@@ -119,5 +151,23 @@
     "@modelcontextprotocol/sdk": "^1.26.0",
     "jsonpath-rfc9535": "1.1.0",
     "zod": "^3.25.0 || ^4.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apet97/psdk.git",
+    "directory": "sdk"
+  },
+  "homepage": "https://github.com/apet97/psdk#readme",
+  "bugs": {
+    "url": "https://github.com/apet97/psdk/issues"
+  },
+  "keywords": [
+    "pumble",
+    "sdk",
+    "typescript",
+    "api-client",
+    "mcp",
+    "cli",
+    "webhooks"
+  ]
 }

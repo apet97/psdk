@@ -29,6 +29,26 @@ All gates must pass before creating separate packages:
    workflows and live search tests.
 5. There are no hand patches in generated source; fixes flow through
    `PumbleOpenApi.yaml`, Speakeasy config, or hand-written facade code.
+6. The explicit export map is stable.
+7. The scheduled facade is complete.
+8. Pack smoke passes for compatibility imports.
+9. A migration guide exists.
+10. Two live verification runs are recorded.
+11. The generated-runtime patch count is accepted or reduced.
+
+## Future App Framework Requirements
+
+Do not market app/OAuth/socket helpers as production-ready until all of these exist:
+
+- OAuth install route and callback route.
+- Token refresh flow.
+- Durable token-store adapters.
+- Workspace selection and routing.
+- Bot/user token selection.
+- Webhook routing.
+- Socket Mode transport decision.
+- Deployment examples.
+- Live app tests.
 
 ## Decision
 
