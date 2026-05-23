@@ -1,15 +1,13 @@
 id: G07
-title: Stability tiers + public surface audit
+title: Public surface stability tiers + audit
 priority: P2
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Every published export must declare its tier so users can rely on the contract; CI must fail loudly when a new export ships without a tier."
 scope:
   allowed:
-    - sdk/src/extensions/**
-    - sdk/docs/STABILITY.md
-    - sdk/docs/API-REFERENCE.md
     - sdk/scripts/public-surface-audit.mjs
-    - sdk/tests/public-surface.test.ts
+    - sdk/docs/STABILITY.md
+    - sdk/tests/package-metadata.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -20,12 +18,19 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "scripts/public-surface-audit.mjs runs as CLI and exports runSurfaceAudit()."
+  - "docs/STABILITY.md lists every package.json export with its tier."
+  - "tests/package-metadata.test.ts asserts missingTier and experimentalLeaksInReadme are both empty."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/package-metadata.test.ts"
+  - "cd sdk && node scripts/public-surface-audit.mjs"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Adding a new export without updating STABILITY.md fails the audit."
+  - "Mentioning an experimental export in the README headline fails the leak check."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/STABILITY.md
+  tests:
+    - sdk/tests/package-metadata.test.ts
+rollback: "Revert this commit; existing STABILITY.md content remains as before."

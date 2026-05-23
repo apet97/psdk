@@ -98,3 +98,17 @@ describe("package metadata", () => {
     expect(gen.typescript.additionalPackageJSON.files).toEqual(pkg.files);
   });
 });
+
+import { runSurfaceAudit } from "../scripts/public-surface-audit.mjs";
+
+describe("public surface tiers", () => {
+  const report = runSurfaceAudit();
+
+  it("every export has a stability tier", () => {
+    expect(report.missingTier).toEqual([]);
+  });
+
+  it("experimental exports do not appear in the README headline section", () => {
+    expect(report.experimentalLeaksInReadme).toEqual([]);
+  });
+});

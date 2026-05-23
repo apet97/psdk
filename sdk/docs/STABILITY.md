@@ -2,15 +2,25 @@
 
 ## Supported Surfaces
 
-| Import path | Surface | Stability |
-| --- | --- | --- |
-| `pumble-sdk` | Raw SDK | Stable |
-| `pumble-sdk/extensions/index.js` | Facade helpers | Stable |
-| `pumble-sdk/extensions/webhooks.js` | Webhook verification | Stable |
-| `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | Beta |
-| `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | Beta |
-| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |
-| `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |
+The table below mirrors every entry in `package.json#exports`. The audit script
+`scripts/public-surface-audit.mjs` fails CI when a new export lands without a
+tier row here.
+
+| Export key | Import path | Surface | Tier |
+| --- | --- | --- | --- |
+| `.` | `pumble-sdk` | Raw SDK + façade re-exports | stable |
+| `./core.js` | `pumble-sdk/core.js` | Generated core | stable |
+| `./types` | `pumble-sdk/types` | Public types | stable |
+| `./models` | `pumble-sdk/models` | Generated models | stable |
+| `./models/errors` | `pumble-sdk/models/errors` | Error classes | stable |
+| `./models/operations` | `pumble-sdk/models/operations` | Operation models | stable |
+| `./extensions/index.js` | `pumble-sdk/extensions/index.js` | Façade helpers | stable |
+| `./extensions/webhooks.js` | `pumble-sdk/extensions/webhooks.js` | Webhook verification | stable |
+| `./extensions/telemetry.js` | `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | beta |
+| `./extensions/testing/index.js` | `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |
+| `./extensions/app/index.js` | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |
+| `./extensions/app/socket-mode.js` | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |
+| `./lib/http` | `pumble-sdk/lib/http` | Generated HTTP shim | internal |
 
 ## Stable
 
@@ -77,3 +87,13 @@
 - resolver cache performance docs
 - CLI docs
 - architecture diagram
+
+## Migration paths
+
+Future packages (placeholders, blocked until G07 gates pass):
+
+- `@pumble/sdk-core` — generated raw client.
+- `@pumble/webhooks` — webhook helpers.
+- `@pumble/mcp` — curated MCP.
+- `@pumble/testing` — replay helpers.
+- `@pumble/app-framework` — OAuth + Socket Mode (G08).
