@@ -115,6 +115,171 @@ describe("searchAllMessages — mocked", () => {
     expect(got).toEqual(["m1", "m2", "m3"]);
   });
 
+  it("overlaps same-second boundaries so unseen IDs are not skipped", async () => {
+    const calls: Array<number | undefined> = [];
+    const mock = {
+      messages: {
+        async searchMessages(req: { beforeTs?: number }) {
+          calls.push(req.beforeTs);
+          if (calls.length === 1) {
+            return {
+              result: {
+                content: [
+                  { id: "a", timestampMilli: 7000 } as any,
+                  { id: "b", timestampMilli: 5000 } as any,
+                  { id: "c", timestampMilli: 5000 } as any,
+                ],
+                totalElements: 5,
+                hasMore: true,
+              },
+            };
+          }
+          if (req.beforeTs === 6000 && calls.filter((value) => value === 6000).length === 1) {
+            return {
+              result: {
+                content: [
+                  { id: "b", timestampMilli: 5000 } as any,
+                  { id: "c", timestampMilli: 5000 } as any,
+                  { id: "d", timestampMilli: 5000 } as any,
+                ],
+                totalElements: 5,
+                hasMore: true,
+              },
+            };
+          }
+          if (req.beforeTs === 6000) {
+            return {
+              result: {
+                content: [
+                  { id: "b", timestampMilli: 5000 } as any,
+                  { id: "c", timestampMilli: 5000 } as any,
+                  { id: "d", timestampMilli: 5000 } as any,
+                ],
+                totalElements: 5,
+                hasMore: true,
+              },
+            };
+          }
+          if (req.beforeTs === 4999) {
+            return {
+              result: {
+                content: [
+                  { id: "e", timestampMilli: 4000 } as any,
+                ],
+                totalElements: 5,
+                hasMore: false,
+              },
+            };
+          }
+          return { result: { content: [], totalElements: 5, hasMore: false } };
+        },
+      },
+    };
+
+    const got: string[] = [];
+    for await (const hit of searchAllMessages(mock, { text: "x", limit: 3 })) {
+      got.push(hit.id);
+    }
+
+    expect(got).toEqual(["a", "b", "c", "d", "e"]);
+    expect(calls).toEqual([undefined, 6000, 6000, 4999]);
+  });
+
+  it("dedupes already-seen IDs from overlap pages", async () => {
+    let call = 0;
+    const mock = {
+      messages: {
+        async searchMessages() {
+          call++;
+          return {
+            result: {
+              content: [
+                { id: "b", timestampMilli: 5000 } as any,
+                { id: "c", timestampMilli: 5000 } as any,
+              ],
+              totalElements: 2,
+              hasMore: call === 1,
+            },
+          };
+        },
+      },
+    };
+
+    const got: string[] = [];
+    for await (const hit of searchAllMessages(mock, { text: "x", limit: 2 })) {
+      got.push(hit.id);
+    }
+
+    expect(got).toEqual(["b", "c"]);
+    expect(call).toBe(3);
+  });
+
+  it("stops overlap after a page with no new IDs", async () => {
+    const calls: Array<number | undefined> = [];
+    const mock = {
+      messages: {
+        async searchMessages(req: { beforeTs?: number }) {
+          calls.push(req.beforeTs);
+          if (calls.length === 1) {
+            return {
+              result: {
+                content: [
+                  { id: "a", timestampMilli: 5000 } as any,
+                  { id: "b", timestampMilli: 5000 } as any,
+                ],
+                totalElements: 2,
+                hasMore: true,
+              },
+            };
+          }
+          return {
+            result: {
+              content: [
+                { id: "a", timestampMilli: 5000 } as any,
+                { id: "b", timestampMilli: 5000 } as any,
+              ],
+              totalElements: 2,
+              hasMore: false,
+            },
+          };
+        },
+      },
+    };
+
+    const got: string[] = [];
+    for await (const hit of searchAllMessages(mock, { text: "x", limit: 2 })) {
+      got.push(hit.id);
+    }
+
+    expect(got).toEqual(["a", "b"]);
+    expect(calls.filter((cursor) => cursor === 6000)).toHaveLength(1);
+  });
+
+  it("counts overlap requests against the page cap", async () => {
+    const mock = {
+      messages: {
+        async searchMessages() {
+          return {
+            result: {
+              content: [
+                { id: "a", timestampMilli: 5000 } as any,
+                { id: "b", timestampMilli: 5000 } as any,
+              ],
+              totalElements: 4,
+              hasMore: true,
+            },
+          };
+        },
+      },
+    };
+
+    await expect(async () => {
+      for await (const _hit of searchAllMessages(mock, { text: "x", limit: 2 }, { maxPages: 1 })) {
+        // consume
+      }
+    }).rejects.toThrow(/exceeded 1 pages/);
+  });
+
   it("stops when the server returns the same first id twice", async () => {
     let call = 0;
     const mock = {

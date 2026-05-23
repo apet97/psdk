@@ -14,18 +14,18 @@
 //
 // This helper walks pages defensively:
 //   * Tracks seen ids; never yields the same hit twice.
-//   * Computes the next `beforeTs` as min(timestampMilli of this page) - 1,
-//     so we never re-request the page we just consumed.
+//   * Overlaps same-second page boundaries when the page ends with multiple
+//     hits at the minimum timestamp, then computes the next `beforeTs` as
+//     min(timestampMilli of this page) - 1.
 //   * Stops when the API signals `hasMore === false` AND the page is
 //     short, or when the page's first id matches the previous page's
 //     first id (server loop), or when a full page yields no new ids
 //     after dedupe.
 //   * Tolerates hits missing `timestampMilli` (defensive — non-spec).
 //
-// The trade-off: in the rare case that >limit messages share an identical
-// truncated-to-seconds timestamp at a page boundary, the dropped ones
-// inside that second cannot be retrieved with `beforeTs` alone — the
-// caller should narrow the window with `afterTs` for high-volume bursts.
+// The trade-off: very high-volume identical timestamp bursts can still exceed
+// the bounded overlap limit. The caller should narrow the window with `afterTs`
+// for those bursts.
 
 import type { SearchHit } from "../models/search-hit.js";
 import type { SearchMessagesRequest } from "../models/operations/search-messages.js";
@@ -133,6 +133,7 @@ export async function* searchAllMessages(
 
   const seen = new Set<string>();
   const limit = request.limit ?? 10;
+  const OVERLAP_ATTEMPT_CAP = 3;
   let cursor: number | undefined = request.beforeTs;
   let prevFirstId: string | undefined;
   let pageIndex = 0;
@@ -172,11 +173,17 @@ export async function* searchAllMessages(
     // counts.
     let newInPage = 0;
     let minTs = Number.POSITIVE_INFINITY;
+    let minTsCount = 0;
     for (const hit of content) {
       const ts = typeof hit.timestampMilli === "number" && isFinite(hit.timestampMilli)
         ? hit.timestampMilli
         : undefined;
-      if (ts !== undefined && ts < minTs) minTs = ts;
+      if (ts !== undefined && ts < minTs) {
+        minTs = ts;
+        minTsCount = 1;
+      } else if (ts !== undefined && ts === minTs) {
+        minTsCount++;
+      }
       if (typeof hit.id === "string" && !seen.has(hit.id)) newInPage++;
     }
 
@@ -201,6 +208,53 @@ export async function* searchAllMessages(
     // If the page brought zero new ids after dedupe, we're spinning.
     if (newInPage === 0) {
       return;
+    }
+
+    if (minTsCount > 1 && page.result.hasMore !== false) {
+      const overlapCursor = minTs + 1000;
+      let overlapAttempts = 0;
+      while (overlapAttempts < OVERLAP_ATTEMPT_CAP) {
+        throwIfAborted(signal);
+        if (pageIndex >= HARD_PAGE_CAP) {
+          throw new Error(
+            `searchAllMessages: exceeded ${HARD_PAGE_CAP} pages — refusing to continue (possible server loop)`,
+          );
+        }
+
+        const overlapPage = await client.messages.searchMessages({
+          ...request,
+          beforeTs: overlapCursor,
+        });
+        pageIndex++;
+        overlapAttempts++;
+        throwIfAborted(signal);
+
+        const overlapContent = overlapPage.result?.content ?? [];
+        if (overlapContent.length === 0) break;
+
+        let newInOverlap = 0;
+        for (const hit of overlapContent) {
+          if (typeof hit.id === "string" && !seen.has(hit.id)) newInOverlap++;
+        }
+
+        if (onPage) {
+          await onPage(overlapPage, { pageIndex, newInPage: newInOverlap, yielded });
+          throwIfAborted(signal);
+        }
+
+        for (const hit of overlapContent) {
+          if (typeof hit.id !== "string" || seen.has(hit.id)) continue;
+          seen.add(hit.id);
+          yielded++;
+          yield hit;
+          throwIfAborted(signal);
+          if (maxResults !== undefined && yielded >= maxResults) {
+            return;
+          }
+        }
+
+        if (newInOverlap === 0) break;
+      }
     }
 
     // hasMore is the canonical stop signal — combined with a short

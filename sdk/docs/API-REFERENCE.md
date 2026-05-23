@@ -70,10 +70,10 @@ Use `categorizeError` to map thrown raw SDK errors into application categories.
 Raw generated pagination is lower level and follows endpoint-specific response
 shapes. For search walks, prefer `searchAllMessages`.
 
-`searchAllMessages` is the safer helper for search walks because it dedupes by
-message ID and manages timestamp cursors. Search uses timestamp cursors and can
-hit same-second boundaries, so high-volume searches should keep query windows
-small enough for the expected result density.
+`searchAllMessages` is the safer helper for search walks because it manages
+timestamp cursors, overlaps same-second boundaries, and dedupes by message ID.
+Very high-volume identical timestamp bursts may still require narrower query
+windows.
 
 ## MCP
 
