@@ -83,13 +83,33 @@ export function createFacadeWrites({
     request: FacadeSendMessageRequest,
     options?: RequestOptions,
   ): Promise<FacadeSendReceipt | FacadeFailure<ChannelSummary>> {
-    const { channel, channelId, ...rest } = request;
+    const { channel, channelId, validateTarget, ...rest } = request;
     const input = channelId ?? channel;
     if (input === undefined || input.trim().length === 0) {
       return createFacadeInvalidRequest(
         "messages.send requires channel or channelId.",
         "Pass channel, channelId, or preflight the target before writing.",
       );
+    }
+    if (channelId !== undefined && validateTarget !== true) {
+      const message = await raw.messages.sendMessage({
+        ...rest,
+        channelId,
+      }, options).catch((error: unknown) =>
+        createFacadeOperationFailure(
+          operationFailureReason(error),
+          "Pumble API rejected messages.send.",
+          operationFailureNextAction,
+          error,
+        )
+      );
+      if (isFacadeOperationFailure(message)) return message;
+      return {
+        ok: true,
+        summary: `Sent message ${message.id} to channel ${channelId}.`,
+        ids: { channelId, messageId: message.id },
+        message,
+      };
     }
     const resolved = await resolveFacadeChannel(input);
     if (!resolved.ok) return resolved;
@@ -119,8 +139,39 @@ export function createFacadeWrites({
     request: FacadeDmRequest,
     options?: RequestOptions,
   ): Promise<FacadeDmReceipt | FacadeFailure<UserSummary>> {
-    const { user, ...rest } = request;
-    const resolved = await resolveFacadeUser(user);
+    const { user, userId, validateTarget, ...rest } = request;
+    const input = userId ?? user;
+    if (input === undefined || input.trim().length === 0) {
+      return createFacadeInvalidRequest(
+        "messages.dm requires user or userId.",
+        "Pass user, userId, or preflight the target before writing.",
+      );
+    }
+    if (userId !== undefined && validateTarget !== true) {
+      const message = await raw.messages.dmUser({
+        ...rest,
+        userId,
+      }, options).catch((error: unknown) =>
+        createFacadeOperationFailure(
+          operationFailureReason(error),
+          "Pumble API rejected messages.dm.",
+          operationFailureNextAction,
+          error,
+        )
+      );
+      if (isFacadeOperationFailure(message)) return message;
+      return {
+        ok: true,
+        summary: `Sent DM ${message.id} to user ${userId}.`,
+        ids: {
+          userId,
+          messageId: message.id,
+          channelId: message.channelId,
+        },
+        message,
+      };
+    }
+    const resolved = await resolveFacadeUser(input);
     if (!resolved.ok) return resolved;
 
     const message = await raw.messages.dmUser({
@@ -152,13 +203,37 @@ export function createFacadeWrites({
     request: FacadeThreadReplyRequest,
     options?: RequestOptions,
   ): Promise<FacadeThreadReplyReceipt | FacadeFailure<ChannelSummary>> {
-    const { channel, channelId, ...rest } = request;
+    const { channel, channelId, validateTarget, ...rest } = request;
     const input = channelId ?? channel;
     if (input === undefined || input.trim().length === 0) {
       return createFacadeInvalidRequest(
         "threads.reply requires channel or channelId.",
         "Pass channel, channelId, or preflight the target before writing.",
       );
+    }
+    if (channelId !== undefined && validateTarget !== true) {
+      const message = await raw.messages.sendReply({
+        ...rest,
+        channelId,
+      }, options).catch((error: unknown) =>
+        createFacadeOperationFailure(
+          operationFailureReason(error),
+          "Pumble API rejected threads.reply.",
+          operationFailureNextAction,
+          error,
+        )
+      );
+      if (isFacadeOperationFailure(message)) return message;
+      return {
+        ok: true,
+        summary: `Replied with ${message.id} in channel ${channelId}.`,
+        ids: {
+          channelId,
+          messageId: message.id,
+          rootMessageId: request.messageId,
+        },
+        message,
+      };
     }
     const resolved = await resolveFacadeChannel(input);
     if (!resolved.ok) return resolved;

@@ -95,12 +95,15 @@ export type FacadeSendMessageRequest =
   & {
     channel?: string | undefined;
     channelId?: string | undefined;
+    validateTarget?: boolean | undefined;
   };
 
 export type FacadeDmRequest =
   & Omit<DmUserRequest, "userId">
   & {
-    user: string;
+    user?: string | undefined;
+    userId?: string | undefined;
+    validateTarget?: boolean | undefined;
   };
 
 export type FacadeThreadReplyRequest =
@@ -108,13 +111,14 @@ export type FacadeThreadReplyRequest =
   & {
     channel?: string | undefined;
     channelId?: string | undefined;
+    validateTarget?: boolean | undefined;
   };
 
 export interface FacadeSendReceipt {
   ok: true;
   summary: string;
   ids: { channelId: string; messageId: string };
-  channel: ChannelSummary;
+  channel?: ChannelSummary;
   message: MessageRef;
 }
 
@@ -122,7 +126,7 @@ export interface FacadeDmReceipt {
   ok: true;
   summary: string;
   ids: { userId: string; messageId: string; channelId: string };
-  user: UserSummary;
+  user?: UserSummary;
   message: MessageRef;
 }
 
@@ -130,7 +134,7 @@ export interface FacadeThreadReplyReceipt {
   ok: true;
   summary: string;
   ids: { channelId: string; messageId: string; rootMessageId: string };
-  channel: ChannelSummary;
+  channel?: ChannelSummary;
   message: MessageRef;
 }
 

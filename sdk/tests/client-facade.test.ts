@@ -234,7 +234,7 @@ describe("createPumbleClient", () => {
     }, undefined);
   });
 
-  it("messages.send resolves channel IDs before writing and returns truthful channel metadata", async () => {
+  it("messages.send validates channel IDs when requested and returns truthful channel metadata", async () => {
     const client = createPumbleClient({ apiKeyAuth: "x" });
     delegates.resolveChannel.mockResolvedValue({
       ok: true,
@@ -245,6 +245,7 @@ describe("createPumbleClient", () => {
 
     await expect(client.messages.send({
       channelId: "c2",
+      validateTarget: true,
       text: "private note",
     })).resolves.toEqual({
       ok: true,
@@ -257,6 +258,52 @@ describe("createPumbleClient", () => {
     expect(sendMessage).toHaveBeenCalledWith({
       channelId: "c2",
       text: "private note",
+    }, undefined);
+  });
+
+  it("messages.send exact channel IDs bypass resolver by default", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const sendMessage = vi.spyOn(client.raw.messages, "sendMessage")
+      .mockResolvedValue(messageRefFixture({ id: "m-fast", channelId: "c-fast" }));
+
+    await expect(client.messages.send({
+      channelId: "c-fast",
+      text: "fast path",
+    })).resolves.toMatchObject({
+      ok: true,
+      summary: "Sent message m-fast to channel c-fast.",
+      ids: { channelId: "c-fast", messageId: "m-fast" },
+      message: { id: "m-fast", channelId: "c-fast" },
+    });
+    expect(delegates.resolveChannel).not.toHaveBeenCalled();
+    expect(sendMessage).toHaveBeenCalledWith({
+      channelId: "c-fast",
+      text: "fast path",
+    }, undefined);
+  });
+
+  it("messages.send exact channel IDs validate when requested", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    delegates.resolveChannel.mockResolvedValue({
+      ok: true,
+      value: { id: "c-fast", name: "fast", channelType: "PUBLIC" },
+    });
+    const sendMessage = vi.spyOn(client.raw.messages, "sendMessage")
+      .mockResolvedValue(messageRefFixture({ id: "m-fast", channelId: "c-fast" }));
+
+    await expect(client.messages.send({
+      channelId: "c-fast",
+      validateTarget: true,
+      text: "fast path",
+    })).resolves.toMatchObject({
+      ok: true,
+      summary: "Sent message m-fast to #fast.",
+      channel: { id: "c-fast", name: "fast", channelType: "PUBLIC" },
+    });
+    expect(delegates.resolveChannel).toHaveBeenCalledWith(client.raw, "c-fast", undefined);
+    expect(sendMessage).toHaveBeenCalledWith({
+      channelId: "c-fast",
+      text: "fast path",
     }, undefined);
   });
 
@@ -318,6 +365,27 @@ describe("createPumbleClient", () => {
     }, undefined);
   });
 
+  it("messages.dm exact user IDs bypass resolver by default", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const dmUser = vi.spyOn(client.raw.messages, "dmUser")
+      .mockResolvedValue(messageRefFixture({ id: "dm-fast", channelId: "dm-channel" }));
+
+    await expect(client.messages.dm({
+      userId: "u-fast",
+      text: "fast dm",
+    })).resolves.toMatchObject({
+      ok: true,
+      summary: "Sent DM dm-fast to user u-fast.",
+      ids: { userId: "u-fast", messageId: "dm-fast", channelId: "dm-channel" },
+      message: { id: "dm-fast", channelId: "dm-channel" },
+    });
+    expect(delegates.resolveUser).not.toHaveBeenCalled();
+    expect(dmUser).toHaveBeenCalledWith({
+      userId: "u-fast",
+      text: "fast dm",
+    }, undefined);
+  });
+
   it("threads.reply resolves channel names before writing thread replies", async () => {
     const client = createPumbleClient({ apiKeyAuth: "x" });
     delegates.resolveChannel.mockResolvedValue({
@@ -345,7 +413,7 @@ describe("createPumbleClient", () => {
     }, undefined);
   });
 
-  it("threads.reply resolves channel IDs before writing thread replies", async () => {
+  it("threads.reply validates channel IDs when requested", async () => {
     const client = createPumbleClient({ apiKeyAuth: "x" });
     delegates.resolveChannel.mockResolvedValue({
       ok: true,
@@ -356,6 +424,7 @@ describe("createPumbleClient", () => {
 
     await expect(client.threads.reply({
       channelId: "c2",
+      validateTarget: true,
       messageId: "root2",
       text: "private reply",
     })).resolves.toEqual({
@@ -370,6 +439,29 @@ describe("createPumbleClient", () => {
       channelId: "c2",
       messageId: "root2",
       text: "private reply",
+    }, undefined);
+  });
+
+  it("threads.reply exact channel IDs bypass resolver by default", async () => {
+    const client = createPumbleClient({ apiKeyAuth: "x" });
+    const sendReply = vi.spyOn(client.raw.messages, "sendReply")
+      .mockResolvedValue(messageRefFixture({ id: "r-fast", channelId: "c-fast" }));
+
+    await expect(client.threads.reply({
+      channelId: "c-fast",
+      messageId: "root-fast",
+      text: "fast reply",
+    })).resolves.toMatchObject({
+      ok: true,
+      summary: "Replied with r-fast in channel c-fast.",
+      ids: { channelId: "c-fast", messageId: "r-fast", rootMessageId: "root-fast" },
+      message: { id: "r-fast", channelId: "c-fast" },
+    });
+    expect(delegates.resolveChannel).not.toHaveBeenCalled();
+    expect(sendReply).toHaveBeenCalledWith({
+      channelId: "c-fast",
+      messageId: "root-fast",
+      text: "fast reply",
     }, undefined);
   });
 });

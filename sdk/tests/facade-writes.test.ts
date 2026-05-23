@@ -98,6 +98,35 @@ describe("createFacadeWrites", () => {
     }, undefined);
   });
 
+  it("send uses exact channel IDs without resolving by default", async () => {
+    const raw = createRawMessages();
+    raw.messages.sendMessage.mockResolvedValue(messageRefFixture({
+      id: "message-1",
+      channelId: "channel-1",
+    }));
+    const resolveFacadeChannel = vi.fn();
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel,
+      resolveFacadeUser: vi.fn(),
+    });
+
+    await expect(writes.sendFacadeMessage({
+      channelId: "channel-1",
+      text: "hello",
+    })).resolves.toMatchObject({
+      ok: true,
+      summary: "Sent message message-1 to channel channel-1.",
+      ids: { channelId: "channel-1", messageId: "message-1" },
+      message: { id: "message-1", channelId: "channel-1" },
+    });
+    expect(resolveFacadeChannel).not.toHaveBeenCalled();
+    expect(raw.messages.sendMessage).toHaveBeenCalledWith({
+      channelId: "channel-1",
+      text: "hello",
+    }, undefined);
+  });
+
   it("dm resolves user targets before calling generated dmUser", async () => {
     const raw = createRawMessages();
     raw.messages.dmUser.mockResolvedValue(messageRefFixture({
@@ -137,6 +166,39 @@ describe("createFacadeWrites", () => {
     }, undefined);
   });
 
+  it("dm uses exact user IDs without resolving by default", async () => {
+    const raw = createRawMessages();
+    raw.messages.dmUser.mockResolvedValue(messageRefFixture({
+      id: "dm-message-1",
+      channelId: "dm-channel-1",
+    }));
+    const resolveFacadeUser = vi.fn();
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel: vi.fn(),
+      resolveFacadeUser,
+    });
+
+    await expect(writes.dmFacadeUser({
+      userId: "user-1",
+      text: "hello dm",
+    })).resolves.toMatchObject({
+      ok: true,
+      summary: "Sent DM dm-message-1 to user user-1.",
+      ids: {
+        userId: "user-1",
+        messageId: "dm-message-1",
+        channelId: "dm-channel-1",
+      },
+      message: { id: "dm-message-1", channelId: "dm-channel-1" },
+    });
+    expect(resolveFacadeUser).not.toHaveBeenCalled();
+    expect(raw.messages.dmUser).toHaveBeenCalledWith({
+      userId: "user-1",
+      text: "hello dm",
+    }, undefined);
+  });
+
   it("thread replies resolve channel targets before calling generated sendReply", async () => {
     const raw = createRawMessages();
     raw.messages.sendReply.mockResolvedValue(messageRefFixture({
@@ -156,7 +218,7 @@ describe("createFacadeWrites", () => {
     });
 
     await expect(writes.replyFacadeThread({
-      channelId: "channel-1",
+      channel: "#general",
       messageId: "root-1",
       text: "thread reply",
     })).resolves.toEqual({
@@ -170,12 +232,90 @@ describe("createFacadeWrites", () => {
       channel: channelSummary,
       message: { id: "reply-1", channelId: "channel-1" },
     });
-    expect(resolveFacadeChannel).toHaveBeenCalledWith("channel-1");
+    expect(resolveFacadeChannel).toHaveBeenCalledWith("#general");
     expect(raw.messages.sendReply).toHaveBeenCalledWith({
       channelId: "channel-1",
       messageId: "root-1",
       text: "thread reply",
     }, undefined);
+  });
+
+  it("thread replies use exact channel IDs without resolving by default", async () => {
+    const raw = createRawMessages();
+    raw.messages.sendReply.mockResolvedValue(messageRefFixture({
+      id: "reply-1",
+      channelId: "channel-1",
+    }));
+    const resolveFacadeChannel = vi.fn();
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel,
+      resolveFacadeUser: vi.fn(),
+    });
+
+    await expect(writes.replyFacadeThread({
+      channelId: "channel-1",
+      messageId: "root-1",
+      text: "thread reply",
+    })).resolves.toMatchObject({
+      ok: true,
+      summary: "Replied with reply-1 in channel channel-1.",
+      ids: {
+        channelId: "channel-1",
+        messageId: "reply-1",
+        rootMessageId: "root-1",
+      },
+      message: { id: "reply-1", channelId: "channel-1" },
+    });
+    expect(resolveFacadeChannel).not.toHaveBeenCalled();
+    expect(raw.messages.sendReply).toHaveBeenCalledWith({
+      channelId: "channel-1",
+      messageId: "root-1",
+      text: "thread reply",
+    }, undefined);
+  });
+
+  it("validates exact IDs when validateTarget is true", async () => {
+    const raw = createRawMessages();
+    raw.messages.sendMessage.mockResolvedValue(messageRefFixture());
+    raw.messages.dmUser.mockResolvedValue(messageRefFixture({
+      id: "dm-message-1",
+      channelId: "dm-channel-1",
+    }));
+    raw.messages.sendReply.mockResolvedValue(messageRefFixture({
+      id: "reply-1",
+      channelId: "channel-1",
+    }));
+    const resolveFacadeChannel = vi.fn().mockResolvedValue({
+      ok: true,
+      summary: "Found channel #general.",
+      ids: { channelId: "channel-1" },
+      channel: channelSummary,
+    });
+    const resolveFacadeUser = vi.fn().mockResolvedValue({
+      ok: true,
+      summary: "Found user Example User.",
+      ids: { userId: "user-1" },
+      user: userSummary,
+    });
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel,
+      resolveFacadeUser,
+    });
+
+    await writes.sendFacadeMessage({ channelId: "channel-1", validateTarget: true, text: "hello" });
+    await writes.dmFacadeUser({ userId: "user-1", validateTarget: true, text: "hello" });
+    await writes.replyFacadeThread({
+      channelId: "channel-1",
+      validateTarget: true,
+      messageId: "root-1",
+      text: "hello",
+    });
+
+    expect(resolveFacadeChannel).toHaveBeenCalledWith("channel-1");
+    expect(resolveFacadeChannel).toHaveBeenCalledTimes(2);
+    expect(resolveFacadeUser).toHaveBeenCalledWith("user-1");
   });
 
   it("search recent preserves default and explicit limits in generated search requests", async () => {
@@ -268,6 +408,29 @@ describe("createFacadeWrites", () => {
       });
 
     expect(raw.messages.sendMessage).not.toHaveBeenCalled();
+    expect(raw.messages.sendReply).not.toHaveBeenCalled();
+  });
+
+  it("returns invalid_request for blank exact IDs", async () => {
+    const raw = createRawMessages();
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel: vi.fn(),
+      resolveFacadeUser: vi.fn(),
+    });
+
+    await expect(writes.sendFacadeMessage({ channelId: " ", text: "missing target" }))
+      .resolves.toMatchObject({ ok: false, reason: "invalid_request" });
+    await expect(writes.dmFacadeUser({ userId: " ", text: "missing target" }))
+      .resolves.toMatchObject({ ok: false, reason: "invalid_request" });
+    await expect(writes.replyFacadeThread({
+      channelId: " ",
+      messageId: "root-1",
+      text: "missing target",
+    })).resolves.toMatchObject({ ok: false, reason: "invalid_request" });
+
+    expect(raw.messages.sendMessage).not.toHaveBeenCalled();
+    expect(raw.messages.dmUser).not.toHaveBeenCalled();
     expect(raw.messages.sendReply).not.toHaveBeenCalled();
   });
 
