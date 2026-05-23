@@ -1,6 +1,7 @@
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import express from "express";
+import { realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -16,8 +17,8 @@ class CuratedUsageError extends Error {
   }
 }
 
-function printHelp() {
-  process.stdout.write(`
+async function printHelp(): Promise<void> {
+  await writeStdout(`
 pumble-mcp-curated — workflow-first Pumble MCP server
 
 Usage:
@@ -47,6 +48,18 @@ Curated tools:
   reply_to_thread_preview
   reply_to_thread_confirmed
 `);
+}
+
+function writeStdout(text: string): Promise<void> {
+  return new Promise((resolveWrite, reject) => {
+    process.stdout.write(text, (error?: Error | null) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolveWrite();
+    });
+  });
 }
 
 function valueFor(
@@ -264,7 +277,7 @@ async function startSSE(options: CuratedStartOptions) {
 async function main() {
   const parsed = parseCuratedStartArgs(process.argv.slice(2));
   if (parsed === "help") {
-    printHelp();
+    await printHelp();
     return;
   }
 
@@ -281,7 +294,7 @@ async function main() {
 
 function isMainModule(): boolean {
   return process.argv[1] !== undefined
-    && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+    && realpathSync(resolve(process.argv[1])) === realpathSync(fileURLToPath(import.meta.url));
 }
 
 if (isMainModule()) {

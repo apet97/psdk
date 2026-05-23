@@ -1,10 +1,33 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { buildMcpInvocation } from "../bin/pumble-mcp-args.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function spawnNode(args: string[]): Promise<{ status: number | null; stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", (status) => {
+      resolve({ status, stdout, stderr });
+    });
+  });
+}
 
 describe("pumble-mcp curated profile", () => {
   it("launches the curated MCP server entrypoint", () => {
@@ -45,5 +68,32 @@ describe("pumble-mcp curated profile", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("--profile curated");
     expect(result.stdout).toContain("workflow-first curated tools");
+  });
+
+  it("flushes curated help when stdout is captured by async spawn", async () => {
+    const result = await spawnNode([
+      join(__dirname, "../bin/pumble-mcp-curated.js"),
+      "--help",
+    ]);
+
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.stdout).toContain("workflow-first Pumble MCP server");
+  });
+
+  it("runs the curated entrypoint through a symlinked path", async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "pumble-curated-main-"));
+    try {
+      const linkedBin = join(tempDir, "pumble-mcp-curated.js");
+      symlinkSync(join(__dirname, "../bin/pumble-mcp-curated.js"), linkedBin);
+
+      const result = await spawnNode([linkedBin, "--help"]);
+
+      expect(result.status).toBe(0);
+      expect(result.stderr).toBe("");
+      expect(result.stdout).toContain("workflow-first Pumble MCP server");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 });
