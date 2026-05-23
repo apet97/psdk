@@ -57,4 +57,7 @@ Embedded inside [API reference](API-REFERENCE.md) — every façade method is do
 - [Patch burndown](patch-burndown.md)
 - [Package split policy](PACKAGE-SPLIT.md)
 - [Spec contract](SPEC-CONTRACT.md)
-- [ADRs](adr/)
+- [Goal registry](../../.goals/README.md) — one YAML per goal; validated by `scripts/goal-check.mjs`.
+- ADRs:
+  - [`docs/adr/0001-0007`](../../docs/adr/) — generated SDK regen, facade failures, curated MCP writes, resolver cache, redacted live smoke, non-idempotent write retries, debug redaction.
+  - [`sdk/docs/adr/0008`](adr/0008-generated-runtime-patches.md) — generated-runtime patches.
