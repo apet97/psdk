@@ -204,4 +204,30 @@ describe("wrapClient", () => {
     expect(calls.map((c) => c.kind)).toEqual(["start", "status", "end"]);
     expect(calls[1]).toMatchObject({ kind: "status", status: { ok: true } });
   });
+
+  it("never records message text in the audit writer", async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const writer = {
+      write(event: Record<string, unknown>) {
+        events.push(event);
+      },
+      async flush() {},
+    };
+    const real = {
+      messages: {
+        async sendMessage(req: { channelId: string; text: string }) {
+          return { ok: true, channelId: req.channelId };
+        },
+      },
+    };
+    const wrapped = wrapClient(real, { writer });
+    await wrapped.messages.sendMessage({
+      channelId: "bbbbbbbbbbbbbbbbbbbb0001",
+      text: "top secret payload",
+    });
+    expect(events.length).toBeGreaterThan(0);
+    for (const event of events) {
+      expect(JSON.stringify(event)).not.toContain("top secret");
+    }
+  });
 });

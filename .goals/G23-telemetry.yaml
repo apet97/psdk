@@ -1,8 +1,8 @@
 id: G23
 title: Telemetry recipes + redaction guarantee
 priority: P3
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Telemetry is optional; the recipes doc keeps the integration cookbook out of the API reference, and the test pins the no-message-text guarantee."
 scope:
   allowed:
     - sdk/src/extensions/telemetry.ts
@@ -18,12 +18,16 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "docs/OBSERVABILITY.md documents OTel, JSONL writer, and the redaction guarantee."
+  - "tests/telemetry.test.ts asserts message text never appears in the audit JSONL output."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/telemetry.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Adding a 'text' field to ID_FIELDS would let message text leak; the new test catches it."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/OBSERVABILITY.md
+  tests:
+    - sdk/tests/telemetry.test.ts
+rollback: "Revert this commit; existing telemetry behaviour is unchanged."
