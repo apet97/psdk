@@ -668,6 +668,22 @@ describe("product identity guard", () => {
   });
 });
 
+describe("facade-first docs", () => {
+  it("README's first ts code example uses createPumbleClient", () => {
+    const firstBlock = readme.match(/```ts\n([\s\S]*?)\n```/);
+    expect(firstBlock?.[1] ?? "").toContain("createPumbleClient");
+  });
+
+  it("Quickstart contains a 'Which API should I use?' section", () => {
+    expect(quickstart).toMatch(/Which API should I use\?/);
+    expect(quickstart).toContain("facade");
+    expect(quickstart).toContain("raw SDK");
+    expect(quickstart).toContain("CLI");
+    expect(quickstart).toContain("curated MCP");
+    expect(quickstart).toContain("webhooks");
+  });
+});
+
 describe("MCP safety guidance", () => {
   it("README warns against exposing raw readwrite", () => {
     expect(readme).toMatch(/Do not expose this to agents you do not control/);

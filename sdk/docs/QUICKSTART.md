@@ -4,6 +4,16 @@ This path gets one useful result at a time: read your identity, resolve a
 target, write a message, reply in thread, verify a webhook, and run the MCP
 server without exposing unchecked writes.
 
+## Which API should I use?
+
+| Goal | Use |
+| --- | --- |
+| Application code, safer ergonomics, structured failures | **facade** (`createPumbleClient`) |
+| Direct endpoint parity, generated types, raw thrown errors | **raw SDK** (`PumbleSDK`) |
+| Shell automation, one-shot commands | **CLI** (`pumble ...`) |
+| Agents and assistants | **curated MCP** (`pumble-mcp`) |
+| Receive Pumble events | **webhooks** (`pumble-sdk/extensions/webhooks.js`) |
+
 ## Prerequisites
 
 * Node 20 or newer.

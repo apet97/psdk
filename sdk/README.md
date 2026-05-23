@@ -38,6 +38,31 @@ and [`docs/API-REFERENCE.md`](docs/API-REFERENCE.md).
 Migration notes are in [`docs/MIGRATING.md`](docs/MIGRATING.md).
 Redacted release proof for `0.3.21`: [`docs/verification/v0.3.21.md`](docs/verification/v0.3.21.md).
 
+## First run
+
+The façade is the recommended entry point. It accepts human-friendly inputs
+(channel names, emails) and returns structured receipts.
+
+```ts
+import {
+  assertFacadeOk,
+  createPumbleClient,
+} from "pumble-sdk/extensions/index.js";
+
+const pumble = createPumbleClient({
+  apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
+});
+
+const sent = await pumble.messages.send({
+  channel: "#general",
+  text: "hello",
+});
+const receipt = assertFacadeOk(sent);
+console.log(receipt.ids.messageId);
+```
+
+Need raw endpoint access? See [Raw SDK Usage](#raw-sdk-usage) below.
+
 ## Stable, Beta, Experimental
 
 | Surface | Status | Use for |

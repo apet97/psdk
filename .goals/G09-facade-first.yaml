@@ -1,12 +1,12 @@
 id: G09
 title: Façade-first README + decision tree
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Default Pumble SDK usage should land on the façade; the raw client must be present but not the first thing a reader sees."
 scope:
   allowed:
     - sdk/README.md
-    - README.md
+    - sdk/docs/QUICKSTART.md
     - sdk/docs/API-REFERENCE.md
     - sdk/tests/docs.test.ts
   forbidden:
@@ -19,12 +19,19 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "sdk/README.md's first ts code block uses createPumbleClient."
+  - "sdk/docs/QUICKSTART.md contains a 'Which API should I use?' section that names facade, raw SDK, CLI, curated MCP, and webhooks."
+  - "tests/docs.test.ts enforces both."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/docs.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Inserting a raw PumbleSDK ts block above the facade block fails the docs test."
+  - "Removing the decision table fails the docs test."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/README.md
+    - sdk/docs/QUICKSTART.md
+  tests:
+    - sdk/tests/docs.test.ts
+rollback: "Revert this commit; both README and Quickstart still render."
