@@ -1,8 +1,8 @@
 id: G10
 title: Error model decision tree
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Five surfaces (raw, facade, CLI, MCP, webhook) handle failure differently; users need a single doc that maps each surface to its expected error shape."
 scope:
   allowed:
     - sdk/docs/ERROR-MODEL.md
@@ -18,12 +18,20 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "docs/ERROR-MODEL.md names every category returned by categorizeError."
+  - "docs/ERROR-MODEL.md covers raw SDK, facade, CLI, MCP, and webhooks."
+  - "tests/error-model.test.ts enforces both."
+  - "docs/ERRORS.md cross-links the new doc."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/error-model.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Removing any category name fails the test."
+  - "Dropping a surface section fails the test."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/ERROR-MODEL.md
+    - sdk/docs/ERRORS.md
+  tests:
+    - sdk/tests/error-model.test.ts
+rollback: "Revert this commit; ERRORS.md remains as before."
