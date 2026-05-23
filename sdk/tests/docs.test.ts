@@ -668,6 +668,40 @@ describe("product identity guard", () => {
   });
 });
 
+describe("docs IA", () => {
+  const idx = readFileSync(new URL("../docs/INDEX.md", import.meta.url), "utf8");
+  const sections = [
+    "Start here",
+    "SDK basics",
+    "Facade workflows",
+    "Raw SDK reference",
+    "CLI",
+    "MCP",
+    "Webhooks",
+    "Testing & replay",
+    "Errors",
+    "Releases & support",
+    "Experimental",
+  ];
+  it.each(sections)("INDEX names section %s", (s) => expect(idx).toContain(s));
+
+  it.each([
+    "QUICKSTART.md",
+    "API-REFERENCE.md",
+    "CLI-REFERENCE.md",
+    "MCP-SAFETY.md",
+    "ERROR-MODEL.md",
+    "RESOLVERS.md",
+    "TESTING.md",
+    "STABILITY.md",
+    "SUPPORT.md",
+    "MIGRATING.md",
+    "verification/v0.3.21.md",
+  ])("INDEX links %s", (path) => {
+    expect(idx).toContain(path);
+  });
+});
+
 describe("facade-first docs", () => {
   it("README's first ts code example uses createPumbleClient", () => {
     const firstBlock = readme.match(/```ts\n([\s\S]*?)\n```/);
