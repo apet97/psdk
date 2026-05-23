@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -95,5 +95,12 @@ describe("pumble-mcp curated profile", () => {
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
+  });
+
+  it("live MCP smoke launches the generated curated JS bundle", () => {
+    const source = readFileSync(join(__dirname, "../scripts/run-mcp-live.mjs"), "utf8");
+
+    expect(source).toContain("./bin/pumble-mcp-curated.js");
+    expect(source).not.toContain("./bin/pumble-mcp-curated.mjs");
   });
 });

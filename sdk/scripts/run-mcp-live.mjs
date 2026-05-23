@@ -15,7 +15,7 @@ const channelName = runId.toLowerCase();
 const client = new Client({ name: "pumble-sdk-live-smoke", version: "0.0.0" });
 const transport = new StdioClientTransport({
   command: process.execPath,
-  args: ["./bin/pumble-mcp-curated.mjs", "start", "--api-key-auth", apiKeyAuth],
+  args: ["./bin/pumble-mcp-curated.js", "start", "--api-key-auth", apiKeyAuth],
   cwd: new URL("..", import.meta.url).pathname,
   env: safeChildEnv(env),
   stderr: "pipe",
