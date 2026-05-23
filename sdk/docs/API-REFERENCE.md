@@ -185,6 +185,19 @@ Webhook helpers provide signature verification for signed Pumble callbacks and
 an event handler/router surface for dispatching typed events. Keep raw-body
 middleware in front of webhook verification routes.
 
+### Framework recipes
+
+- [`examples/webhooks/express.ts`](../examples/webhooks/express.ts) — mount `createWebhookHandler` under an express router; do NOT mount `express.json()` first.
+- [`examples/webhooks/fastify.ts`](../examples/webhooks/fastify.ts) — pass `request.raw`/`reply.raw` to the handler; skip the JSON content-type parser for this route.
+- [`examples/webhooks/next-route.ts`](../examples/webhooks/next-route.ts) — App Router route handler with explicit HMAC verification (Next runs on WHATWG `Request`, not Node `IncomingMessage`).
+- [`examples/webhooks/node-http.ts`](../examples/webhooks/node-http.ts) — plain `node:http` server.
+
+Common rules:
+- Body must be raw bytes (no JSON parsing before signature check).
+- Timestamp tolerance is 5 minutes by default; pass `timestampToleranceSeconds` to override.
+- A bad signature returns 401; treat it as a hard reject.
+- Handler exceptions cause Pumble to retry — keep handlers idempotent.
+
 ## Stability
 
 | Import path | Surface | Stability |

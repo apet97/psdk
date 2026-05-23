@@ -1,8 +1,8 @@
 id: G14
 title: Webhook framework examples + tests
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Webhook integration paths vary by framework; users need copy-pastable recipes for express, fastify, Next.js routes, and plain node http."
 scope:
   allowed:
     - sdk/examples/**
@@ -18,12 +18,18 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "examples/webhooks/{express,fastify,next-route,node-http}.ts each export a function."
+  - "tests/webhook-examples.test.ts smoke-imports every example."
+  - "docs/API-REFERENCE.md links every recipe and states the raw-body rule."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/webhook-examples.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Renaming any exported function fails the smoke-import test."
+  - "Removing a recipe from API-REFERENCE.md leaves the example undiscovered."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/API-REFERENCE.md
+  tests:
+    - sdk/tests/webhook-examples.test.ts
+rollback: "Revert this commit; existing webhook-server.ts example still ships."
