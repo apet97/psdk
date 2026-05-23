@@ -28,3 +28,8 @@ generated hunks that each patch leaves in `src/`.
 Remove a patch only after the same behavior is supplied by generator support,
 Speakeasy configuration, templates, or the OpenAPI source, with the guard test
 updated in the same change.
+
+## See also
+
+- `docs/patch-burndown.md` — current patch list + removal conditions.
+- `docs/PATCH-COUNT.txt` — single integer guarded by `tests/patch-burndown.test.ts`.
