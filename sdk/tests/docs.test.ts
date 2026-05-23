@@ -1,6 +1,37 @@
-import { existsSync, globSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import { describe, expect, it, test } from "vitest";
+
+function listMarkdownFiles(
+  cwd: string,
+  isExcluded: (relativePath: string) => boolean,
+): string[] {
+  const found: string[] = [];
+  const stack: string[] = [cwd];
+  while (stack.length > 0) {
+    const dir = stack.pop()!;
+    let entries: import("node:fs").Dirent[];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const absolute = join(dir, entry.name);
+      const rel = relative(cwd, absolute);
+      if (entry.isDirectory()) {
+        if (isExcluded(`${rel}/`)) continue;
+        stack.push(absolute);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      if (!entry.name.endsWith(".md")) continue;
+      if (isExcluded(rel)) continue;
+      found.push(rel);
+    }
+  }
+  return found;
+}
 
 type PackageJson = {
   name: string;
@@ -652,16 +683,14 @@ describe("product identity guard", () => {
     "best-in-class",
   ];
   const ALLOWED_FILES = ["docs/product/sdk-generator-product-boundary.md"];
-  const docFiles = globSync("**/*.md", {
-    cwd: guardRepoRoot,
-    exclude: (path) =>
-      path.includes("node_modules") ||
-      path.includes("esm/") ||
-      path.includes("dist/") ||
-      path.includes(".remember/") ||
-      path.includes("docs/superpowers/") ||
-      path.includes("docs/product/"),
-  });
+  const docFiles = listMarkdownFiles(guardRepoRoot, (rel) =>
+    rel.includes("node_modules") ||
+    rel.includes("esm/") ||
+    rel.includes("dist/") ||
+    rel.includes(".remember/") ||
+    rel.includes("docs/superpowers/") ||
+    rel.includes("docs/product/"),
+  );
 
   it.each(FORBIDDEN)("'%s' appears only in the boundary doc", (phrase) => {
     const hits = docFiles
