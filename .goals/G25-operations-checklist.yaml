@@ -1,12 +1,12 @@
 id: G25
 title: Operations checklist (deployment-side)
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Users need a deployment-side checklist that names what the SDK provides and what the operator must supply, without promising service-level guarantees the SDK cannot offer."
 scope:
   allowed:
     - sdk/docs/OPERATIONS-CHECKLIST.md
-    - sdk/tests/operations-checklist.test.ts
+    - sdk/tests/docs.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -17,12 +17,17 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "docs/OPERATIONS-CHECKLIST.md lists provided/you-provide responsibilities."
+  - "tests/docs.test.ts blocks any SLA/SSO/SCIM/account-manager/premium-support/hosted-control-plane claim from sneaking in."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/docs.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Adding 'SLA' to the doc fails the boundary test."
+  - "Removing the Secret/Audit/Rate-limit bullets fails the coverage test."
 links:
-  docs: []
-  tests: []
+  docs:
+    - sdk/docs/OPERATIONS-CHECKLIST.md
+  tests:
+    - sdk/tests/docs.test.ts
 rollback: "Revert this commit; no production impact until the owning task lands."

@@ -671,6 +671,21 @@ describe("product identity guard", () => {
   });
 });
 
+describe("operations checklist boundary", () => {
+  const ops = readFileSync(new URL("../docs/OPERATIONS-CHECKLIST.md", import.meta.url), "utf8");
+  const NEVER = ["SLA", "SSO", "SCIM", "account manager", "premium support", "hosted control plane"];
+
+  it.each(NEVER)("does not promise %s", (claim) => {
+    expect(ops).not.toContain(claim);
+  });
+
+  it("covers deployment knobs we do provide", () => {
+    expect(ops).toContain("Secret management");
+    expect(ops).toContain("Audit log retention");
+    expect(ops).toContain("Rate-limit coordination");
+  });
+});
+
 describe("docs IA", () => {
   const idx = readFileSync(new URL("../docs/INDEX.md", import.meta.url), "utf8");
   const sections = [
