@@ -101,6 +101,34 @@ describe("package metadata", () => {
 
 import { runSurfaceAudit } from "../scripts/public-surface-audit.mjs";
 
+import { execFileSync } from "node:child_process";
+
+describe("npm pack budget", () => {
+  function pack() {
+    const out = execFileSync("npm", ["pack", "--dry-run", "--json"], {
+      cwd: join(__dirname, ".."),
+      stdio: ["ignore", "pipe", "ignore"],
+    }).toString();
+    return JSON.parse(out)[0] as { size: number; files: Array<{ path: string }> };
+  }
+
+  it("tarball size remains under the budget", () => {
+    const SIZE_BUDGET_BYTES = 2_500_000;
+    expect(pack().size).toBeLessThan(SIZE_BUDGET_BYTES);
+  });
+
+  it("tarball excludes test, script, and example trees", () => {
+    const paths = pack().files.map((f) => f.path);
+    for (const path of paths) {
+      expect(path).not.toMatch(/\.test\.[jt]sx?$/);
+      expect(path).not.toMatch(/(^|\/)tests\//);
+      expect(path).not.toMatch(/(^|\/)scripts\//);
+      expect(path).not.toMatch(/(^|\/)examples\//);
+      expect(path).not.toMatch(/(^|\/)\.speakeasy\//);
+    }
+  });
+});
+
 describe("public surface tiers", () => {
   const report = runSurfaceAudit();
 

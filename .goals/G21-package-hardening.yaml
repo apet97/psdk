@@ -1,13 +1,13 @@
 id: G21
 title: Package contents audit
 priority: P2
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "The tarball must stay lean (< 2.5 MB) and free of tests, scripts, examples, and .speakeasy/ artifacts — those leaks would inflate install size and surface internal scaffolding."
 scope:
   allowed:
     - sdk/package.json
     - sdk/scripts/**
-    - sdk/tests/package-contents.test.ts
+    - sdk/tests/package-metadata.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -18,12 +18,17 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "tests/package-metadata.test.ts enforces a 2.5 MB tarball size budget."
+  - "tests/package-metadata.test.ts asserts the tarball excludes tests/, scripts/, examples/, .speakeasy/ and *.test.* files."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/package-metadata.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Adding tests/ or scripts/ to package.files fails the exclusion test."
+  - "Crossing the 2.5 MB budget fails the size test and forces a deliberate update."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/STABILITY.md
+  tests:
+    - sdk/tests/package-metadata.test.ts
+rollback: "Revert this commit; package contents remain as before."
