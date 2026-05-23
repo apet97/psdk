@@ -236,6 +236,10 @@ surface, and require an audit log:
 PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
 ```
 
+Do not expose this to agents you do not control. The curated profile is the
+default for a reason — see [`docs/MCP-SAFETY.md`](docs/MCP-SAFETY.md) for the
+full safety profile matrix.
+
 SSE is for local HTTP clients. Bind to localhost and require a bearer token:
 
 ```bash

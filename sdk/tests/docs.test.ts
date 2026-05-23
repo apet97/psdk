@@ -668,6 +668,13 @@ describe("product identity guard", () => {
   });
 });
 
+describe("MCP safety guidance", () => {
+  it("README warns against exposing raw readwrite", () => {
+    expect(readme).toMatch(/Do not expose this to agents you do not control/);
+    expect(readme).toMatch(/curated profile/);
+  });
+});
+
 describe("safe search pagination", () => {
   it("API reference recommends searchAllMessages for full walks", () => {
     expect(apiReference).toMatch(/searchAllMessages.*recommended/i);

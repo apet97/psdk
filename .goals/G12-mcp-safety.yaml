@@ -1,13 +1,16 @@
 id: G12
 title: Curated MCP safety doc + snapshot test
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "Agents need a clear safety map: which profile they should run under, which they should not, and what guarantees each one keeps."
 scope:
   allowed:
     - sdk/src/mcp-server/**
     - sdk/docs/MCP-SAFETY.md
-    - sdk/tests/mcp-agent-safety.test.ts
+    - sdk/tests/mcp-tool-manifest.test.ts
+    - sdk/tests/docs.test.ts
+    - sdk/README.md
+    - sdk/package.json
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -18,12 +21,19 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "listCuratedTools() exposes name/kind/requiresConfirmation triples."
+  - "tests/mcp-tool-manifest.test.ts snapshots the curated tool list and fails if a destructive tool name enters."
+  - "docs/MCP-SAFETY.md documents the four profiles and their write semantics."
+  - "README routes agents to the curated profile and warns against raw readwrite."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/mcp-tool-manifest.test.ts tests/docs.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Adding a destructive tool name to the curated list fails the test."
+  - "Removing the readme warning fails docs.test.ts."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/MCP-SAFETY.md
+  tests:
+    - sdk/tests/mcp-tool-manifest.test.ts
+rollback: "Revert this commit; existing curated behavior is unchanged."
