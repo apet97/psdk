@@ -28,13 +28,28 @@ class CliError extends Error {
 
 async function main(argv) {
   const { globals, args } = parseGlobalOptions(argv);
+  if (globals.version) {
+    const pkg = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    );
+    process.stdout.write(`${pkg.version}\n`);
+    return;
+  }
   if (globals.help || args.length === 0) {
     printHelp();
     return;
   }
 
-  const sdk = createClient(globals);
   const [command, ...rest] = args;
+  if (command === "doctor") {
+    return cmdDoctor(globals);
+  }
+  if (command === "help") {
+    printHelp();
+    return;
+  }
+
+  const sdk = createClient(globals);
 
   switch (command) {
     case "whoami":
@@ -57,12 +72,18 @@ async function main(argv) {
       return cmdStatus(sdk, rest, globals);
     case "schedule":
       return cmdSchedule(sdk, rest, globals);
-    case "help":
-      printHelp();
-      return;
     default:
       throw new UsageError(`unknown command: ${command}`);
   }
+}
+
+async function cmdDoctor(globals) {
+  const key = resolveApiKey(globals);
+  const masked = key.length >= 4
+    ? "*".repeat(Math.max(0, key.length - 4)) + key.slice(-4)
+    : "(none)";
+  process.stdout.write(`api key: ${masked}\n`);
+  process.stdout.write(`base url: ${globals.baseURL}\n`);
 }
 
 function parseGlobalOptions(argv) {
@@ -74,6 +95,7 @@ function parseGlobalOptions(argv) {
     timeoutMs: undefined,
     verbose: false,
     help: false,
+    version: false,
   };
   const args = [];
 
@@ -125,6 +147,10 @@ function parseGlobalOptions(argv) {
     }
     if (arg === "-h" || arg === "--help") {
       globals.help = true;
+      continue;
+    }
+    if (arg === "--version") {
+      globals.version = true;
       continue;
     }
     args.push(arg);

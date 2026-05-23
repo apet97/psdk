@@ -312,6 +312,27 @@ describe("pumble CLI", () => {
       PUMBLE_CLI_MOCK_LOG: requestLogPath,
     };
   }
+
+  it("--version prints the package version", async () => {
+    const { stdout } = await execFile("node", [cliPath, "--version"], { cwd: sdkRoot });
+    expect(stdout.trim()).toMatch(/^\d+\.\d+\.\d+/);
+  });
+
+  it("doctor runs without an API key and redacts when one is set", async () => {
+    const noKey = await execFile("node", [cliPath, "doctor"], {
+      cwd: sdkRoot,
+      env: cliEnvNoApiKey(),
+    });
+    expect(noKey.stdout).toContain("api key:");
+    expect(noKey.stdout).toContain("base url:");
+
+    const masked = await execFile("node", [cliPath, "doctor"], {
+      cwd: sdkRoot,
+      env: { ...cliEnvNoApiKey(), PUMBLE_API_KEY: "abcdef1234567890abcdef12" },
+    });
+    expect(masked.stdout).not.toContain("abcdef1234567890abcdef12");
+    expect(masked.stdout).toMatch(/api key: \*+\w{4}/);
+  });
 });
 
 function readJsonl(path: string): Array<Record<string, any>> {

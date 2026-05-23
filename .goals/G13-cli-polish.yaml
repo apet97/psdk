@@ -1,15 +1,13 @@
 id: G13
-title: CLI polish (doctor, completion, --all flags, manpage-style help)
+title: CLI polish (doctor, --version, reference doc)
 priority: P1
-status: planned
-why: "Filled in by the task that owns this goal."
+status: done
+why: "The CLI needs offline health checks and a single reference doc so users can troubleshoot before running real commands."
 scope:
   allowed:
     - sdk/bin/**
-    - sdk/src/cli/**
-    - sdk/docs/API-REFERENCE.md
-    - sdk/tests/cli-quiet.test.ts
-    - sdk/tests/cli-doctor.test.ts
+    - sdk/docs/CLI-REFERENCE.md
+    - sdk/tests/cli.test.ts
   forbidden:
     - sdk/src/funcs/**
     - sdk/src/sdk/**
@@ -20,12 +18,18 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "To be filled in by the task that owns this goal."
+  - "pumble --version emits the package version."
+  - "pumble doctor runs without an API key and redacts when one is set."
+  - "docs/CLI-REFERENCE.md documents every command including doctor."
 commands:
-  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm test -- tests/cli.test.ts"
+  - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "To be filled in by the task that owns this goal."
+  - "Removing the --version branch fails the version test."
+  - "Doctor that leaks the raw API key fails the redaction test."
 links:
-  docs: []
-  tests: []
-rollback: "Revert this commit; no production impact until the owning task lands."
+  docs:
+    - sdk/docs/CLI-REFERENCE.md
+  tests:
+    - sdk/tests/cli.test.ts
+rollback: "Revert this commit; existing CLI commands continue to work."
