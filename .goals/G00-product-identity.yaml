@@ -1,7 +1,7 @@
 id: G00
 title: Lock product identity as Pumble TypeScript SDK / Developer Toolkit
 priority: P0
-status: planned
+status: done
 why: |
   The repo must read in 30 seconds as a Pumble-specific SDK/toolkit, not a
   general OpenAPI generator. Confusion here drains every later improvement.

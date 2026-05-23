@@ -8,6 +8,16 @@ This package is not a general generator for SDKs. The generated raw SDK comes fr
 
 The package source and user docs live in [`sdk/`](sdk/).
 
+## What this is
+
+A **Pumble TypeScript SDK / Developer Toolkit**: one generated raw client from `PumbleOpenApi.yaml`, plus handwritten façade, webhooks, CLI, and curated MCP for Pumble specifically.
+
+## What this is not
+
+- A general SDK generator (use Stainless or Speakeasy for that — see [`docs/product/sdk-generator-product-boundary.md`](docs/product/sdk-generator-product-boundary.md)).
+- A multi-language code generator.
+- A hosted control plane for arbitrary OpenAPI specs.
+
 ## Quick Links
 
 These links point to repository docs under `sdk/`; the npm package includes the

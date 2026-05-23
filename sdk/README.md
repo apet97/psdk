@@ -10,6 +10,16 @@ This package is not a general generator for SDKs. The generated raw SDK comes fr
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## What this is
+
+A **Pumble TypeScript SDK / Developer Toolkit**: one generated raw client from `PumbleOpenApi.yaml`, plus handwritten façade, webhooks, CLI, and curated MCP for Pumble specifically.
+
+## What this is not
+
+- A general generator for SDKs (use Stainless or Speakeasy for that — see [`../docs/product/sdk-generator-product-boundary.md`](../docs/product/sdk-generator-product-boundary.md)).
+- A multi-language code generator.
+- A hosted control plane for arbitrary OpenAPI specs.
+
 ## Install
 
 ```bash
