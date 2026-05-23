@@ -55,6 +55,22 @@ describe("createPumbleClient", () => {
     };
 
     expect(isFacadeFailure(failure)).toBe(true);
+    expect(isFacadeFailure({
+      ok: false,
+      reason: "api_error",
+      summary: "Pumble API rejected messages.send.",
+      choices: [],
+      nextActions: ["Inspect the raw error or retry after correcting the request."],
+      cause: new Error("HTTP 403"),
+    })).toBe(true);
+    expect(isFacadeFailure({
+      ok: false,
+      reason: "transport_error",
+      summary: "Pumble API rejected search.recent.",
+      choices: [],
+      nextActions: ["Inspect the raw error or retry after correcting the request."],
+      cause: new Error("socket reset"),
+    })).toBe(true);
     expect(isFacadeFailure({ ok: true, summary: "Sent." })).toBe(false);
     expect(isFacadeFailure(null)).toBe(false);
   });

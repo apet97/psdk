@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SearchHit } from "../src/models/search-hit.js";
 import { createFacadeWrites } from "../src/extensions/facade-writes.js";
+import { PumbleSDKError } from "../src/models/errors/pumble-sdk-error.js";
 import type {
   ChannelSummary,
   FacadeFailure,
@@ -34,6 +35,14 @@ function createRawMessages() {
       searchMessages: vi.fn(),
     },
   };
+}
+
+function apiError(status: number): PumbleSDKError {
+  return new PumbleSDKError(`HTTP ${status}`, {
+    response: new Response("{}", { status }),
+    request: new Request("https://example.com/pumble"),
+    body: "{}",
+  });
 }
 
 const channelSummary: ChannelSummary = {
@@ -282,6 +291,111 @@ describe("createFacadeWrites", () => {
       text: "do not dm",
     })).resolves.toBe(userAmbiguous);
     expect(raw.messages.dmUser).not.toHaveBeenCalled();
+  });
+
+  it("returns a value failure when generated sendMessage throws", async () => {
+    const raw = createRawMessages();
+    const error = apiError(403);
+    raw.messages.sendMessage.mockRejectedValue(error);
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel: vi.fn().mockResolvedValue({
+        ok: true,
+        summary: "Found channel #general.",
+        ids: { channelId: "channel-1" },
+        channel: channelSummary,
+      }),
+      resolveFacadeUser: vi.fn(),
+    });
+
+    await expect(writes.sendFacadeMessage({
+      channel: "#general",
+      text: "hello",
+    })).resolves.toMatchObject({
+      ok: false,
+      reason: "api_error",
+      summary: "Pumble API rejected messages.send.",
+      choices: [],
+      nextActions: ["Inspect the raw error or retry after correcting the request."],
+      cause: error,
+    });
+  });
+
+  it("returns a value failure when generated dmUser throws", async () => {
+    const raw = createRawMessages();
+    const error = apiError(403);
+    raw.messages.dmUser.mockRejectedValue(error);
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel: vi.fn(),
+      resolveFacadeUser: vi.fn().mockResolvedValue({
+        ok: true,
+        summary: "Found user Example User.",
+        ids: { userId: "user-1" },
+        user: userSummary,
+      }),
+    });
+
+    await expect(writes.dmFacadeUser({
+      user: "user@example.invalid",
+      text: "hello",
+    })).resolves.toMatchObject({
+      ok: false,
+      reason: "api_error",
+      summary: "Pumble API rejected messages.dm.",
+      choices: [],
+      nextActions: ["Inspect the raw error or retry after correcting the request."],
+      cause: error,
+    });
+  });
+
+  it("returns a value failure when generated sendReply throws", async () => {
+    const raw = createRawMessages();
+    const error = apiError(403);
+    raw.messages.sendReply.mockRejectedValue(error);
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel: vi.fn().mockResolvedValue({
+        ok: true,
+        summary: "Found channel #general.",
+        ids: { channelId: "channel-1" },
+        channel: channelSummary,
+      }),
+      resolveFacadeUser: vi.fn(),
+    });
+
+    await expect(writes.replyFacadeThread({
+      channel: "#general",
+      messageId: "root-1",
+      text: "hello",
+    })).resolves.toMatchObject({
+      ok: false,
+      reason: "api_error",
+      summary: "Pumble API rejected threads.reply.",
+      choices: [],
+      nextActions: ["Inspect the raw error or retry after correcting the request."],
+      cause: error,
+    });
+  });
+
+  it("returns a value failure when generated searchMessages throws", async () => {
+    const raw = createRawMessages();
+    const error = new Error("socket reset");
+    raw.messages.searchMessages.mockRejectedValue(error);
+    const writes = createFacadeWrites({
+      raw,
+      resolveFacadeChannel: vi.fn(),
+      resolveFacadeUser: vi.fn(),
+    });
+
+    await expect(writes.searchRecent({ query: "deploy" })).resolves.toMatchObject({
+      ok: false,
+      reason: "transport_error",
+      summary: "Pumble API rejected search.recent.",
+      choices: [],
+      nextActions: ["Inspect the raw error or retry after correcting the request."],
+      cause: error,
+    });
   });
 
   it("accepts typed fixture summaries without widening generated fixtures", () => {

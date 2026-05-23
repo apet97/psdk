@@ -2,8 +2,10 @@
 
 ## Facade failures are values
 
-Facade target problems return `{ ok: false, summary, choices, nextActions }`.
-Use `assertFacadeOk` when you prefer exceptions.
+Facade target problems and facade API/transport failures return
+`{ ok: false, summary, choices, nextActions }`. API and transport failure
+values include `cause` for diagnostics. Use `assertFacadeOk` when you prefer
+exceptions.
 
 ## Raw SDK methods throw
 

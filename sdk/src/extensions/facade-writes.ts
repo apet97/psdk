@@ -6,6 +6,7 @@ import type {
   SendReplyRequest,
 } from "../models/operations/index.js";
 import type { SearchHit } from "../models/search-hit.js";
+import { PumbleSDKError } from "../models/errors/pumble-sdk-error.js";
 import type {
   ChannelSummary,
   FacadeFailure,
@@ -21,7 +22,10 @@ import type {
   FacadeThreadReplyReceipt,
   UserSummary,
 } from "./client.js";
-import { createFacadeInvalidRequest } from "./facade-failure.js";
+import {
+  createFacadeInvalidRequest,
+  createFacadeOperationFailure,
+} from "./facade-failure.js";
 
 interface FacadeWriteRawClient {
   messages: {
@@ -53,6 +57,23 @@ function displayUser(user: UserSummary): string {
   return user.name.trim().length > 0 ? user.name : user.email;
 }
 
+const operationFailureNextAction = "Inspect the raw error or retry after correcting the request.";
+
+function operationFailureReason(error: unknown): "api_error" | "transport_error" {
+  if (error instanceof PumbleSDKError) return "api_error";
+  const statusCode = (error as { statusCode?: unknown } | null)?.statusCode;
+  return typeof statusCode === "number" ? "api_error" : "transport_error";
+}
+
+function isFacadeOperationFailure<T>(
+  value: T | FacadeFailure<never>,
+): value is FacadeFailure<never> {
+  return typeof value === "object"
+    && value !== null
+    && "ok" in value
+    && value.ok === false;
+}
+
 export function createFacadeWrites({
   raw,
   resolveFacadeChannel,
@@ -76,7 +97,15 @@ export function createFacadeWrites({
     const message = await raw.messages.sendMessage({
       ...rest,
       channelId: resolved.channel.id,
-    }, options);
+    }, options).catch((error: unknown) =>
+      createFacadeOperationFailure(
+        operationFailureReason(error),
+        "Pumble API rejected messages.send.",
+        operationFailureNextAction,
+        error,
+      )
+    );
+    if (isFacadeOperationFailure(message)) return message;
     return {
       ok: true,
       summary: `Sent message ${message.id} to ${displayChannel(resolved.channel)}.`,
@@ -97,7 +126,15 @@ export function createFacadeWrites({
     const message = await raw.messages.dmUser({
       ...rest,
       userId: resolved.user.id,
-    }, options);
+    }, options).catch((error: unknown) =>
+      createFacadeOperationFailure(
+        operationFailureReason(error),
+        "Pumble API rejected messages.dm.",
+        operationFailureNextAction,
+        error,
+      )
+    );
+    if (isFacadeOperationFailure(message)) return message;
     return {
       ok: true,
       summary: `Sent DM ${message.id} to ${displayUser(resolved.user)}.`,
@@ -129,7 +166,15 @@ export function createFacadeWrites({
     const message = await raw.messages.sendReply({
       ...rest,
       channelId: resolved.channel.id,
-    }, options);
+    }, options).catch((error: unknown) =>
+      createFacadeOperationFailure(
+        operationFailureReason(error),
+        "Pumble API rejected threads.reply.",
+        operationFailureNextAction,
+        error,
+      )
+    );
+    if (isFacadeOperationFailure(message)) return message;
     return {
       ok: true,
       summary: `Replied with ${message.id} in ${displayChannel(resolved.channel)}.`,
@@ -153,7 +198,16 @@ export function createFacadeWrites({
       limit,
       strategy: "MOST_RECENT",
     };
-    const page = await raw.messages.searchMessages(searchRequest, options);
+    const page = await raw.messages.searchMessages(searchRequest, options)
+      .catch((error: unknown) =>
+        createFacadeOperationFailure(
+          operationFailureReason(error),
+          "Pumble API rejected search.recent.",
+          operationFailureNextAction,
+          error,
+        )
+      );
+    if (isFacadeOperationFailure(page)) return page;
     const data = page.result.content.slice(0, limit);
     return {
       ok: true,

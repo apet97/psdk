@@ -139,12 +139,16 @@ export interface FacadeSearchRecentRequest {
   limit?: number | undefined;
 }
 
-export interface FacadeSearchRecentResult {
+export interface FacadeSearchRecentSuccess {
   ok: true;
   summary: string;
   ids: { messageIds: string[]; channelIds: string[] };
   data: SearchHit[];
 }
+
+export type FacadeSearchRecentResult =
+  | FacadeSearchRecentSuccess
+  | FacadeFailure<never>;
 
 export type FacadeFindChannelResult =
   | {

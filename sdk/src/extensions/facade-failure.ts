@@ -5,7 +5,12 @@ import {
   type ResolveUserCandidate,
 } from "./resolve.js";
 
-export type FacadeFailureReason = "not_found" | "ambiguous" | "invalid_request";
+export type FacadeFailureReason =
+  | "not_found"
+  | "ambiguous"
+  | "invalid_request"
+  | "api_error"
+  | "transport_error";
 
 export interface FacadeFailure<TChoice> {
   ok: false;
@@ -13,6 +18,7 @@ export interface FacadeFailure<TChoice> {
   summary: string;
   choices: TChoice[];
   nextActions: string[];
+  cause?: unknown;
 }
 
 export function isFacadeFailure(value: unknown): value is FacadeFailure<unknown> {
@@ -23,10 +29,28 @@ export function isFacadeFailure(value: unknown): value is FacadeFailure<unknown>
       candidate.reason === "not_found"
       || candidate.reason === "ambiguous"
       || candidate.reason === "invalid_request"
+      || candidate.reason === "api_error"
+      || candidate.reason === "transport_error"
     )
     && typeof candidate.summary === "string"
     && Array.isArray(candidate.choices)
     && Array.isArray(candidate.nextActions);
+}
+
+export function createFacadeOperationFailure(
+  reason: "api_error" | "transport_error",
+  summary: string,
+  nextAction: string,
+  error: unknown,
+): FacadeFailure<never> {
+  return {
+    ok: false,
+    reason,
+    summary,
+    choices: [],
+    nextActions: [nextAction],
+    cause: error,
+  };
 }
 
 export function assertFacadeOk<
