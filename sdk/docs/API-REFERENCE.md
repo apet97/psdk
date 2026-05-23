@@ -21,6 +21,17 @@ Raw resource groups:
 
 Raw SDK methods throw SDK errors.
 
+API-key SDK auth is stable for Node.js applications.
+
+```mermaid
+flowchart LR
+  spec["OpenAPI spec"] --> raw["Raw SDK"]
+  raw --> facade["Facade"]
+  raw --> cli["CLI"]
+  facade --> mcp["Curated MCP"]
+  raw --> hooks["Webhooks/App"]
+```
+
 ## Facade
 
 Use the facade for application flows that benefit from target resolution,
@@ -84,8 +95,11 @@ windows.
 The default agent profile is curated:
 
 ```bash
-pumble-mcp start --profile curated
+pumble-mcp start --transport stdio --profile curated
 ```
+
+`pumble-mcp start --profile curated` also selects the curated profile with the
+local stdio default.
 
 Stdio is the local default transport for MCP clients. SSE binds to `127.0.0.1`
 by default and supports optional bearer auth:
@@ -128,3 +142,5 @@ middleware in front of webhook verification routes.
 | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |
 | Package split | Future packaging shape | Experimental |
 | Generated internals and patch scripts | Generated/runtime maintenance | Internal |
+
+OAuth/app helpers are experimental utilities; they do not provide a complete install, token refresh, storage, and workspace-selection flow.

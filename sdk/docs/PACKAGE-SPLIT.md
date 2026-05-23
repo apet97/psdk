@@ -40,6 +40,9 @@ every future package.
 
 Latest dry-run gate: package split is blocked.
 
+Extraction is blocked until package boundaries, docs, pack smoke, and
+migration tests are ready.
+
 Evidence recorded for this decision:
 
 - `npm run verify:offline` passes.

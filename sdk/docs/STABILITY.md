@@ -15,6 +15,7 @@
 ## Stable
 
 - Raw generated SDK imports from `pumble-sdk`.
+- API-key SDK auth.
 - Facade helpers from `pumble-sdk/extensions/index.js`.
 - Webhook verification helpers.
 - Curated MCP stdio/read tools and confirmed writes.
@@ -28,7 +29,7 @@
 
 ## Experimental
 
-- OAuth helpers.
+- OAuth/app helpers are experimental utilities; they do not provide a complete install, token refresh, storage, and workspace-selection flow.
 - App framework helpers.
 - Socket Mode is experimental. A WebSocket transport is not bundled. Callers
   must inject `createSocket` after choosing and testing a transport.

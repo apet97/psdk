@@ -45,6 +45,11 @@ Use exact IDs when you already have them; exact IDs avoid ambiguity. Enable
 writes in large workspaces. The cache has no TTL, no background refresh, and no
 persistence.
 
+`resolverCache` defaults to `false`. When enabled, each client keeps one in-memory `listChannels` promise
+and one in-memory `listUsers` promise. Use
+manual `refresh()` and `clearCache()` to preload or discard those resolver
+lists.
+
 ## MCP Integration
 
 - `pumble-mcp start` defaults to the curated profile.

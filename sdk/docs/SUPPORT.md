@@ -9,5 +9,5 @@ Experimental surfaces are listed in `docs/STABILITY.md`.
 
 ## Browser support
 
-The package is tested for Node.js 20 or newer. Browser use is not a supported
-target unless a specific workflow has its own browser test.
+The package is tested for Node.js 20 or newer. Browser support is not claimed
+or supported unless a specific workflow has its own browser test.

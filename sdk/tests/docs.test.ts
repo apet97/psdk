@@ -18,6 +18,7 @@ const stability = readFileSync(new URL("../docs/STABILITY.md", import.meta.url),
 const errorsGuide = readFileSync(new URL("../docs/ERRORS.md", import.meta.url), "utf8");
 const apiReference = readFileSync(new URL("../docs/API-REFERENCE.md", import.meta.url), "utf8");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+const rootReadme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
 const changelog = readFileSync(new URL("../../CHANGELOG.md", import.meta.url), "utf8");
 const context = readFileSync(new URL("../../CONTEXT.md", import.meta.url), "utf8");
 const packageJson = JSON.parse(
@@ -472,6 +473,89 @@ describe("docs", () => {
     expect(integrationUsage).toContain("listUsers");
     expect(integrationUsage).toContain("exact IDs avoid ambiguity");
     expect(integrationUsage).toContain("no TTL");
+  });
+
+  test("product docs use pumble-sdk naming and keep examples repository-scoped", () => {
+    for (const markdown of [
+      rootReadme,
+      readme,
+      apiReference,
+      integrationUsage,
+      packageSplit,
+      stability,
+      errorsGuide,
+    ]) {
+      expect(markdown).toContain("pumble-sdk");
+      expect(markdown).not.toMatch(/\bpsdk\b/i);
+    }
+
+    expect(readme).toContain("Repository examples live in the source tree under `examples/`");
+    expect(readme).toContain("They are not included in the npm tarball");
+  });
+
+  test("docs mark app and oauth helpers experimental without complete flow claims", () => {
+    for (const markdown of [apiReference, stability]) {
+      expect(markdown).toContain(
+        "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
+      );
+      expect(markdown).toContain("OAuth/app helpers are experimental utilities");
+      expect(markdown).toContain(
+        "do not provide a complete install, token refresh, storage, and workspace-selection flow",
+      );
+    }
+
+    expect(apiReference).toContain("API-key SDK auth is stable");
+  });
+
+  test("cli docs include help, stdio, and local sse token examples", () => {
+    for (const phrase of [
+      "pumble --help",
+      "pumble-mcp start --help",
+      "--transport stdio",
+      "--transport sse",
+      "--host 127.0.0.1",
+      "--auth-token \"$PUMBLE_MCP_TOKEN\"",
+    ]) {
+      expect(apiReference).toContain(phrase);
+      expect(readme).toContain(phrase);
+    }
+  });
+
+  test("api reference includes a compact sdk architecture diagram", () => {
+    expect(apiReference).toContain("```mermaid");
+    for (const label of [
+      "OpenAPI spec",
+      "Raw SDK",
+      "Facade",
+      "CLI",
+      "Curated MCP",
+      "Webhooks/App",
+    ]) {
+      expect(apiReference).toContain(label);
+    }
+  });
+
+  test("resolver cache docs state defaults, promise shape, and manual controls", () => {
+    for (const markdown of [readme, integrationUsage]) {
+      expect(markdown).toContain("resolverCache` defaults to `false`");
+      expect(markdown).toContain("one in-memory `listChannels` promise");
+      expect(markdown).toContain("one in-memory `listUsers` promise");
+      expect(markdown).toContain("no TTL");
+      expect(markdown).toContain("manual `refresh()` and `clearCache()`");
+    }
+  });
+
+  test("package split remains blocked on concrete release gates", () => {
+    for (const phrase of [
+      "package split is blocked",
+      "package boundaries",
+      "docs",
+      "pack smoke",
+      "migration tests",
+    ]) {
+      expect(packageSplit).toContain(phrase);
+    }
+    expect(packageSplit).not.toMatch(/now publishes|already split|split packages now/i);
   });
 
   test("root contribution and runtime docs exist", () => {

@@ -101,10 +101,11 @@ await pumble.resolvers.preflight({ channel: "#general", user: "ada@example.com" 
 pumble.resolvers.clearCache();
 ```
 
-`resolverCache` defaults to `false`. When enabled, it keeps one in-memory
-`listChannels` result and one in-memory `listUsers` result per client instance.
-There is no TTL, persistence, background refresh, or hidden invalidation except
-that a failed list promise is cleared so the next facade call can retry.
+`resolverCache` defaults to `false`. When enabled, it keeps one in-memory `listChannels` promise
+and one in-memory `listUsers` promise per client instance. There is no TTL, persistence, background refresh, or hidden
+invalidation except that a failed list promise is cleared so the next facade
+call can retry. Use manual `refresh()` and `clearCache()` when you need to
+preload or discard cached resolver lists.
 
 ## Raw SDK Usage
 
@@ -130,6 +131,7 @@ The package ships a `pumble` binary for one-shot shell use:
 ```bash
 export PUMBLE_API_KEY="<pumble-api-key>"
 
+pumble --help
 pumble whoami
 pumble channels list
 pumble channels find general
@@ -153,6 +155,8 @@ exposes the task-oriented tools (`whoami`, `find_channel`, `find_user`,
 `get_thread_context`) and keeps writes behind preview/confirmation tools:
 
 ```bash
+pumble-mcp start --help
+
 npx -y --package pumble-sdk -- pumble-mcp start \
   --transport stdio \
   --profile curated
@@ -168,6 +172,15 @@ npx -y --package pumble-sdk -- pumble-mcp start \
 
 Use `readwrite` only when you intentionally want the raw generated endpoint
 surface.
+
+SSE is for local HTTP clients. Bind to localhost and require a bearer token:
+
+```bash
+npx -y --package pumble-sdk -- pumble-mcp start \
+  --transport sse \
+  --host 127.0.0.1 \
+  --auth-token "$PUMBLE_MCP_TOKEN"
+```
 
 Example MCP client config:
 
@@ -254,7 +267,6 @@ temporary app, and checks the exported package surface and bins.
 - Package split planning is tracked in
   [`docs/PACKAGE-SPLIT.md`](docs/PACKAGE-SPLIT.md). This repository currently publishes one package: `pumble-sdk`.
 
-More examples are in [`docs/QUICKSTART.md`](docs/QUICKSTART.md). Repository
-examples live in the source tree under `examples/`. They are not included in
-the npm tarball. Integration guidance is in
+More examples are in [`docs/QUICKSTART.md`](docs/QUICKSTART.md). Repository examples live in the source tree under `examples/`.
+They are not included in the npm tarball. Integration guidance is in
 [`docs/INTEGRATION-USAGE.md`](docs/INTEGRATION-USAGE.md).

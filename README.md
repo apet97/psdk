@@ -12,6 +12,7 @@ SDK docs listed by `sdk/package.json`.
 - [SDK README](sdk/README.md)
 - [Quickstart](sdk/docs/QUICKSTART.md)
 - [Integration usage](sdk/docs/INTEGRATION-USAGE.md)
+- [Repository examples](sdk/examples/README.md)
 - [API reference](sdk/docs/API-REFERENCE.md)
 - [Support](sdk/docs/SUPPORT.md)
 - [Security](SECURITY.md)
