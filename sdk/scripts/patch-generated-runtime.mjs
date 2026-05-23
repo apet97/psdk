@@ -6,6 +6,29 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const sdkRoot = resolve(__dirname, "..");
 
+const PATCH_REGISTRY = [
+  {
+    id: "non-idempotent-write-retries",
+    purpose: "Remove default retries from non-idempotent generated write operations.",
+  },
+  {
+    id: "debug-redaction",
+    purpose: "Redact sensitive headers and bodies in generated debug output.",
+  },
+  {
+    id: "malformed-json-response",
+    purpose: "Wrap malformed JSON responses in ResponseValidationError.",
+  },
+  {
+    id: "outbound-write-validation",
+    purpose: "Validate generated write request bodies before sending.",
+  },
+  {
+    id: "retry-backoff-first-delay",
+    purpose: "Start non-Retry-After generated backoff after the initial interval.",
+  },
+];
+
 const unsafeWriteFunctionFiles = [
   "src/funcs/messages-send-message.ts",
   "src/funcs/messages-send-reply.ts",

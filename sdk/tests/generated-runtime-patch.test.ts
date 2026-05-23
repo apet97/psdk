@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -13,7 +13,41 @@ const unsafeWriteFunctions = [
   "scheduled-messages-create-scheduled-message.ts",
 ];
 
+const expectedPatchIds = [
+  "non-idempotent-write-retries",
+  "debug-redaction",
+  "malformed-json-response",
+  "outbound-write-validation",
+  "retry-backoff-first-delay",
+];
+
 describe("generated runtime patch", () => {
+  it("keeps a compact patch registry in the patch script", () => {
+    const source = readFileSync(join(__dirname, "../scripts/patch-generated-runtime.mjs"), "utf8");
+
+    expect(source).toContain("const PATCH_REGISTRY =");
+    for (const id of expectedPatchIds) {
+      expect(source).toContain(id);
+    }
+  });
+
+  it("documents accepted generated runtime patches in ADR 0008", () => {
+    const adrPath = join(__dirname, "../docs/adr/0008-generated-runtime-patches.md");
+    expect(existsSync(adrPath)).toBe(true);
+
+    const markdown = readFileSync(adrPath, "utf8");
+    for (const phrase of [
+      "Status: Accepted",
+      "## Context",
+      "## Accepted Patches",
+      "## Test Requirement",
+      "## Exit Condition",
+      ...expectedPatchIds,
+    ]) {
+      expect(markdown).toContain(phrase);
+    }
+  });
+
   it("keeps message-creating writes without default retry codes", () => {
     for (const fileName of unsafeWriteFunctions) {
       const source = readFileSync(join(__dirname, "../src/funcs", fileName), "utf8");
