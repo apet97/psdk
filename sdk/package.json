@@ -130,6 +130,12 @@
     "test:live:replay": "PUMBLE_REPLAY=search-all-live NODE_OPTIONS=\"--import ./scripts/replayer.mjs\" vitest run tests/search-all.test.ts",
     "test:mcp:safety": "vitest run tests/mcp-agent-safety.test.ts",
     "test:pack": "node scripts/pack-smoke.mjs",
+    "test:unit": "vitest run tests/categorize-error.test.ts tests/resolve.test.ts tests/with-retries.test.ts tests/rate-limiter.test.ts tests/retries.test.ts tests/extensions.test.ts tests/facade-internals.test.ts tests/facade-writes.test.ts tests/client-facade.test.ts tests/client-resolver-cache.test.ts tests/thread-context.test.ts tests/webhooks.test.ts tests/socket-mode.test.ts tests/pumble-app.test.ts tests/telemetry.test.ts tests/testing-helpers.test.ts tests/write-plan.test.ts",
+    "test:docs": "vitest run tests/docs.test.ts tests/release-evidence.test.ts tests/patch-burndown.test.ts tests/ci-gates.test.ts tests/spec-quality-audit.test.ts tests/goal-registry.test.ts",
+    "test:guards": "vitest run tests/generated-runtime-patch.test.ts tests/generated-request-validation.test.ts tests/response-validation.test.ts tests/debug-redaction.test.ts",
+    "test:smoke": "vitest run tests/package-metadata.test.ts tests/examples.test.ts tests/package-split-dry-run.test.ts tests/ci-workflow.test.ts tests/release-workflow.test.ts",
+    "test:mcp": "vitest run tests/mcp-agent-safety.test.ts tests/mcp-curated-read-tools.test.ts tests/mcp-curated-resources.test.ts tests/mcp-curated-targets.test.ts tests/mcp-curated-write-tools.test.ts tests/mcp-tool-manifest.test.ts tests/pumble-mcp.test.ts tests/pumble-mcp-curated.test.ts tests/dry-run-shim.test.ts",
+    "test:cli": "vitest run tests/cli.test.ts",
     "fixtures:minimize": "node scripts/minimize-fixtures.mjs",
     "bench:smoke": "node scripts/perf-smoke.mjs",
     "package-split:dry-run": "node scripts/package-split-dry-run.mjs"

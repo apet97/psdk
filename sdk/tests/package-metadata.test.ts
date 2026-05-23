@@ -82,6 +82,7 @@ describe("package metadata", () => {
       "docs/API-REFERENCE.md",
       "docs/ERRORS.md",
       "docs/INTEGRATION-USAGE.md",
+      "docs/MCP-SAFETY.md",
       "docs/PACKAGE-SPLIT.md",
       "docs/QUICKSTART.md",
       "docs/STABILITY.md",
