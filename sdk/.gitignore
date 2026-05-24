@@ -20,6 +20,7 @@
 /dist
 /.tsbuildinfo
 /.eslintcache
+/coverage
 /.tshy
 /.tshy-*
 /__tests__

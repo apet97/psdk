@@ -126,6 +126,18 @@ jobs:
         working-directory: sdk
         run: npm run verify:offline
 
+      - name: Coverage gate (handwritten tree)
+        # Runs vitest with --coverage and applies the threshold floor
+        # configured in sdk/vitest.config.ts. Gates the handwritten
+        # src/extensions/** and src/mcp-server/curated/** tree only;
+        # generated code is intentionally excluded (Speakeasy unit-tests
+        # the emitted code and SDKP exercises it at the
+        # integration/replay level via arazzo). Kept out of verify:offline
+        # so local dev iterations stay fast - run npm run test:coverage
+        # locally before pushing if you've added handwritten code.
+        working-directory: sdk
+        run: npm run test:coverage
+
       - name: CI gate summary
         if: always()
         env:
