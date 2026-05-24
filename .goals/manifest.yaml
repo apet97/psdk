@@ -54,3 +54,4 @@ goals:
   - { id: G29, file: G29-native-knowledge.yaml }
   - { id: G30, file: G30-upstream-knowledge.yaml }
   - { id: G31, file: G31-mcp-knowledge-resources.yaml }
+  - { id: G32, file: G32-mcp-knowledge-prompts.yaml }

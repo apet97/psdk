@@ -292,10 +292,14 @@ describe("curated MCP resources and prompts", () => {
     expect(CURATED_PROMPT_NAMES).toEqual([
       "summarize_thread",
       "draft_reply",
+      "write_pumble_handler",
+      "debug_pumble_webhook",
     ]);
     expect([...server.prompts.keys()]).toEqual([
       "summarize_thread",
       "draft_reply",
+      "write_pumble_handler",
+      "debug_pumble_webhook",
     ]);
 
     const summary = promptText(await invokePrompt(server, "summarize_thread", {

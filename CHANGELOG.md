@@ -58,6 +58,15 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
   `Notification*` event type. Both templates expose a `list` callback
   so MCP clients can enumerate the knowledge tree at runtime.
   `CURATED_RESOURCE_NAMES` exports both new names.
+- Curated MCP server registers two new prompts:
+  `write_pumble_handler` (args: `event`, optional `language` defaulting
+  to `typescript`) emits a handler skeleton that reads
+  `pumble://events/{event}` and imports from
+  `pumble-keys-sdk/extensions/index.js`; and `debug_pumble_webhook`
+  (args: `payloadJson`) walks an agent through type discrimination
+  using the upstream README and the per-event resources, rejecting
+  unparseable JSON before producing guidance. `CURATED_PROMPT_NAMES`
+  exports both new names.
 
 ### Governance
 

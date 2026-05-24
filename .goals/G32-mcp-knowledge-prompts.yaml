@@ -1,0 +1,45 @@
+id: G32
+title: Curated MCP exposes write_pumble_handler and debug_pumble_webhook prompts
+priority: P1
+status: done
+why: "Resources let agents read knowledge; prompts let agents act on it. Two new prompts cover the most common agent workflows — generate a handler skeleton for a Pumble event, and walk through an unknown webhook payload."
+scope:
+  allowed:
+    - sdk/src/mcp-server/curated/prompts.ts
+    - sdk/tests/mcp-knowledge-prompts.test.ts
+    - sdk/tests/mcp-curated-resources.test.ts
+    - sdk/docs/MCP-SAFETY.md
+    - CHANGELOG.md
+    - .goals/G32-mcp-knowledge-prompts.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+    - sdk/knowledge/**
+acceptance:
+  - "registerCuratedPrompts adds two prompts: write_pumble_handler (args: event, language=typescript) and debug_pumble_webhook (args: payloadJson)"
+  - "CURATED_PROMPT_NAMES includes both new names"
+  - "Prompt output for write_pumble_handler references the pumble://events/{event} resource"
+  - "Prompt output for debug_pumble_webhook walks through type discrimination using the knowledge resources"
+  - "tests/mcp-knowledge-prompts.test.ts covers: prompts list, prompts/get for each new prompt with valid args, validation rejects empty event name, payloadJson must be JSON"
+  - "docs/MCP-SAFETY.md adds a 'Knowledge prompts' section listing the prompts"
+  - "npm run verify:offline exits 0"
+commands:
+  - "cd sdk && npm test -- tests/mcp-knowledge-prompts.test.ts"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Prompt with empty event arg is rejected via zod"
+  - "Generated handler skeleton imports the canonical extension barrel; no invented exports"
+  - "debug_pumble_webhook payload arg is validated as parseable JSON"
+links:
+  docs:
+    - sdk/docs/MCP-SAFETY.md
+  tests:
+    - sdk/tests/mcp-knowledge-prompts.test.ts
+rollback: "git revert <commit-sha>"
