@@ -5,6 +5,28 @@ the addon's working tree. The agent reads the SDKP repo as its
 reference, runs an adversarial review, fixes what's safe, flags what
 needs decisions, and drives the addon to a ship-ready state.
 
+## Single-theme alternative
+
+If you want a focused audit on one concern (instead of the full
+end-to-end finalize workflow), use the themed prompts in this
+directory. Each is standalone and runnable on its own:
+
+- [`stability.md`](stability.md) - error handling, crash resilience,
+  outbound HTTP failure, webhook durability, audit log behaviour.
+- [`security.md`](security.md) - secret hygiene, logging redaction,
+  webhook signature path, MCP boundary, attribution + licensing,
+  authorization, network.
+- [`code-quality.md`](code-quality.md) - type safety, interface
+  consistency, generated/handwritten boundary, test taxonomy, lint
+  hygiene, naming drift, forbidden phrases, commit + PR hygiene.
+- [`performance.md`](performance.md) - hot-path latency (ack budget),
+  tarball size, dependency footprint, hot-path memory, SQLite,
+  concurrency, replay + bench smoke.
+
+The end-to-end workflow below subsumes all four. Use it when you
+want a single review pass that lands a ship-ready PR; use the themed
+prompts when you want to spot-check one dimension.
+
 ---
 
 ## Inputs you must fill in before starting
