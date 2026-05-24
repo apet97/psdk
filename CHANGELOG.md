@@ -21,6 +21,15 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
 
 ### Governance
 
+- Added `THIRD_PARTY_NOTICES.md` and `sdk/scripts/attribution-audit.mjs`
+  to scaffold the upcoming knowledge lift from `CAKE-com/pumble-node-sdk`
+  (ISC). The audit fails the offline pipeline when an upstream-derived
+  file is missing the attribution header or when the notices file falls
+  out of sync with `sdk/knowledge/upstream/`. `verify:offline` now runs
+  the audit immediately after `goals:check`.
+
+### Governance
+
 - Added `.goals/` registry: one YAML per goal (G00–G25), validated by `sdk/scripts/goal-check.mjs` and spliced into `verify:offline`.
 
 ### Docs

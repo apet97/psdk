@@ -145,7 +145,7 @@ typescript:
         optional: true
   additionalScripts:
     verify: npm run verify:offline && npm run verify:live
-    verify:offline: npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke
+    verify:offline: npm run goals:check && node scripts/attribution-audit.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke
     verify:live: node scripts/verify-live.mjs
     spec:audit: node scripts/spec-quality-audit.mjs
     prebuild: node scripts/normalize-package.mjs
