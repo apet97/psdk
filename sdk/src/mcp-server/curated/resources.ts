@@ -1,3 +1,6 @@
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   type McpServer,
   ResourceTemplate,
@@ -16,10 +19,29 @@ import type { CuratedClient } from "./types.js";
 
 const DEFAULT_RESOURCE_LIMIT = 10;
 const JSON_MIME_TYPE = "application/json";
+const MARKDOWN_MIME_TYPE = "text/markdown";
+const TYPESCRIPT_MIME_TYPE = "text/x-typescript";
+const PLAIN_MIME_TYPE = "text/plain";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+// resources.ts -> mcp-server/curated -> mcp-server -> src -> sdk root
+const KNOWLEDGE_ROOT = resolve(__dirname, "..", "..", "..", "knowledge");
+
+const EVENT_NAMES = [
+  "Message",
+  "Reaction",
+  "Channel",
+  "AppUninstalled",
+  "AppUnauthorized",
+  "WorkspaceUserJoined",
+] as const;
 
 export const CURATED_RESOURCE_NAMES = [
   "pumble_channel",
   "pumble_thread",
+  "pumble_knowledge_file",
+  "pumble_event",
 ] as const;
 
 type ResourceExtra = RequestHandlerExtra<ServerRequest, ServerNotification>;
@@ -212,4 +234,111 @@ export function registerCuratedResources(
       });
     },
   );
+
+  server.registerResource(
+    "pumble_knowledge_file",
+    new ResourceTemplate("pumble://knowledge/{+path}", {
+      list: async () => ({
+        resources: walkKnowledge(KNOWLEDGE_ROOT).map((rel) => ({
+          uri: `pumble://knowledge/${rel.replaceAll(sep, "/")}`,
+          name: rel,
+          mimeType: mimeForKnowledge(rel),
+        })),
+      }),
+    }),
+    {
+      description:
+        "Static Pumble knowledge: native curated docs plus upstream-attributed " +
+        "type definitions from CAKE-com/pumble-node-sdk.",
+    },
+    async (uri, variables) => {
+      const requested = resourceVariable(variables, "path");
+      const resolved = resolve(KNOWLEDGE_ROOT, requested);
+      const knowledgeRootWithSep = KNOWLEDGE_ROOT.endsWith(sep)
+        ? KNOWLEDGE_ROOT
+        : `${KNOWLEDGE_ROOT}${sep}`;
+      if (!resolved.startsWith(knowledgeRootWithSep)) {
+        throw new Error(`refused path-traversal: ${requested}`);
+      }
+      if (!existsSync(resolved)) {
+        throw new Error(`unknown knowledge path: ${requested}`);
+      }
+      return {
+        contents: [{
+          uri: uri.toString(),
+          mimeType: mimeForKnowledge(requested),
+          text: readFileSync(resolved, "utf8"),
+        }],
+      };
+    },
+  );
+
+  server.registerResource(
+    "pumble_event",
+    new ResourceTemplate("pumble://events/{name}", {
+      list: async () => ({
+        resources: EVENT_NAMES.map((n) => ({
+          uri: `pumble://events/${n}`,
+          name: `Notification${n}`,
+          mimeType: MARKDOWN_MIME_TYPE,
+        })),
+      }),
+    }),
+    {
+      description:
+        "Convenience wrapper for one of Pumble's typed Notification* event " +
+        "payloads, with the upstream field glossary inlined.",
+    },
+    async (uri, variables) => {
+      const name = resourceVariable(variables, "name");
+      if (!EVENT_NAMES.includes(name as (typeof EVENT_NAMES)[number])) {
+        throw new Error(`unknown event: ${name}`);
+      }
+      const typesPath = resolve(KNOWLEDGE_ROOT, "upstream", "events", "index.ts");
+      const types = existsSync(typesPath) ? readFileSync(typesPath, "utf8") : "";
+      const body = [
+        `# Pumble event: Notification${name}`,
+        "",
+        "Lifted typed payload from `CAKE-com/pumble-node-sdk` (ISC). See",
+        "`sdk/knowledge/upstream/events/README.md` for the short-form field glossary.",
+        "",
+        "```typescript",
+        types,
+        "```",
+        "",
+      ].join("\n");
+      return {
+        contents: [{
+          uri: uri.toString(),
+          mimeType: MARKDOWN_MIME_TYPE,
+          text: body,
+        }],
+      };
+    },
+  );
+}
+
+function walkKnowledge(root: string): string[] {
+  if (!existsSync(root)) return [];
+  const stat = statSync(root);
+  if (!stat.isDirectory()) return [];
+  const out: string[] = [];
+  const stack: string[] = [root];
+  while (stack.length > 0) {
+    const dir = stack.pop()!;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const abs = join(dir, entry.name);
+      if (entry.isDirectory()) stack.push(abs);
+      else if (entry.isFile()) out.push(relative(root, abs));
+    }
+  }
+  return out.sort();
+}
+
+function mimeForKnowledge(path: string): string {
+  if (path.endsWith(".md")) return MARKDOWN_MIME_TYPE;
+  if (path.endsWith(".ts") || path.endsWith(".mts") || path.endsWith(".tsx")) {
+    return TYPESCRIPT_MIME_TYPE;
+  }
+  return PLAIN_MIME_TYPE;
 }

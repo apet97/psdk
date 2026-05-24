@@ -165,6 +165,8 @@ describe("curated MCP resources and prompts", () => {
     expect(CURATED_RESOURCE_NAMES).toEqual([
       "pumble_channel",
       "pumble_thread",
+      "pumble_knowledge_file",
+      "pumble_event",
     ]);
     expect(templateUri(server.resources.get("pumble_channel")?.template)).toBe(
       "pumble://channel/{channelId}",

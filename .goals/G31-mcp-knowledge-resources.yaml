@@ -1,0 +1,47 @@
+id: G31
+title: MCP exposes pumble://knowledge/* and pumble://events/* resources
+priority: P1
+status: done
+why: "Today an agent must be told Pumble's field-name conventions via CLAUDE.md. With knowledge files on disk (G29 + G30), expose them through MCP resources so an agent connecting to pumble-keys-mcp can discover and read them at runtime."
+scope:
+  allowed:
+    - sdk/src/mcp-server/curated/resources.ts
+    - sdk/tests/mcp-knowledge-resources.test.ts
+    - sdk/tests/mcp-curated-resources.test.ts
+    - sdk/docs/MCP-SAFETY.md
+    - CHANGELOG.md
+    - .goals/G31-mcp-knowledge-resources.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+    - sdk/knowledge/**
+    - PumbleOpenApi.yaml
+acceptance:
+  - "Curated MCP registers two new resource templates: pumble://knowledge/{+path} and pumble://events/{name}"
+  - "CURATED_RESOURCE_NAMES exports the new names alongside pumble_channel and pumble_thread"
+  - "resources/read on pumble://knowledge/native/glossary.md returns the file content with text/markdown mime"
+  - "resources/read on pumble://events/Message returns a markdown wrapper that includes the lifted NotificationMessage type"
+  - "tests/mcp-knowledge-resources.test.ts covers: list returns expected URIs, read returns expected content, read rejects path traversal"
+  - "docs/MCP-SAFETY.md adds a 'Knowledge resources' section describing the URI scheme"
+  - "npm run verify:offline exits 0"
+commands:
+  - "cd sdk && npm test -- tests/mcp-knowledge-resources.test.ts tests/mcp-curated-resources.test.ts"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Read rejects pumble://knowledge/../package.json (path traversal)"
+  - "Read returns an error on unknown file"
+  - "Read does not require an API client (knowledge is offline)"
+  - "Read rejects unknown event names"
+links:
+  docs:
+    - sdk/docs/MCP-SAFETY.md
+  tests:
+    - sdk/tests/mcp-knowledge-resources.test.ts
+rollback: "git revert <commit-sha>; resources are additive in registerCuratedResources()."

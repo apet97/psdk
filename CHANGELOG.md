@@ -48,6 +48,17 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
   `blocks/types.ts` keeps only type-level declarations so the file is
   side-effect-free when read as TypeScript.
 
+### MCP
+
+- Curated MCP server registers two new knowledge-backed resource
+  templates: `pumble://knowledge/{+path}` exposes any file under
+  `sdk/knowledge/` with extension-aware mime types and a
+  path-traversal guard, and `pumble://events/{name}` is a convenience
+  wrapper that returns a markdown payload inlining the lifted
+  `Notification*` event type. Both templates expose a `list` callback
+  so MCP clients can enumerate the knowledge tree at runtime.
+  `CURATED_RESOURCE_NAMES` exports both new names.
+
 ### Governance
 
 - Added `.goals/` registry: one YAML per goal (G00–G25), validated by `sdk/scripts/goal-check.mjs` and spliced into `verify:offline`.
