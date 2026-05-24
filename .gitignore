@@ -3,7 +3,6 @@ sdk/node_modules/
 sdk/examples/node_modules/
 .remember/
 IMPROVEMENTS.md
-CLAUDE.md
 
 .DS_Store
 .env

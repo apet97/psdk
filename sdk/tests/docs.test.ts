@@ -688,7 +688,14 @@ describe("product identity guard", () => {
     "world-class",
     "best-in-class",
   ];
-  const ALLOWED_FILES = ["docs/product/sdk-generator-product-boundary.md"];
+  // AGENTS.md and CLAUDE.md enumerate the forbidden list verbatim as
+  // part of their guidance role - that is their job, not a regression.
+  // Pinning sync with the manifest moves to tests/agents-docs.test.ts.
+  const ALLOWED_FILES = [
+    "docs/product/sdk-generator-product-boundary.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+  ];
   const docFiles = listMarkdownFiles(guardRepoRoot, (rel) =>
     rel.includes("node_modules") ||
     rel.includes("esm/") ||
