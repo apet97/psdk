@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish pumble-sdk to npm
+    name: Publish pumble-keys-sdk to npm
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -99,8 +99,8 @@ jobs:
             sdk/src/extensions
             sdk/tests
             sdk/scripts
-            sdk/bin/pumble-cli.mjs
-            sdk/bin/pumble-mcp.mjs
+            sdk/bin/pumble-keys-cli.mjs
+            sdk/bin/pumble-keys-mcp.mjs
             sdk/bin/pumble-mcp-args.mjs
             sdk/bin/dry-run-shim.mjs
             sdk/bin/audit-log-shim.mjs
@@ -150,9 +150,9 @@ jobs:
           TARGET_VERSION: ${{ steps.tag.outputs.version }}
         run: |
           set -euo pipefail
-          if npm view "pumble-sdk@${TARGET_VERSION}" version >/dev/null 2>&1; then
+          if npm view "pumble-keys-sdk@${TARGET_VERSION}" version >/dev/null 2>&1; then
             echo "already_published=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::pumble-sdk@${TARGET_VERSION} already on npm — skipping publish"
+            echo "::notice::pumble-keys-sdk@${TARGET_VERSION} already on npm — skipping publish"
           else
             echo "already_published=false" >> "$GITHUB_OUTPUT"
           fi
@@ -163,7 +163,7 @@ jobs:
         run: |
           set -euo pipefail
           npm pack
-          echo "TARBALL_PATH=$(ls pumble-sdk-*.tgz | head -n1)" >> "$GITHUB_ENV"
+          echo "TARBALL_PATH=$(ls pumble-keys-sdk-*.tgz | head -n1)" >> "$GITHUB_ENV"
 
       - name: Write release evidence
         if: steps.check.outputs.already_published != 'true'
@@ -191,7 +191,7 @@ jobs:
         run: |
           set -euo pipefail
           # --provenance attaches an attestation via id-token; --access
-          # public because pumble-sdk is unscoped/public.
+          # public because pumble-keys-sdk is unscoped/public.
           npm publish --provenance --access public
 
       - name: Create GitHub release

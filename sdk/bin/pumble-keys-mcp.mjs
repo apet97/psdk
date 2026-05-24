@@ -25,7 +25,7 @@
 //
 // Regen-safety: this file lives in sdk/bin/ and is wired into
 // package.json via gen.yaml `additionalPackageJSON.bin`, so Speakeasy
-// keeps it as a `pumble-mcp` npm bin entry across regenerations.
+// keeps it as a `pumble-keys-mcp` npm bin entry across regenerations.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -48,10 +48,10 @@ const AUDIT_LOG_SHIM = resolve(__dirname, "audit-log-shim.mjs");
 
 function printHelp() {
   process.stdout.write(`
-pumble-mcp — wrapper around the Pumble SDK's MCP server
+pumble-keys-mcp — wrapper around the Pumble SDK's MCP server
 
 Usage:
-  pumble-mcp [options]
+  pumble-keys-mcp [options]
 
 Wrapper-only options:
   --profile curated       Launch workflow-first curated tools via the
@@ -78,17 +78,17 @@ Wrapper-only options:
   -h, --help              Show this help.
 
 All other arguments are forwarded verbatim to the selected MCP server
-(see \`pumble-mcp start --help\` for transport/auth/tool flags on the
+(see \`pumble-keys-mcp start --help\` for transport/auth/tool flags on the
 generated raw server).
 If --api-key-auth is omitted, the wrapper reads PUMBLE_API_KEY and then
 PUMBLESDK_API_KEY_AUTH from the environment.
 
 Examples:
-  PUMBLE_API_KEY=... pumble-mcp start --transport stdio
-  PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile curated
-  PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readonly
-  PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
-  PUMBLE_API_KEY=... pumble-mcp start --transport stdio --dry-run
+  PUMBLE_API_KEY=... pumble-keys-mcp start --transport stdio
+  PUMBLE_API_KEY=... pumble-keys-mcp start --transport stdio --profile curated
+  PUMBLE_API_KEY=... pumble-keys-mcp start --transport stdio --profile readonly
+  PUMBLE_API_KEY=... pumble-keys-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-keys-mcp-audit.jsonl
+  PUMBLE_API_KEY=... pumble-keys-mcp start --transport stdio --dry-run
 `);
 }
 
@@ -117,16 +117,16 @@ try {
 }
 
 if (invocation.dryRun) {
-  console.error(`[pumble-mcp] DRY-RUN: all ${READWRITE_TOOLS.length} tools exposed; mutating HTTP intercepted at the fetch layer.`);
+  console.error(`[pumble-keys-mcp] DRY-RUN: all ${READWRITE_TOOLS.length} tools exposed; mutating HTTP intercepted at the fetch layer.`);
 } else if (invocation.effectiveProfile === "curated") {
-  console.error(`[pumble-mcp] Profile: curated (${CURATED_TOOLS.length} curated tools).`);
+  console.error(`[pumble-keys-mcp] Profile: curated (${CURATED_TOOLS.length} curated tools).`);
 } else if (invocation.effectiveProfile === "readwrite") {
-  console.error(`[pumble-mcp] WARNING: raw readwrite profile exposes ${READWRITE_TOOLS.length} generated tools, including destructive edit/delete operations. Audit log: ${invocation.auditLog}`);
+  console.error(`[pumble-keys-mcp] WARNING: raw readwrite profile exposes ${READWRITE_TOOLS.length} generated tools, including destructive edit/delete operations. Audit log: ${invocation.auditLog}`);
 } else if (invocation.profile) {
-  console.error(`[pumble-mcp] Profile: ${invocation.effectiveProfile} (${invocation.tools.length} tools).`);
+  console.error(`[pumble-keys-mcp] Profile: ${invocation.effectiveProfile} (${invocation.tools.length} tools).`);
 }
 if (invocation.auditLog) {
-  console.error(`[pumble-mcp] Audit log: ${invocation.auditLog}`);
+  console.error(`[pumble-keys-mcp] Audit log: ${invocation.auditLog}`);
 }
 
 // Preload fetch shims via `--import` so they patch `globalThis.fetch`

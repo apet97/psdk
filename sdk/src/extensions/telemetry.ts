@@ -44,7 +44,7 @@ export interface SpanRecorder {
 }
 
 export interface OTelRecorderOptions {
-  /** Tracer name passed to `trace.getTracer`. Defaults to "pumble-sdk". */
+  /** Tracer name passed to `trace.getTracer`. Defaults to "pumble-keys-sdk". */
   tracerName?: string;
   /** Tracer version. */
   tracerVersion?: string;
@@ -88,7 +88,7 @@ export function createOTelSpanRecorder(options: OTelRecorderOptions = {}): SpanR
   if (!api) return createNoopRecorder();
 
   const tracer = api.trace.getTracer(
-    options.tracerName ?? "pumble-sdk",
+    options.tracerName ?? "pumble-keys-sdk",
     options.tracerVersion,
   );
 
@@ -171,7 +171,7 @@ export function createJsonlAuditWriter(path: string): JsonlAuditWriter {
         if (!warned) {
           warned = true;
           process.stderr.write(
-            `[pumble-sdk] audit-log write failed (${path}): ${String((err as Error)?.message ?? err)}\n`,
+            `[pumble-keys-sdk] audit-log write failed (${path}): ${String((err as Error)?.message ?? err)}\n`,
           );
         }
       });

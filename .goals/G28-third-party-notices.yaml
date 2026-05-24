@@ -1,0 +1,48 @@
+id: G28
+title: THIRD_PARTY_NOTICES.md plus attribution-header audit
+priority: P0
+status: done
+why: "We're about to lift typed event/block defs from CAKE-com/pumble-node-sdk (ISC). ISC requires preserving copyright + license text. A standing audit prevents lift-without-attribution drift; the notices file lists every upstream-derived path."
+scope:
+  allowed:
+    - sdk/THIRD_PARTY_NOTICES.md
+    - sdk/scripts/attribution-audit.mjs
+    - sdk/scripts/normalize-package.mjs
+    - sdk/tests/attribution-audit.test.ts
+    - sdk/tests/package-metadata.test.ts
+    - sdk/package.json
+    - sdk/.speakeasy/gen.yaml
+    - CHANGELOG.md
+    - .goals/G28-third-party-notices.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+    - PumbleOpenApi.yaml
+acceptance:
+  - "sdk/THIRD_PARTY_NOTICES.md exists inside the package root (so it ships in the tarball, per ISC) and lists CAKE-com/pumble-node-sdk (ISC) with copyright line + full permission paragraph"
+  - "package.json#files includes 'THIRD_PARTY_NOTICES.md' so the notices file is in the npm tarball; package-metadata test enforces this"
+  - "scripts/attribution-audit.mjs CLI exits 0 when notices and disk agree, non-zero on disagreement"
+  - "verify:offline pipeline calls scripts/attribution-audit.mjs and fails on attribution errors"
+  - "tests/attribution-audit.test.ts covers: missing header, missing entry in notices, extra entry in notices not on disk"
+commands:
+  - "cd sdk && node scripts/attribution-audit.mjs"
+  - "cd sdk && npm test -- tests/attribution-audit.test.ts"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Audit fails when an upstream-tagged file is missing the SPDX-License-Identifier or origin reference"
+  - "Audit fails when THIRD_PARTY_NOTICES.md lists a path that no longer exists on disk"
+  - "Audit fails when sdk/knowledge/upstream/ contains a new file not listed in THIRD_PARTY_NOTICES.md"
+  - "Test uses tmp dirs; does not mutate real notices"
+links:
+  docs:
+    - sdk/THIRD_PARTY_NOTICES.md
+  tests:
+    - sdk/tests/attribution-audit.test.ts
+rollback: "git revert <commit-sha>; attribution gate is additive and removable."

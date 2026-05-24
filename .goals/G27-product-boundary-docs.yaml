@@ -1,0 +1,39 @@
+id: G27
+title: Document the API-Keys vs OAuth-apps product boundary in our top docs
+priority: P0
+status: done
+why: "Readers landing on our README cannot distinguish this SDK from CAKE.com's official pumble-sdk. State the boundary explicitly and link to the official package so neither side surprises a user."
+scope:
+  allowed:
+    - README.md
+    - sdk/README.md
+    - sdk/docs/API-REFERENCE.md
+    - sdk/tests/docs.test.ts
+    - CHANGELOG.md
+    - .goals/G27-product-boundary-docs.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/**
+    - sdk/scripts/**
+    - PumbleOpenApi.yaml
+acceptance:
+  - "Root README contains a 'Product boundary' section in the first two screens; the section names 'pumble-sdk' (upstream) and links to https://github.com/CAKE-com/pumble-node-sdk and https://www.npmjs.com/package/pumble-sdk"
+  - "sdk/README.md contains the same boundary statement at the top of the file"
+  - "sdk/docs/API-REFERENCE.md contains the same boundary in its overview"
+  - "docs.test.ts asserts the boundary phrase exists in all three files"
+  - "npm run verify:offline exits 0"
+commands:
+  - "cd sdk && npm test -- tests/docs.test.ts"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "docs.test.ts fails when the boundary phrase is removed from any of the three files"
+  - "Boundary statement does not falsely claim feature parity with the upstream SDK"
+  - "Boundary statement uses the exact upstream package name 'pumble-sdk' (not 'pumble-node-sdk' which is the repo name)"
+links:
+  docs:
+    - README.md
+    - sdk/README.md
+    - sdk/docs/API-REFERENCE.md
+  tests:
+    - sdk/tests/docs.test.ts
+rollback: "git revert <commit-sha>"

@@ -62,18 +62,18 @@ typescript:
       - cli
       - webhooks
     bin:
-      pumble: ./bin/pumble-cli.mjs
-      pumble-mcp: ./bin/pumble-mcp.mjs
+      pumble-keys: ./bin/pumble-keys-cli.mjs
+      pumble-keys-mcp: ./bin/pumble-keys-mcp.mjs
     engines:
       node: ">=20"
     files:
       - bin/audit-log-shim.mjs
       - bin/dry-run-shim.mjs
       - bin/mcp-server.js
-      - bin/pumble-cli.mjs
+      - bin/pumble-keys-cli.mjs
       - bin/pumble-mcp-args.mjs
       - bin/pumble-mcp-curated.js
-      - bin/pumble-mcp.mjs
+      - bin/pumble-keys-mcp.mjs
       - docs/API-REFERENCE.md
       - docs/ERRORS.md
       - docs/INTEGRATION-USAGE.md
@@ -85,7 +85,9 @@ typescript:
       - docs/MIGRATING.md
       - docs/verification/v0.3.21.md
       - esm
+      - knowledge
       - src
+      - THIRD_PARTY_NOTICES.md
     exports:
       ".":
         source: ./src/index.ts
@@ -145,7 +147,7 @@ typescript:
         optional: true
   additionalScripts:
     verify: npm run verify:offline && npm run verify:live
-    verify:offline: npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke
+    verify:offline: npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke
     verify:live: node scripts/verify-live.mjs
     spec:audit: node scripts/spec-quality-audit.mjs
     prebuild: node scripts/normalize-package.mjs
@@ -200,7 +202,7 @@ typescript:
   moduleFormat: esm
   multipartArrayFormat: standard
   outputModelSuffix: output
-  packageName: pumble-sdk
+  packageName: pumble-keys-sdk
   preApplyUnionDiscriminators: true
   preserveModelFieldNames: false
   responseFormat: flat

@@ -20,4 +20,4 @@ Fixtures live in `tests/fixtures/`. They are re-recorded when:
 
 ## Live workspace setup
 
-`scripts/live-env.mjs` resolves credentials in this order: `PUMBLE_API_KEY`, `~/.pumble-sdk/live.env`, then aborts. The sacrificial workspace has its own channel set. Never point live tests at a production workspace.
+`scripts/live-env.mjs` resolves credentials in this order: `PUMBLE_API_KEY`, `~/.pumble-keys-sdk/live.env`, then aborts. The sacrificial workspace has its own channel set. Never point live tests at a production workspace.

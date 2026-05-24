@@ -1,0 +1,66 @@
+id: G26
+title: Rename npm package to pumble-keys-sdk and bin to pumble-keys
+priority: P0
+status: done
+why: "`pumble-sdk` is owned by CAKE.com on npm (44 versions, latest 1.1.4); our package cannot publish under that name. The bin `pumble` collides namespace-wise with their `pumble-cli`. Rename clears publishability and signals product boundary."
+scope:
+  allowed:
+    - sdk/package.json
+    - sdk/package-lock.json
+    - sdk/.speakeasy/gen.yaml
+    - sdk/.speakeasy/workflow.yaml
+    - sdk/bin/**
+    - sdk/scripts/normalize-package.mjs
+    - sdk/scripts/public-surface-audit.mjs
+    - sdk/scripts/pack-smoke.mjs
+    - sdk/scripts/package-split-dry-run.mjs
+    - sdk/scripts/spec-quality-audit.mjs
+    - sdk/scripts/spec-quality-audit.test.ts
+    - sdk/src/extensions/**
+    - sdk/src/mcp-server/curated/**
+    - sdk/src/mcp-server/build.mts
+    - sdk/tests/**
+    - sdk/README.md
+    - sdk/docs/**
+    - sdk/examples/**
+    - README.md
+    - CONTEXT.md
+    - SECURITY.md
+    - CONTRIBUTING.md
+    - CHANGELOG.md
+    - .goals/G26-rename-package.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+    - sdk/src/mcp-server/tools/**
+    - PumbleOpenApi.yaml
+acceptance:
+  - "package.json#name equals 'pumble-keys-sdk'"
+  - "package.json#bin keys are 'pumble-keys' and 'pumble-keys-mcp' (no 'pumble' alone)"
+  - "sdk/bin/pumble-keys-cli.mjs and sdk/bin/pumble-keys-mcp.mjs exist; old names gone"
+  - "No file under sdk/ except generated user-agent strings, THIRD_PARTY_NOTICES.md, and CHANGELOG.md mentions 'pumble-sdk' as our own package name"
+  - "tests/identity.test.ts asserts the new name + bin keys; fails on regression"
+  - "npm run verify:offline exits 0"
+commands:
+  - "cd sdk && npm test -- tests/identity.test.ts"
+  - "cd sdk && npm run verify:offline"
+  - "cd sdk && npm pack --dry-run | grep 'pumble-keys-sdk'"
+adversarial_checks:
+  - "grep -r 'pumble-sdk' sdk/src sdk/tests sdk/docs sdk/README.md returns only references to upstream (in attribution context) or generated user-agent strings"
+  - "tests/identity.test.ts fails when package.json#name is reset to 'pumble-sdk'"
+  - "tests/identity.test.ts fails when a bin key 'pumble' is reintroduced"
+  - "npm pack --dry-run lists the new bin files"
+links:
+  docs:
+    - sdk/README.md
+    - README.md
+  tests:
+    - sdk/tests/identity.test.ts
+rollback: "git revert <commit-sha>; rename is a single atomic commit."

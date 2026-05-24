@@ -1,12 +1,12 @@
 {
-  "name": "pumble-sdk",
+  "name": "pumble-keys-sdk",
   "version": "0.3.21",
   "description": "TypeScript SDK and MCP server for the Pumble API-Keys add-on",
   "license": "MIT",
   "author": "Pumble SDK Team",
   "bin": {
-    "pumble": "./bin/pumble-cli.mjs",
-    "pumble-mcp": "./bin/pumble-mcp.mjs"
+    "pumble-keys": "./bin/pumble-keys-cli.mjs",
+    "pumble-keys-mcp": "./bin/pumble-keys-mcp.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -15,10 +15,10 @@
     "bin/audit-log-shim.mjs",
     "bin/dry-run-shim.mjs",
     "bin/mcp-server.js",
-    "bin/pumble-cli.mjs",
+    "bin/pumble-keys-cli.mjs",
     "bin/pumble-mcp-args.mjs",
     "bin/pumble-mcp-curated.js",
-    "bin/pumble-mcp.mjs",
+    "bin/pumble-keys-mcp.mjs",
     "docs/API-REFERENCE.md",
     "docs/ERRORS.md",
     "docs/INTEGRATION-USAGE.md",
@@ -30,7 +30,9 @@
     "docs/MIGRATING.md",
     "docs/verification/v0.3.21.md",
     "esm",
-    "src"
+    "knowledge",
+    "src",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "peerDependenciesMeta": {
     "@opentelemetry/api": {
@@ -111,7 +113,7 @@
   "scripts": {
     "verify": "npm run verify:offline && npm run verify:live",
     "goals:check": "node scripts/goal-check.mjs",
-    "verify:offline": "npm run goals:check && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke",
+    "verify:offline": "npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke",
     "verify:live": "node scripts/verify-live.mjs",
     "lint": "oxlint --max-warnings=0 --deny-warnings src/**/*.ts src/**/*.tsx",
     "spec:audit": "node scripts/spec-quality-audit.mjs",

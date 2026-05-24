@@ -1,0 +1,38 @@
+id: G33
+title: Version-consistency gate enforces package.json + CHANGELOG + verification doc
+priority: P2
+status: done
+why: "G24 documents the cross-doc version policy but nothing enforces it. A 0.4.0 bump without regenerating docs/verification/v0.4.0.md and CHANGELOG passes verify:offline today. Add a script that fails the pipeline on disagreement."
+scope:
+  allowed:
+    - sdk/scripts/version-consistency.mjs
+    - sdk/tests/version-consistency.test.ts
+    - sdk/package.json
+    - sdk/.speakeasy/gen.yaml
+    - CHANGELOG.md
+    - .goals/G33-version-consistency.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/**
+    - sdk/docs/**
+    - PumbleOpenApi.yaml
+acceptance:
+  - "scripts/version-consistency.mjs exits 0 when all three sources agree"
+  - "scripts/version-consistency.mjs exits non-zero when any disagree (test covers each direction)"
+  - "verify:offline calls the script between goals:check and spec:audit"
+  - "tests/version-consistency.test.ts covers: agreement, package-version-ahead, changelog-ahead, missing-verification-doc"
+commands:
+  - "cd sdk && node scripts/version-consistency.mjs"
+  - "cd sdk && npm test -- tests/version-consistency.test.ts"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Script fails on package version 0.4.0 + CHANGELOG latest 0.3.21"
+  - "Script fails on package 0.4.0 + CHANGELOG 0.4.0 but no docs/verification/v0.4.0.md"
+  - "Script tolerates 'Unreleased' section in CHANGELOG above the latest version"
+  - "Tests use tmp dirs and do not mutate the real repo"
+links:
+  docs:
+    - sdk/docs/VERSIONING.md
+  tests:
+    - sdk/tests/version-consistency.test.ts
+rollback: "git revert <commit-sha>"

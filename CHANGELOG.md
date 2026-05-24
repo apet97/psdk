@@ -7,6 +7,77 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
 
 ## Unreleased
 
+### Identity
+
+- Package renamed from `pumble-sdk` to `pumble-keys-sdk` to clear the npm
+  namespace collision with CAKE.com's official `pumble-sdk` (workspace OAuth
+  apps SDK). Our package targets the Pumble API-Keys add-on. CLI binaries
+  renamed to `pumble-keys` and `pumble-keys-mcp`; bin files renamed in lock
+  step.
+- Added a *Product boundary* section to the repo README, sdk README, and
+  API-Reference that names CAKE.com's upstream `pumble-sdk` and explains
+  which Pumble product surface each SDK targets. A docs test pins the
+  phrase so the boundary cannot silently disappear.
+
+### Governance
+
+- Added `THIRD_PARTY_NOTICES.md` and `sdk/scripts/attribution-audit.mjs`
+  to scaffold the upcoming knowledge lift from `CAKE-com/pumble-node-sdk`
+  (ISC). The audit fails the offline pipeline when an upstream-derived
+  file is missing the attribution header or when the notices file falls
+  out of sync with `sdk/knowledge/upstream/`. `verify:offline` now runs
+  the audit immediately after `goals:check`.
+
+### Knowledge
+
+- Shipped `sdk/knowledge/native/` (`README.md`, `glossary.md`,
+  `api-shape.md`, `error-model.md`) — a curated agent-readable summary
+  of the SDK's vocabulary, transport shape, and error model. Each file
+  is held under 8 KB and is included in the npm tarball under
+  `knowledge/native/`. G31 will expose them through the curated MCP
+  via the `pumble://knowledge/{+path}` resource template.
+- Lifted a tightly-scoped subset of `CAKE-com/pumble-node-sdk` (ISC)
+  into `sdk/knowledge/upstream/`: the typed `NotificationXxx` event
+  payloads (`events/index.ts`), the V1 block/view/element type
+  declarations (`blocks/types.ts`), and a `events/README.md` that
+  documents the boundary and Pumble's short-form field naming
+  (`aId`, `cId`, `mId`, `tx`, ...). `sdk/scripts/refresh-knowledge.mjs`
+  re-runs the lift from a local `officialsdk/pumble-node-sdk/` clone
+  (exit 0 with a hint when the clone is missing so verify:offline
+  stays green without forcing a clone). The runtime filter on
+  `blocks/types.ts` keeps only type-level declarations so the file is
+  side-effect-free when read as TypeScript.
+
+### MCP
+
+- Curated MCP server registers two new knowledge-backed resource
+  templates: `pumble://knowledge/{+path}` exposes any file under
+  `sdk/knowledge/` with extension-aware mime types and a
+  path-traversal guard, and `pumble://events/{name}` is a convenience
+  wrapper that returns a markdown payload inlining the lifted
+  `Notification*` event type. Both templates expose a `list` callback
+  so MCP clients can enumerate the knowledge tree at runtime.
+  `CURATED_RESOURCE_NAMES` exports both new names.
+- Curated MCP server registers two new prompts:
+  `write_pumble_handler` (args: `event`, optional `language` defaulting
+  to `typescript`) emits a handler skeleton that reads
+  `pumble://events/{event}` and imports from
+  `pumble-keys-sdk/extensions/index.js`; and `debug_pumble_webhook`
+  (args: `payloadJson`) walks an agent through type discrimination
+  using the upstream README and the per-event resources, rejecting
+  unparseable JSON before producing guidance. `CURATED_PROMPT_NAMES`
+  exports both new names.
+
+### Versioning
+
+- Added `sdk/scripts/version-consistency.mjs` which enforces that
+  `sdk/package.json#version` matches a `## <version>` heading in the
+  repo CHANGELOG and a `docs/verification/v<version>.md` evidence file.
+  The script tolerates an `Unreleased` section and pre-release suffixes
+  such as `0.4.0-rc.1`. `verify:offline` now runs the check between
+  `attribution-audit` and `spec:audit` so a version bump that misses
+  one of the three sources fails the offline pipeline.
+
 ### Governance
 
 - Added `.goals/` registry: one YAML per goal (G00–G25), validated by `sdk/scripts/goal-check.mjs` and spliced into `verify:offline`.

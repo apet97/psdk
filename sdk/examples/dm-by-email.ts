@@ -1,4 +1,4 @@
-import { createPumbleClient } from "pumble-sdk/extensions/index.js";
+import { createPumbleClient } from "pumble-keys-sdk/extensions/index.js";
 
 export const dmByEmailRequiredEnv = ["PUMBLE_API_KEY", "PUMBLE_USER_EMAIL"];
 
@@ -26,7 +26,7 @@ export function buildDmByEmailRequest(input: {
   if (!user) throw new Error("PUMBLE_USER_EMAIL is required");
   return {
     user,
-    text: (input.text ?? "Hello from pumble-sdk.").trim(),
+    text: (input.text ?? "Hello from pumble-keys-sdk.").trim(),
   };
 }
 

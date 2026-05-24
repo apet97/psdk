@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 export interface AddReactionRequest {
   channelId: string;

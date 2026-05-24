@@ -2,7 +2,7 @@
 
 ## Runtime Support
 
-`pumble-sdk` is a server-side Node.js 20+ ESM package. Browser, React Native, Cloudflare Workers, Deno, Bun runtime support, and edge runtime support are not claimed for `0.3.x`.
+`pumble-keys-sdk` is a server-side Node.js 20+ ESM package. Browser, React Native, Cloudflare Workers, Deno, Bun runtime support, and edge runtime support are not claimed for `0.3.x`.
 
 The package may work in some non-Node runtimes, but releases are verified against Node.js 20+. Do not ship browser secrets; Pumble API keys belong in server-side environments.
 

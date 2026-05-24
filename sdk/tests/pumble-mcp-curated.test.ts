@@ -61,7 +61,7 @@ describe("pumble-mcp curated profile", () => {
   it("documents the curated profile in pumble-mcp help", () => {
     const result = spawnSync(
       process.execPath,
-      [join(__dirname, "../bin/pumble-mcp.mjs"), "--help"],
+      [join(__dirname, "../bin/pumble-keys-mcp.mjs"), "--help"],
       { encoding: "utf8" },
     );
 

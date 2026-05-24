@@ -12,15 +12,15 @@ No code needed. No spans, no events.
 
 ```ts
 import { trace } from "@opentelemetry/api";
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 import {
   createOTelSpanRecorder,
   wrapClient,
-} from "pumble-sdk/extensions/telemetry.js";
+} from "pumble-keys-sdk/extensions/telemetry.js";
 
 const sdk = wrapClient(
   new PumbleSDK({ apiKeyAuth: process.env["PUMBLE_API_KEY"]! }),
-  { recorder: createOTelSpanRecorder({ tracer: trace.getTracer("pumble-sdk") }) },
+  { recorder: createOTelSpanRecorder({ tracer: trace.getTracer("pumble-keys-sdk") }) },
 );
 ```
 
@@ -30,7 +30,7 @@ const sdk = wrapClient(
 import {
   createJsonlAuditWriter,
   wrapClient,
-} from "pumble-sdk/extensions/telemetry.js";
+} from "pumble-keys-sdk/extensions/telemetry.js";
 
 const sdk = wrapClient(rawSdk, {
   writer: createJsonlAuditWriter("./audit.jsonl"),

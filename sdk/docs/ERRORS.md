@@ -19,8 +19,8 @@ internal `Result` and throw SDK errors.
 | Raw SDK (`new PumbleSDK`) | Throws generated SDK errors such as `PumbleSDKError`, `PumbleSDKDefaultError`, `SDKValidationError`, and `ResponseValidationError`. | You want direct endpoint access and normal try/catch behavior. |
 | Facade (`createPumbleClient`) | Returns `{ ok: false, summary, reason, nextActions }` for resolver and operation failures. | You want resolve-before-act workflows and printable receipts. |
 | Lower-level helpers | Return `Result` or typed helper values where documented. | You are composing SDK internals or tests. |
-| CLI (`pumble`) | Prints human-readable errors or JSON, then exits non-zero. | You are scripting shell workflows. |
-| MCP (`pumble-mcp`) | Returns JSON-like tool envelopes with `ok`, `summary`, `ids`, `data`, and `nextActions`. | You are exposing Pumble workflows to agents. |
+| CLI (`pumble-keys`) | Prints human-readable errors or JSON, then exits non-zero. | You are scripting shell workflows. |
+| MCP (`pumble-keys-mcp`) | Returns JSON-like tool envelopes with `ok`, `summary`, `ids`, `data`, and `nextActions`. | You are exposing Pumble workflows to agents. |
 
 ```ts
 try {
@@ -51,5 +51,5 @@ message plus validation field details) is categorized as `validation`.
 
 ## Lower-level Result
 
-Advanced callers can import generated functions from `pumble-sdk/funcs/...`
+Advanced callers can import generated functions from `pumble-keys-sdk/funcs/...`
 when they need lower-level Result values instead of thrown raw SDK methods.

@@ -1,4 +1,4 @@
-import { createPumbleClient } from "pumble-sdk/extensions/index.js";
+import { createPumbleClient } from "pumble-keys-sdk/extensions/index.js";
 
 export const sendChannelRequiredEnv = ["PUMBLE_API_KEY"];
 
@@ -24,7 +24,7 @@ export function buildSendChannelRequest(input: {
 }): SendChannelRequest {
   return {
     channel: (input.channel ?? "#general").trim(),
-    text: (input.text ?? "Hello from pumble-sdk.").trim(),
+    text: (input.text ?? "Hello from pumble-keys-sdk.").trim(),
   };
 }
 

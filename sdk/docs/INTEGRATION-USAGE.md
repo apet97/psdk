@@ -16,7 +16,7 @@ See `docs/STABILITY.md` for stable, beta, experimental, and internal surfaces.
 
 ## Client Integration
 
-- Use `createPumbleClient` from `pumble-sdk/extensions/index.js` for common
+- Use `createPumbleClient` from `pumble-keys-sdk/extensions/index.js` for common
   app code.
 - Use `client.raw` or `PumbleSDK` when you need a generated method not yet
   wrapped by the facade.
@@ -52,11 +52,11 @@ writes in large workspaces.
 
 The built-in rate limiter is process-local. It does not coordinate across workers, serverless instances, containers, or machines.
 
-For distributed deployments, place rate-limit coordination outside the SDK. Use a shared store such as Redis in application code, then call the SDK only after the shared limiter grants a slot. Do not add Redis as a core dependency of `pumble-sdk`.
+For distributed deployments, place rate-limit coordination outside the SDK. Use a shared store such as Redis in application code, then call the SDK only after the shared limiter grants a slot. Do not add Redis as a core dependency of `pumble-keys-sdk`.
 
 ## MCP Integration
 
-- `pumble-mcp start` defaults to the curated profile.
+- `pumble-keys-mcp start` defaults to the curated profile.
 - `--profile readonly` hides mutating generated tools entirely.
 - `--profile curated` makes the default curated behavior explicit in host
   configuration.

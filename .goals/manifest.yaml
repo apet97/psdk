@@ -1,6 +1,6 @@
 version: 1
 product:
-  name: pumble-sdk
+  name: pumble-keys-sdk
   positioning: "Pumble TypeScript SDK / Developer Toolkit"
   not: "general SDK generator, multi-language code generator, Stainless/Speakeasy competitor"
 guardrails:
@@ -48,3 +48,11 @@ goals:
   - { id: G23, file: G23-telemetry.yaml }
   - { id: G24, file: G24-versioning-migration.yaml }
   - { id: G25, file: G25-operations-checklist.yaml }
+  - { id: G26, file: G26-rename-package.yaml }
+  - { id: G27, file: G27-product-boundary-docs.yaml }
+  - { id: G28, file: G28-third-party-notices.yaml }
+  - { id: G29, file: G29-native-knowledge.yaml }
+  - { id: G30, file: G30-upstream-knowledge.yaml }
+  - { id: G31, file: G31-mcp-knowledge-resources.yaml }
+  - { id: G32, file: G32-mcp-knowledge-prompts.yaml }
+  - { id: G33, file: G33-version-consistency.yaml }

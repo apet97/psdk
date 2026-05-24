@@ -8,25 +8,25 @@ tier row here.
 
 | Export key | Import path | Surface | Tier |
 | --- | --- | --- | --- |
-| `.` | `pumble-sdk` | Raw SDK + façade re-exports | stable |
-| `./core.js` | `pumble-sdk/core.js` | Generated core | stable |
-| `./types` | `pumble-sdk/types` | Public types | stable |
-| `./models` | `pumble-sdk/models` | Generated models | stable |
-| `./models/errors` | `pumble-sdk/models/errors` | Error classes | stable |
-| `./models/operations` | `pumble-sdk/models/operations` | Operation models | stable |
-| `./extensions/index.js` | `pumble-sdk/extensions/index.js` | Façade helpers | stable |
-| `./extensions/webhooks.js` | `pumble-sdk/extensions/webhooks.js` | Webhook verification | stable |
-| `./extensions/telemetry.js` | `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | beta |
-| `./extensions/testing/index.js` | `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |
-| `./extensions/app/index.js` | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |
-| `./extensions/app/socket-mode.js` | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |
-| `./lib/http` | `pumble-sdk/lib/http` | Generated HTTP shim | internal |
+| `.` | `pumble-keys-sdk` | Raw SDK + façade re-exports | stable |
+| `./core.js` | `pumble-keys-sdk/core.js` | Generated core | stable |
+| `./types` | `pumble-keys-sdk/types` | Public types | stable |
+| `./models` | `pumble-keys-sdk/models` | Generated models | stable |
+| `./models/errors` | `pumble-keys-sdk/models/errors` | Error classes | stable |
+| `./models/operations` | `pumble-keys-sdk/models/operations` | Operation models | stable |
+| `./extensions/index.js` | `pumble-keys-sdk/extensions/index.js` | Façade helpers | stable |
+| `./extensions/webhooks.js` | `pumble-keys-sdk/extensions/webhooks.js` | Webhook verification | stable |
+| `./extensions/telemetry.js` | `pumble-keys-sdk/extensions/telemetry.js` | Telemetry helpers | beta |
+| `./extensions/testing/index.js` | `pumble-keys-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |
+| `./extensions/app/index.js` | `pumble-keys-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |
+| `./extensions/app/socket-mode.js` | `pumble-keys-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |
+| `./lib/http` | `pumble-keys-sdk/lib/http` | Generated HTTP shim | internal |
 
 ## Stable
 
-- Raw generated SDK imports from `pumble-sdk`.
+- Raw generated SDK imports from `pumble-keys-sdk`.
 - API-key SDK auth.
-- Facade helpers from `pumble-sdk/extensions/index.js`, including resolver-first
+- Facade helpers from `pumble-keys-sdk/extensions/index.js`, including resolver-first
   users, channels, messages, threads, search, and scheduled-message workflows.
 - Webhook verification helpers.
 - Curated MCP stdio/read tools and confirmed writes.

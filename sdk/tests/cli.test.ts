@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 const execFile = promisify(execFileCallback);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const sdkRoot = resolve(__dirname, "..");
-const cliPath = join(sdkRoot, "bin/pumble-cli.mjs");
+const cliPath = join(sdkRoot, "bin/pumble-keys-cli.mjs");
 const genYamlPath = join(sdkRoot, ".speakeasy/gen.yaml");
 const packageJsonPath = join(sdkRoot, "package.json");
 const dryRunShim = pathToFileURL(join(sdkRoot, "bin/dry-run-shim.mjs")).href;
@@ -22,7 +22,7 @@ describe("pumble CLI", () => {
   let dryRunLogPath: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "pumble-cli-test-"));
+    tempDir = mkdtempSync(join(tmpdir(), "pumble-keys-cli-test-"));
     requestLogPath = join(tempDir, "requests.jsonl");
     dryRunLogPath = join(tempDir, "dry-run.jsonl");
     mockShimPath = join(tempDir, "mock-fetch.mjs");
@@ -36,8 +36,29 @@ describe("pumble CLI", () => {
   it("wires the npm bin through Speakeasy config and regenerated package metadata", () => {
     const gen = parseYaml(readFileSync(genYamlPath, "utf8"));
     const pkg = JSON.parse(readFileSync(packageJsonPath, "utf8"));
-    expect(gen.typescript.additionalPackageJSON.bin.pumble).toBe("./bin/pumble-cli.mjs");
-    expect(pkg.bin.pumble).toBe("./bin/pumble-cli.mjs");
+    expect(gen.typescript.additionalPackageJSON.bin["pumble-keys"]).toBe("./bin/pumble-keys-cli.mjs");
+    expect(pkg.bin["pumble-keys"]).toBe("./bin/pumble-keys-cli.mjs");
+  });
+
+  it("usage hints carry a space between the bin name and the subcommand", () => {
+    // Guards against a global "pumble " -> "pumble-keys" substitution dropping
+    // the separating space and emitting nonsense like "usage: pumble-keyschannels".
+    const source = readFileSync(cliPath, "utf8");
+    const broken = /\bpumble-keys[a-z]/g;
+    const hits = source.match(broken) ?? [];
+    expect(hits, `lost-space usage strings in ${cliPath}: ${hits.join(", ")}`).toEqual([]);
+  });
+
+  it("UsageError messages run through the program name as `pumble-keys <subcommand>`", async () => {
+    // `channels` with no further argument hits the channels list|find|create
+    // dispatch error path, which throws UsageError. We assert the rendered
+    // text has the canonical space.
+    const result = await execFile(process.execPath, [cliPath, "channels"], {
+      env: { ...process.env, PUMBLE_API_KEY: "fake-key" },
+    }).catch((err: NodeJS.ErrnoException & { stderr?: string }) => err);
+    const stderr = (result as { stderr?: string }).stderr ?? "";
+    expect(stderr).toContain("pumble-keys channels");
+    expect(stderr).not.toMatch(/\bpumble-keys[a-z]/);
   });
 
   it("prints authenticated user information as JSON", async () => {

@@ -6,7 +6,7 @@ must be previewed before dispatch.
 Start the curated profile:
 
 ```bash
-PUMBLE_API_KEY=<your-api-key> npx -y --package pumble-sdk -- pumble-mcp start \
+PUMBLE_API_KEY=<your-api-key> npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport stdio \
   --profile curated
 ```

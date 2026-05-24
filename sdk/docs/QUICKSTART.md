@@ -11,8 +11,8 @@ server without exposing unchecked writes.
 | Application code, safer ergonomics, structured failures | **facade** (`createPumbleClient`) |
 | Direct endpoint parity, generated types, raw thrown errors | **raw SDK** (`PumbleSDK`) |
 | Shell automation, one-shot commands | **CLI** (`pumble ...`) |
-| Agents and assistants | **curated MCP** (`pumble-mcp`) |
-| Receive Pumble events | **webhooks** (`pumble-sdk/extensions/webhooks.js`) |
+| Agents and assistants | **curated MCP** (`pumble-keys-mcp`) |
+| Receive Pumble events | **webhooks** (`pumble-keys-sdk/extensions/webhooks.js`) |
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ them in source files.
 CLI workflows can also read keys from a local file:
 
 ```bash
-pumble whoami --api-key-file ~/.config/pumble/api-key
+pumble-keys whoami --api-key-file ~/.config/pumble/api-key
 ```
 
 For error handling, see `docs/ERRORS.md`.
@@ -38,7 +38,7 @@ For error handling, see `docs/ERRORS.md`.
 ## Install
 
 ```bash
-npm install pumble-sdk
+npm install pumble-keys-sdk
 ```
 
 The package is ESM-only. CommonJS callers should use `await import(...)`.
@@ -51,7 +51,7 @@ Use the hand-written facade for common app and integration flows:
 import {
   assertFacadeOk,
   createPumbleClient,
-} from "pumble-sdk/extensions/index.js";
+} from "pumble-keys-sdk/extensions/index.js";
 
 const pumble = createPumbleClient({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -96,7 +96,7 @@ these calls; the helpers list once and match client-side.
 ```typescript
 const sent = await pumble.messages.send({
   channel: "#general",
-  text: "Hello from pumble-sdk.",
+  text: "Hello from pumble-keys-sdk.",
 });
 
 if (!sent.ok) {
@@ -156,7 +156,7 @@ for await (const hit of pumble.search.all({ text: "release notes", limit: 50 }))
 const reply = await pumble.threads.reply({
   channel: "#general",
   messageId: sent.ids.messageId,
-  text: "Thread reply from pumble-sdk.",
+  text: "Thread reply from pumble-keys-sdk.",
 });
 
 const thread = await pumble.threads.getContext({
@@ -197,7 +197,7 @@ Mount it on a raw-body route; Pumble signs `${timestamp}:${rawBody}`.
 
 ```typescript
 import express from "express";
-import { createWebhookHandler } from "pumble-sdk/extensions/index.js";
+import { createWebhookHandler } from "pumble-keys-sdk/extensions/index.js";
 
 const app = express();
 const webhook = createWebhookHandler({
@@ -221,12 +221,12 @@ and returns 500 on handler failure so Pumble can retry.
 
 ## Run Curated MCP Readonly
 
-`pumble-mcp` is the MCP package bin. By default, `pumble-mcp start` uses the
+`pumble-keys-mcp` is the MCP package bin. By default, `pumble-keys-mcp start` uses the
 curated profile; start there and verify read behavior before enabling any
 write flow:
 
 ```bash
-npx -y --package pumble-sdk -- pumble-mcp start \
+npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport stdio
 ```
 
@@ -234,7 +234,7 @@ For hosts that must not expose any write tools, use the
 read-only generated profile explicitly:
 
 ```bash
-npx -y --package pumble-sdk -- pumble-mcp start \
+npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport stdio \
   --profile readonly
 ```
@@ -247,8 +247,8 @@ Claude Desktop or Cursor config:
     "pumble-read": {
       "command": "npx",
       "args": [
-        "-y", "--package", "pumble-sdk", "--",
-        "pumble-mcp", "start",
+        "-y", "--package", "pumble-keys-sdk", "--",
+        "pumble-keys-mcp", "start",
         "--transport", "stdio",
         "--profile", "readonly"
       ],
@@ -265,7 +265,7 @@ Claude Desktop or Cursor config:
 Use the curated profile when writes should require preview first:
 
 ```bash
-npx -y --package pumble-sdk -- pumble-mcp start \
+npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport stdio \
   --profile curated
 ```
@@ -287,7 +287,7 @@ Use `--profile readwrite` only when you intentionally want the raw generated
 write surface:
 
 ```bash
-PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
+PUMBLE_API_KEY=... pumble-keys-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-keys-mcp-audit.jsonl
 ```
 
 ## Stable Workflow Examples

@@ -12,7 +12,7 @@ const raw = createPumbleClient({ apiKeyAuth, resolverCache: true }).raw;
 const smoke = createLiveSmokeHarness({ finalSummary: "Curated MCP live smoke passed." });
 const runId = `sdk-mcp-live-${Date.now()}`;
 const channelName = runId.toLowerCase();
-const client = new Client({ name: "pumble-sdk-live-smoke", version: "0.0.0" });
+const client = new Client({ name: "pumble-keys-sdk-live-smoke", version: "0.0.0" });
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: ["./bin/pumble-mcp-curated.js", "start", "--api-key-auth", apiKeyAuth],
@@ -75,7 +75,7 @@ try {
     raw.channels.createChannel({
     name: channelName,
     type: "PUBLIC",
-    description: "Created by pumble-sdk curated MCP live smoke.",
+    description: "Created by pumble-keys-sdk curated MCP live smoke.",
   }));
 
   const preview = assertEnvelope("send_message_preview", await call("send_message_preview", {

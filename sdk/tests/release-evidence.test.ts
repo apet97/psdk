@@ -8,11 +8,11 @@ const RUN_URL_OR_PENDING = /^(CI run|Release run):\s+(https:\/\/github\.com\/.+\
 
 const REQUIRED_FIELDS = [
   /^Date:\s+\d{4}-\d{2}-\d{2}/m,
-  /^Package:\s+`pumble-sdk@\d+\.\d+\.\d+/m,
+  /^Package:\s+`pumble-keys-sdk@\d+\.\d+\.\d+/m,
   /^Commit:\s+`[0-9a-f]{7,40}`/m,
   /^CI run:\s+(https:\/\/github\.com\/.+\/actions\/runs\/\d+|pending)$/m,
   /^Release run:\s+(https:\/\/github\.com\/.+\/actions\/runs\/\d+|pending)$/m,
-  /^npm:\s+(https:\/\/www\.npmjs\.com\/package\/pumble-sdk\/v\/\d+\.\d+\.\d+|pending)$/m,
+  /^npm:\s+(https:\/\/www\.npmjs\.com\/package\/pumble-keys-sdk\/v\/\d+\.\d+\.\d+|pending)$/m,
   /^Provenance:\s+(attested|none|unverified)$/m,
   /^Tarball SHA-256:\s+`[a-f0-9]{64}`/m,
   /^Live smoke artifact:\s+`.+`/m,

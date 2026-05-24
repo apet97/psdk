@@ -3,7 +3,7 @@ import {
   createPumbleClient,
   type PumbleClient,
   type FacadeScheduleCreateRequest,
-} from "pumble-sdk/extensions/index.js";
+} from "pumble-keys-sdk/extensions/index.js";
 
 export const scheduleMessageRequiredEnv = ["PUMBLE_API_KEY"] as const;
 
@@ -25,7 +25,7 @@ export function buildScheduleMessageRequest(input: {
   }
   return {
     channel: (input.channel ?? "#general").trim(),
-    text: (input.text ?? "Scheduled from pumble-sdk.").trim(),
+    text: (input.text ?? "Scheduled from pumble-keys-sdk.").trim(),
     sendAt: Date.now() + delayMs,
   };
 }

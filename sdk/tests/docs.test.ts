@@ -122,12 +122,12 @@ const requiredApiReferenceHeadings = [
 ];
 
 const requiredApiReferencePhrases = [
-  'import { PumbleSDK } from "pumble-sdk";',
+  'import { PumbleSDK } from "pumble-keys-sdk";',
   "channels",
   "messages",
   "scheduledMessages",
   "users",
-  'import { createPumbleClient } from "pumble-sdk/extensions/index.js";',
+  'import { createPumbleClient } from "pumble-keys-sdk/extensions/index.js";',
   "messages.send",
   "messages.dm",
   "threads.reply",
@@ -142,12 +142,12 @@ const requiredApiReferencePhrases = [
   "searchAllMessages",
   "timestamp cursors",
   "same-second boundaries",
-  "pumble-mcp start --profile curated",
+  "pumble-keys-mcp start --profile curated",
   "stdio",
   "127.0.0.1",
   "bearer auth",
-  "`pumble`",
-  "`pumble-mcp`",
+  "`pumble-keys`",
+  "`pumble-keys-mcp`",
   "signature verification",
   "event handler/router",
 ];
@@ -163,13 +163,13 @@ const requiredChangelogHeadings = [
 ];
 
 const requiredPublicSurfaceRows = [
-  "| `.` | `pumble-sdk` | Raw SDK + façade re-exports | stable |",
-  "| `./extensions/index.js` | `pumble-sdk/extensions/index.js` | Façade helpers | stable |",
-  "| `./extensions/webhooks.js` | `pumble-sdk/extensions/webhooks.js` | Webhook verification | stable |",
-  "| `./extensions/telemetry.js` | `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | beta |",
-  "| `./extensions/testing/index.js` | `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |",
-  "| `./extensions/app/index.js` | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |",
-  "| `./extensions/app/socket-mode.js` | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |",
+  "| `.` | `pumble-keys-sdk` | Raw SDK + façade re-exports | stable |",
+  "| `./extensions/index.js` | `pumble-keys-sdk/extensions/index.js` | Façade helpers | stable |",
+  "| `./extensions/webhooks.js` | `pumble-keys-sdk/extensions/webhooks.js` | Webhook verification | stable |",
+  "| `./extensions/telemetry.js` | `pumble-keys-sdk/extensions/telemetry.js` | Telemetry helpers | beta |",
+  "| `./extensions/testing/index.js` | `pumble-keys-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |",
+  "| `./extensions/app/index.js` | `pumble-keys-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |",
+  "| `./extensions/app/socket-mode.js` | `pumble-keys-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |",
 ];
 
 const requiredExtensionCategories = [
@@ -226,7 +226,7 @@ function documentedImports(markdown: string): Array<{ clause: string; specifier:
   const codeFencePattern = /```(?:ts|typescript|js|javascript)\n([\s\S]*?)```/g;
   for (const fence of markdown.matchAll(codeFencePattern)) {
     const code = fence[1];
-    const importPattern = /import\s+([\s\S]*?)\s+from\s+["'](pumble-sdk[^"']*)["']/g;
+    const importPattern = /import\s+([\s\S]*?)\s+from\s+["'](pumble-keys-sdk[^"']*)["']/g;
     for (const importMatch of code.matchAll(importPattern)) {
       imports.push({
         clause: importMatch[1].replace(/\s+/g, " ").trim(),
@@ -334,7 +334,7 @@ describe("docs", () => {
   test("documented extension imports are exported by the public extension barrel", () => {
     const exports = extensionBarrelExports();
     const extensionImports = [...documentedImports(quickstart), ...documentedImports(readme)]
-      .filter(({ specifier }) => specifier === "pumble-sdk/extensions/index.js")
+      .filter(({ specifier }) => specifier === "pumble-keys-sdk/extensions/index.js")
       .flatMap(({ clause }) => namedImports(clause));
 
     expect(extensionImports.length).toBeGreaterThan(0);
@@ -397,7 +397,7 @@ describe("docs", () => {
     for (const phrase of requiredIntegrationUsagePhrases) {
     expect(integrationUsage).toContain(phrase);
   }
-  expect(integrationUsage).toContain("pumble-mcp start` defaults to the curated profile");
+  expect(integrationUsage).toContain("pumble-keys-mcp start` defaults to the curated profile");
   expect(integrationUsage).toContain("send_message_preview");
   expect(integrationUsage).toContain("reply_to_thread_preview");
   expect(integrationUsage).toContain("reply_to_thread_confirmed");
@@ -414,7 +414,7 @@ describe("docs", () => {
 
   test("package split policy documents extraction gates without promising a split", () => {
     expect(readme).toContain("docs/PACKAGE-SPLIT.md");
-    expect(readme).toContain("currently publishes one package: `pumble-sdk`");
+    expect(readme).toContain("currently publishes one package: `pumble-keys-sdk`");
 
     for (const packageName of [
       "@pumble/sdk-core",
@@ -439,7 +439,7 @@ describe("docs", () => {
     expect(packageSplit).toContain("Do not split packages yet.");
     expect(packageSplit).toContain("Latest dry-run gate: package split is blocked.");
     expect(packageSplit).toContain("Two live verification runs must be recorded");
-    expect(packageSplit).toContain("Compatibility tests must prove existing `pumble-sdk` import paths");
+    expect(packageSplit).toContain("Compatibility tests must prove existing `pumble-keys-sdk` import paths");
     expect(packageSplit).not.toMatch(/will split|is split into|now publishes/i);
   });
 
@@ -480,7 +480,7 @@ describe("docs", () => {
     expect(errorsGuide).toContain("Error Model By Surface");
     expect(errorsGuide).toContain("| Raw SDK (`new PumbleSDK`) |");
     expect(errorsGuide).toContain("| Facade (`createPumbleClient`) |");
-    expect(errorsGuide).toContain("| MCP (`pumble-mcp`) |");
+    expect(errorsGuide).toContain("| MCP (`pumble-keys-mcp`) |");
   });
 
   test("docs state scheduled messages use the facade", () => {
@@ -536,7 +536,7 @@ describe("docs", () => {
     expect(integrationUsage).toContain("Do not add Redis as a core dependency");
   });
 
-  test("product docs use pumble-sdk naming and keep examples repository-scoped", () => {
+  test("product docs use pumble-keys-sdk naming and keep examples repository-scoped", () => {
     for (const markdown of [
       rootReadme,
       readme,
@@ -546,7 +546,7 @@ describe("docs", () => {
       stability,
       errorsGuide,
     ]) {
-      expect(markdown).toContain("pumble-sdk");
+      expect(markdown).toContain("pumble-keys-sdk");
       expect(markdown).not.toMatch(/\bpsdk\b/i);
     }
 
@@ -573,10 +573,10 @@ describe("docs", () => {
 
   test("docs mark app and oauth helpers experimental without complete flow claims", () => {
     expect(stability).toMatch(
-      /`pumble-sdk\/extensions\/app\/index\.js`.*experimental/i,
+      /`pumble-keys-sdk\/extensions\/app\/index\.js`.*experimental/i,
     );
     expect(apiReference).toContain(
-      "| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
+      "| `pumble-keys-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |",
     );
     for (const markdown of [apiReference, stability]) {
       expect(markdown).toContain("OAuth/app helpers are experimental utilities");
@@ -593,8 +593,8 @@ describe("docs", () => {
 
   test("cli docs include help, stdio, and local sse token examples", () => {
     for (const phrase of [
-      "pumble --help",
-      "pumble-mcp start --help",
+      "pumble-keys --help",
+      "pumble-keys-mcp start --help",
       "--api-key-file",
       "--api-key-stdin",
       "Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin`",
@@ -689,7 +689,8 @@ describe("product identity guard", () => {
     rel.includes("dist/") ||
     rel.includes(".remember/") ||
     rel.includes("docs/superpowers/") ||
-    rel.includes("docs/product/"),
+    rel.includes("docs/product/") ||
+    rel.startsWith("officialsdk/"),
   );
 
   it.each(FORBIDDEN)("'%s' appears only in the boundary doc", (phrase) => {
@@ -783,5 +784,23 @@ describe("safe search pagination", () => {
 
   it("README links the safe search helper", () => {
     expect(readme).toContain("searchAllMessages");
+  });
+});
+
+describe("product boundary", () => {
+  const BOUNDARY_PHRASE = "Pumble API-Keys add-on";
+  const UPSTREAM_REPO_LINK = "CAKE-com/pumble-node-sdk";
+  const UPSTREAM_NPM_LINK = "npmjs.com/package/pumble-sdk";
+
+  it.each([
+    "../README.md",
+    "README.md",
+    "docs/API-REFERENCE.md",
+  ])("%s contains the product boundary statement", (relativePath) => {
+    const text = readFileSync(resolve(sdkRoot, relativePath), "utf8");
+    expect(text, `${relativePath}: boundary phrase`).toContain(BOUNDARY_PHRASE);
+    expect(text, `${relativePath}: upstream repo link`).toContain(UPSTREAM_REPO_LINK);
+    expect(text, `${relativePath}: upstream npm link`).toContain(UPSTREAM_NPM_LINK);
+    expect(text, `${relativePath}: product-boundary heading`).toMatch(/##\s+Product boundary/);
   });
 });

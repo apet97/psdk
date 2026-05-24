@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const apiKeyAuth = process.env["PUMBLE_API_KEY"];
 if (!apiKeyAuth) {

@@ -28,7 +28,7 @@ Prefer stdio for local MCP clients. When SSE is required, bind to localhost and
 set a bearer token:
 
 ```bash
-pumble-mcp start --transport sse --host 127.0.0.1 --auth-token "$PUMBLE_MCP_TOKEN"
+pumble-keys-mcp start --transport sse --host 127.0.0.1 --auth-token "$PUMBLE_MCP_TOKEN"
 ```
 
 Only bind SSE to `0.0.0.0` for intentional network exposure, and use

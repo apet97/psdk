@@ -1,4 +1,4 @@
-# pumble-sdk
+# pumble-keys-sdk
 
 Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
 
@@ -7,6 +7,22 @@ Use it when you want a typed raw SDK plus safer Pumble workflows: facade-first c
 This package is not a general generator for SDKs. The generated raw SDK comes from `PumbleOpenApi.yaml`; the handwritten layers make Pumble API-key workflows safer and more ergonomic than raw endpoints.
 
 The package source and user docs live in [`sdk/`](sdk/).
+
+## Product boundary
+
+This SDK targets the **Pumble API-Keys add-on**
+(`https://pumble-api-keys.addons.marketplace.cake.com`, static `ApiKey`
+header issued from *Workspace settings → API keys*). It is the right
+choice for scripting your own workspace from a server or letting an
+agent operate inside it.
+
+For building **Pumble apps** with OAuth install flow, slash commands,
+shortcuts, modals/views, and Socket Mode, use CAKE.com's official
+`pumble-sdk`:
+[`pumble-sdk` on npm](https://www.npmjs.com/package/pumble-sdk) ·
+[`CAKE-com/pumble-node-sdk` on GitHub](https://github.com/CAKE-com/pumble-node-sdk).
+The two SDKs target different Pumble products and do not overlap in
+functionality.
 
 ## What this is
 
@@ -40,13 +56,13 @@ Common entry points:
 ## Install
 
 ```bash
-npm install pumble-sdk
+npm install pumble-keys-sdk
 ```
 
 ## Basic Usage
 
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const sdk = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -59,7 +75,7 @@ console.log(me.id, me.name);
 ## MCP
 
 ```bash
-npx -y --package pumble-sdk -- pumble-mcp start \
+npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport stdio \
   --profile readonly
 ```

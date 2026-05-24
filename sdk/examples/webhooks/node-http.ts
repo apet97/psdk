@@ -5,7 +5,7 @@
  * via createWebhookHandler. Mount it on createServer directly.
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { createWebhookHandler } from "pumble-sdk/extensions/webhooks.js";
+import { createWebhookHandler } from "pumble-keys-sdk/extensions/webhooks.js";
 
 export function handler(req: IncomingMessage, res: ServerResponse, signingSecret: string) {
   const webhook = createWebhookHandler({

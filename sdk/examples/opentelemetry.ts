@@ -2,13 +2,13 @@ import { fileURLToPath } from "node:url";
 import {
   createPumbleClient,
   type PumbleClient,
-} from "pumble-sdk/extensions/index.js";
+} from "pumble-keys-sdk/extensions/index.js";
 
 export const openTelemetryExampleRequiredEnv = ["PUMBLE_API_KEY"] as const;
 
 export async function traceWhoami(client: Pick<PumbleClient, "identity">) {
   const { trace } = await import("@opentelemetry/api");
-  const tracer = trace.getTracer("pumble-sdk-example");
+  const tracer = trace.getTracer("pumble-keys-sdk-example");
   return tracer.startActiveSpan("pumble.whoami", async (span) => {
     try {
       const me = await client.identity.me();
