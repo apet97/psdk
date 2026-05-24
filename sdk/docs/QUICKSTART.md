@@ -10,7 +10,7 @@ server without exposing unchecked writes.
 | --- | --- |
 | Application code, safer ergonomics, structured failures | **facade** (`createPumbleClient`) |
 | Direct endpoint parity, generated types, raw thrown errors | **raw SDK** (`PumbleSDK`) |
-| Shell automation, one-shot commands | **CLI** (`pumble ...`) |
+| Shell automation, one-shot commands | **CLI** (`pumble-keys ...`) |
 | Agents and assistants | **curated MCP** (`pumble-keys-mcp`) |
 | Receive Pumble events | **webhooks** (`pumble-keys-sdk/extensions/webhooks.js`) |
 

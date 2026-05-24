@@ -308,6 +308,12 @@ describe("docs", () => {
     expect(quickstart).not.toContain("pumble-mcp-curated");
     expect(quickstart).not.toMatch(/\bOAuth\b/i);
     expect(quickstart).not.toMatch(/\bsocket mode\b/i);
+    // Decision-table CLI row must use the post-rename bin name. The
+    // pre-rename token `pumble ...` (with a trailing space and ellipsis)
+    // would silently slip past the rename test in identity.test.ts because
+    // it lives inside a doc, not the bin file.
+    expect(quickstart).not.toMatch(/\bpumble\s+\.{3}\b/);
+    expect(quickstart).toMatch(/pumble-keys\s+\.{3}/);
   });
 
   test("documented package imports resolve through package exports", () => {
