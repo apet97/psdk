@@ -96,6 +96,32 @@ jobs:
             exit 1
           fi
 
+      - name: Check no secrets are tracked
+        # Borrowed from anon's CI - if a file matching the secret-like
+        # pattern is ever committed, fail loudly. Cheap, additive, catches
+        # the most common mistake (someone commits .env or a key dump
+        # alongside a feature commit). Allowlists .env.example / .template /
+        # .sample so documentation templates are still permitted. No use of
+        # GitHub event inputs.
+        run: |
+          set -euo pipefail
+          never='(^|/)(tokens\.json|\.pumbleapprc|.*\.db|.*\.db-wal|.*\.db-shm|.*\.pem|.*\.p12)$'
+          env_any='(^|/)\.env($|\.[^/]+)$'
+          env_ok='\.env\.(example|template|sample)$'
+          bad=$(git ls-files | grep -E "$never" || true)
+          if [ -n "$bad" ]; then
+            echo "::error::Tracked secret-like file detected:"
+            echo "$bad"
+            exit 1
+          fi
+          bad=$(git ls-files | grep -E "$env_any" | grep -vE "$env_ok" || true)
+          if [ -n "$bad" ]; then
+            echo "::error::Tracked env file detected (only .env.example/.template/.sample allowed):"
+            echo "$bad"
+            exit 1
+          fi
+          echo "no tracked secret-like files"
+
       - name: Offline verification
         working-directory: sdk
         run: npm run verify:offline

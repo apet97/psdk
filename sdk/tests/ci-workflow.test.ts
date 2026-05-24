@@ -22,4 +22,18 @@ describe("CI workflow", () => {
     expect(ciWorkflow).toContain("release regeneration requires SPEAKEASY_API_KEY");
     expect(ciWorkflow).toContain("node sdk/scripts/patch-generated-runtime.mjs");
   });
+
+  // Borrowed from anon's CI - a tracked .env / tokens.json / *.db file is
+  // the most common way a secret accidentally lands in git. Pin both the
+  // step's presence and the allowlist semantics so a future edit that
+  // narrows the pattern (or drops the step) is caught.
+  it("includes a 'Check no secrets are tracked' step that allowlists templates", () => {
+    expect(ciWorkflow).toContain("Check no secrets are tracked");
+    expect(ciWorkflow).toContain("tokens\\.json");
+    expect(ciWorkflow).toContain("\\.pumbleapprc");
+    expect(ciWorkflow).toContain("Tracked secret-like file detected");
+    // Allowlist contract: .env.example / .template / .sample must stay
+    // permitted so docs templates can ship in the repo.
+    expect(ciWorkflow).toContain("env_ok='\\.env\\.(example|template|sample)$'");
+  });
 });
