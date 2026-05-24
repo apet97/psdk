@@ -35,10 +35,10 @@ describe("goal registry", () => {
     expect(statSync(join(goalsDir, "README.md")).isFile()).toBe(true);
   });
 
-  it("declares 30 goals (G00..G29)", () => {
+  it("declares 31 goals (G00..G30)", () => {
     const ids = listGoalFiles().map((p) => p.match(/G\d{2}/)![0]).sort();
     expect(ids).toEqual(
-      Array.from({ length: 30 }, (_, i) => `G${String(i).padStart(2, "0")}`),
+      Array.from({ length: 31 }, (_, i) => `G${String(i).padStart(2, "0")}`),
     );
   });
 

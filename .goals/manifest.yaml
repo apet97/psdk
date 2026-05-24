@@ -52,3 +52,4 @@ goals:
   - { id: G27, file: G27-product-boundary-docs.yaml }
   - { id: G28, file: G28-third-party-notices.yaml }
   - { id: G29, file: G29-native-knowledge.yaml }
+  - { id: G30, file: G30-upstream-knowledge.yaml }

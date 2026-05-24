@@ -15,8 +15,9 @@ upstream-derived content carries an attribution header.
 
 | Path | Upstream source | Notes |
 | --- | --- | --- |
-
-(none yet; populated by G30)
+| `sdk/knowledge/upstream/events/index.ts` | `pumble-sdk/src/core/types/pumble-events.ts` | Typed Pumble event payloads (NotificationXxx) and EventMap. Header + body lifted verbatim via `scripts/refresh-knowledge.mjs`. |
+| `sdk/knowledge/upstream/events/README.md` | `docs/basic-concepts.md` (paraphrased) | Field-name glossary and boundary statement explaining that these payloads describe the OAuth-app event surface, not the API-Keys add-on. |
+| `sdk/knowledge/upstream/blocks/types.ts` | `pumble-sdk/src/api/v1/types.ts` | Selective slice of the V1 namespace (block / element / view / request types). Runtime declarations are stripped at lift time; see `scripts/refresh-knowledge.mjs#liftBlocks`. |
 
 ---
 

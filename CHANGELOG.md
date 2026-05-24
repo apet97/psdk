@@ -36,6 +36,17 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
   is held under 8 KB and is included in the npm tarball under
   `knowledge/native/`. G31 will expose them through the curated MCP
   via the `pumble://knowledge/{+path}` resource template.
+- Lifted a tightly-scoped subset of `CAKE-com/pumble-node-sdk` (ISC)
+  into `sdk/knowledge/upstream/`: the typed `NotificationXxx` event
+  payloads (`events/index.ts`), the V1 block/view/element type
+  declarations (`blocks/types.ts`), and a `events/README.md` that
+  documents the boundary and Pumble's short-form field naming
+  (`aId`, `cId`, `mId`, `tx`, ...). `sdk/scripts/refresh-knowledge.mjs`
+  re-runs the lift from a local `officialsdk/pumble-node-sdk/` clone
+  (exit 0 with a hint when the clone is missing so verify:offline
+  stays green without forcing a clone). The runtime filter on
+  `blocks/types.ts` keeps only type-level declarations so the file is
+  side-effect-free when read as TypeScript.
 
 ### Governance
 

@@ -1,0 +1,56 @@
+id: G30
+title: Selective lift of upstream events + block types under ISC attribution
+priority: P1
+status: done
+why: "CAKE.com's pumble-node-sdk has the canonical typed event payloads and block/view defs. Lifting a tightly-scoped subset (events + block types only — NOT framework, NOT OAuth, NOT modals runtime) gives our MCP knowledge resources real content with proper attribution. A refresh script lets us re-sync without manual error."
+scope:
+  allowed:
+    - sdk/knowledge/upstream/**
+    - THIRD_PARTY_NOTICES.md
+    - sdk/scripts/refresh-knowledge.mjs
+    - sdk/scripts/refresh-knowledge.test.ts
+    - sdk/tests/knowledge-upstream.test.ts
+    - sdk/package.json
+    - CHANGELOG.md
+    - .goals/G30-upstream-knowledge.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+    - PumbleOpenApi.yaml
+    - sdk/knowledge/native/**
+acceptance:
+  - "sdk/knowledge/upstream/events/index.ts contains the full lifted EventMap + NotificationXxx types with the attribution header"
+  - "sdk/knowledge/upstream/events/README.md documents the boundary and field-name conventions"
+  - "sdk/knowledge/upstream/blocks/types.ts contains a runtime-free slice of upstream V1 block/view types with the attribution header"
+  - "Every file under sdk/knowledge/upstream/ starts with the attribution header (3 REQUIRED markers from G28)"
+  - "THIRD_PARTY_NOTICES.md table lists each file with upstream source path"
+  - "scripts/attribution-audit.mjs exits 0"
+  - "scripts/refresh-knowledge.mjs re-runs the lift from an existing officialsdk/pumble-node-sdk/ clone; exits 0 with a hint message and code 0 when the clone is missing"
+  - "tests/knowledge-upstream.test.ts asserts file presence + attribution header + no executable side effects on import"
+  - "npm pack --dry-run shows upstream files; tarball stays under 2.5 MB"
+  - "npm run verify:offline exits 0"
+commands:
+  - "cd sdk && npm test -- tests/knowledge-upstream.test.ts scripts/refresh-knowledge.test.ts"
+  - "cd sdk && node scripts/attribution-audit.mjs"
+  - "cd sdk && node scripts/refresh-knowledge.mjs --dry-run"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Test fails when an upstream file lacks the attribution header (audit reuse)"
+  - "Test fails when events/index.ts contains runtime executable statements"
+  - "Refresh script with --dry-run does not mutate anything"
+  - "Refresh script exits 0 with a hint if officialsdk/pumble-node-sdk/ is missing (not an error — opt-in dev tool)"
+  - "blocks/types.ts contains type aliases only — no runtime code, no class declarations, no exported functions"
+links:
+  docs:
+    - sdk/knowledge/upstream/events/README.md
+    - THIRD_PARTY_NOTICES.md
+  tests:
+    - sdk/tests/knowledge-upstream.test.ts
+rollback: "git revert <commit-sha>; upstream tree is additive and isolated from runtime code."
