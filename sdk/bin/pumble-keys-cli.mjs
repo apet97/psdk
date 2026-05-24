@@ -602,10 +602,13 @@ Global options:
   --api-key-auth <key>   Legacy direct API key flag. Prefer env, file, or stdin;
                           command-line secrets can leak through shell history,
                           process listings, CI logs, and terminal recordings.
-  --base-url <url>      API base URL. Defaults to PUMBLE_BASE_URL, then the production endpoint.
-  --timeout-ms <ms>     Per-request timeout in milliseconds.
-  -v, --verbose         Print success messages for write commands.
-  -h, --help            Show this help.
+                          --api-key is accepted as a legacy alias.
+  --base-url <url>       API base URL. Defaults to PUMBLE_BASE_URL, then the production endpoint.
+  --timeout-ms <ms>      Per-request timeout in milliseconds.
+  -v, --verbose          Print success messages for write commands.
+  -q, --quiet            Suppress the default one-line success message for write commands.
+  --version              Print the package version and exit.
+  -h, --help             Show this help.
 
 Prefer \`PUMBLE_API_KEY\`, \`--api-key-file\`, or \`--api-key-stdin\` over command-line keys.
 
