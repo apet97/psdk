@@ -224,7 +224,7 @@ async function cmdChannels(sdk, args, globals) {
       });
       const [name, ...extra] = parsed.positionals;
       if (!name || extra.length > 0) {
-        throw new UsageError("usage: pumble channels create <name> [--private] [--json]");
+        throw new UsageError("usage: pumble-keyschannels create <name> [--private] [--json]");
       }
       const created = await sdk.channels.createChannel({
         name,
@@ -241,7 +241,7 @@ async function cmdChannels(sdk, args, globals) {
       });
       const [query, ...extra] = parsed.positionals;
       if (!query || extra.length > 0) {
-        throw new UsageError("usage: pumble channels find <name-or-id> [--json]");
+        throw new UsageError("usage: pumble-keyschannels find <name-or-id> [--json]");
       }
       const result = await resolveChannel(sdk, query);
       if (!result.ok) throw resolveCliError("channel", query, result);
@@ -250,7 +250,7 @@ async function cmdChannels(sdk, args, globals) {
       return;
     }
     default:
-      throw new UsageError("usage: pumble channels list|find|create ...");
+      throw new UsageError("usage: pumble-keyschannels list|find|create ...");
   }
 }
 
@@ -263,7 +263,7 @@ async function cmdUsers(sdk, args) {
       });
       const [query, ...extra] = parsed.positionals;
       if (!query || extra.length > 0) {
-        throw new UsageError("usage: pumble users find <email-or-id> [--json]");
+        throw new UsageError("usage: pumble-keysusers find <email-or-id> [--json]");
       }
       const result = await resolveUser(sdk, query);
       if (!result.ok) throw resolveCliError("user", query, result);
@@ -272,7 +272,7 @@ async function cmdUsers(sdk, args) {
       return;
     }
     default:
-      throw new UsageError("usage: pumble users find ...");
+      throw new UsageError("usage: pumble-keysusers find ...");
   }
 }
 
@@ -283,7 +283,7 @@ async function cmdSend(sdk, args, globals) {
   const [channelArg, ...textParts] = parsed.positionals;
   const text = textParts.join(" ");
   if (!channelArg || !text) {
-    throw new UsageError("usage: pumble send <channel> <text> [--json]");
+    throw new UsageError("usage: pumble-keyssend <channel> <text> [--json]");
   }
   const channelId = await resolveChannelId(sdk, channelArg);
   const sent = await sdk.messages.sendMessage({ channelId, text });
@@ -299,7 +299,7 @@ async function cmdDm(sdk, args, globals) {
   const [userArg, ...textParts] = parsed.positionals;
   const text = textParts.join(" ");
   if (!userArg || !text) {
-    throw new UsageError("usage: pumble dm <user-id-or-email> <text> [--json]");
+    throw new UsageError("usage: pumble-keysdm <user-id-or-email> <text> [--json]");
   }
   const userId = await resolveUserId(sdk, userArg);
   const sent = await sdk.messages.dmUser({ userId, text });
@@ -315,7 +315,7 @@ async function cmdSearch(sdk, args) {
   });
   const query = parsed.positionals.join(" ");
   if (!query) {
-    throw new UsageError("usage: pumble search <query> [--limit N] [--json]");
+    throw new UsageError("usage: pumble-keyssearch <query> [--limit N] [--json]");
   }
   const limit = parsePositiveInt(parsed.values.limit, "--limit");
   const page = await sdk.messages.searchMessages({ text: query, limit });
@@ -331,7 +331,7 @@ async function cmdMessages(sdk, args) {
   });
   const [channelArg, ...extra] = parsed.positionals;
   if (!channelArg || extra.length > 0) {
-    throw new UsageError("usage: pumble messages <channel> [--limit N] [--json]");
+    throw new UsageError("usage: pumble-keysmessages <channel> [--limit N] [--json]");
   }
   const limit = parsePositiveInt(parsed.values.limit, "--limit");
   const channelId = await resolveChannelId(sdk, channelArg);
@@ -349,7 +349,7 @@ async function cmdThread(sdk, args) {
   });
   const [messageId, ...extra] = parsed.positionals;
   if (!messageId || extra.length > 0 || !parsed.values.channel) {
-    throw new UsageError("usage: pumble thread <message-id> --channel <channel> [--limit N] [--json]");
+    throw new UsageError("usage: pumble-keysthread <message-id> --channel <channel> [--limit N] [--json]");
   }
   const limit = parsePositiveInt(parsed.values.limit, "--limit");
   const channelId = await resolveChannelId(sdk, parsed.values.channel);
@@ -378,7 +378,7 @@ async function cmdStatus(sdk, args, globals) {
       const status = statusParts.join(" ");
       if (!code || !status) {
         throw new UsageError(
-          "usage: pumble status set <emoji> <text> [--expires-at <ms>] [--json]",
+          "usage: pumble-keysstatus set <emoji> <text> [--expires-at <ms>] [--json]",
         );
       }
       const result = await sdk.users.customStatus({
@@ -403,7 +403,7 @@ async function cmdStatus(sdk, args, globals) {
       return;
     }
     default:
-      throw new UsageError("usage: pumble status set|clear ...");
+      throw new UsageError("usage: pumble-keysstatus set|clear ...");
   }
 }
 
@@ -433,7 +433,7 @@ async function cmdSchedule(sdk, args, globals) {
       });
       const [scheduledMessageId, ...extra] = parsed.positionals;
       if (!scheduledMessageId || extra.length > 0) {
-        throw new UsageError("usage: pumble schedule cancel <id> [--json]");
+        throw new UsageError("usage: pumble-keysschedule cancel <id> [--json]");
       }
       const result = await sdk.scheduledMessages.deleteScheduledMessage({
         scheduledMessageId,
@@ -444,7 +444,7 @@ async function cmdSchedule(sdk, args, globals) {
       return;
     }
     default:
-      throw new UsageError("usage: pumble schedule list|cancel ...");
+      throw new UsageError("usage: pumble-keysschedule list|cancel ...");
   }
 }
 
@@ -486,7 +486,7 @@ function parseCommandArgs(args, options) {
 
 function ensureNoPositionals(parsed, command) {
   if (parsed.positionals.length > 0) {
-    throw new UsageError(`usage: pumble ${command}`);
+    throw new UsageError(`usage: pumble-keys${command}`);
   }
 }
 
@@ -578,23 +578,23 @@ function requireValue(argv, index, flag) {
 
 function printHelp() {
   process.stdout.write(`
-pumble — one-shot CLI for the Pumble API-Keys SDK
+pumble-keys — one-shot CLI for the Pumble API-Keys SDK
 
 Usage:
-  pumble [global options] whoami [--json]
-  pumble [global options] channels list [--json]
-  pumble [global options] channels find <name-or-id> [--json]
-  pumble [global options] channels create <name> [--private] [--json]
-  pumble [global options] users find <email-or-id> [--json]
-  pumble [global options] send <channel-id|#name> <text> [--json]
-  pumble [global options] dm <user-id|email> <text> [--json]
-  pumble [global options] search <query> [--limit N] [--json]
-  pumble [global options] messages <channel-id|#name> [--limit N] [--json]
-  pumble [global options] thread <message-id> --channel <channel-id|#name> [--limit N] [--json]
-  pumble [global options] status set <emoji> <text> [--expires-at <ms>]
-  pumble [global options] status clear
-  pumble [global options] schedule list [--channel X] [--limit N] [--json]
-  pumble [global options] schedule cancel <id> [--json]
+  pumble-keys [global options] whoami [--json]
+  pumble-keys [global options] channels list [--json]
+  pumble-keys [global options] channels find <name-or-id> [--json]
+  pumble-keys [global options] channels create <name> [--private] [--json]
+  pumble-keys [global options] users find <email-or-id> [--json]
+  pumble-keys [global options] send <channel-id|#name> <text> [--json]
+  pumble-keys [global options] dm <user-id|email> <text> [--json]
+  pumble-keys [global options] search <query> [--limit N] [--json]
+  pumble-keys [global options] messages <channel-id|#name> [--limit N] [--json]
+  pumble-keys [global options] thread <message-id> --channel <channel-id|#name> [--limit N] [--json]
+  pumble-keys [global options] status set <emoji> <text> [--expires-at <ms>]
+  pumble-keys [global options] status clear
+  pumble-keys [global options] schedule list [--channel X] [--limit N] [--json]
+  pumble-keys [global options] schedule cancel <id> [--json]
 
 Global options:
   --api-key-file <path>  Read API key from a local file.
@@ -610,20 +610,20 @@ Global options:
 Prefer \`PUMBLE_API_KEY\`, \`--api-key-file\`, or \`--api-key-stdin\` over command-line keys.
 
 Examples:
-  pumble whoami
-  pumble channels list --json
-  pumble channels find general
-  pumble users find ada@example.com
-  pumble send '#general' "deploy finished"
-  pumble search "incident" --limit 5
+  pumble-keys whoami
+  pumble-keys channels list --json
+  pumble-keys channels find general
+  pumble-keys users find ada@example.com
+  pumble-keys send '#general' "deploy finished"
+  pumble-keys search "incident" --limit 5
 `);
 }
 
 main(process.argv.slice(2)).catch((err) => {
   const code = err instanceof UsageError ? 2 : 1;
-  process.stderr.write(`pumble: ${formatError(err)}\n`);
+  process.stderr.write(`pumble-keys: ${formatError(err)}\n`);
   if (err instanceof UsageError) {
-    process.stderr.write("Run `pumble --help` for usage.\n");
+    process.stderr.write("Run `pumble-keys --help` for usage.\n");
   }
   process.exit(code);
 });

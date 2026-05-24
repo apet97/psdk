@@ -121,7 +121,7 @@ describe("examples", () => {
         PUMBLE_CHANNEL: "#ops",
       })).toEqual({
         apiKeyAuth: "fixture-key",
-        request: { channel: "#ops", text: "Hello from pumble-sdk." },
+        request: { channel: "#ops", text: "Hello from pumble-keys-sdk." },
       });
       const send = vi.fn().mockResolvedValue({ ok: true, ids: { messageId: "m1" } });
       await expect(sendRecipe.sendChannelMessage({ messages: { send } }, {

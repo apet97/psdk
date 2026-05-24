@@ -90,9 +90,9 @@ try {
     "docs/MIGRATING.md",
     "docs/verification/v0.3.21.md",
     "bin/mcp-server.js",
-    "bin/pumble-cli.mjs",
+    "bin/pumble-keys-cli.mjs",
     "bin/pumble-mcp-curated.js",
-    "bin/pumble-mcp.mjs",
+    "bin/pumble-keys-mcp.mjs",
     "esm/index.js",
     "src/index.ts",
   ]) {
@@ -112,9 +112,9 @@ try {
   await run("npm", ["install", "--no-audit", "--no-fund", tarball], { cwd: consumer });
 
   const installedPkg = JSON.parse(
-    await readFile(join(consumer, "node_modules/pumble-sdk/package.json"), "utf8"),
+    await readFile(join(consumer, "node_modules/pumble-keys-sdk/package.json"), "utf8"),
   );
-  if (JSON.stringify(Object.keys(installedPkg.bin).sort()) !== JSON.stringify(["pumble", "pumble-mcp"])) {
+  if (JSON.stringify(Object.keys(installedPkg.bin).sort()) !== JSON.stringify(["pumble-keys", "pumble-keys-mcp"])) {
     throw new Error(`unexpected package bins: ${Object.keys(installedPkg.bin).sort().join(", ")}`);
   }
   if (installedPkg.license !== "MIT") throw new Error("package license metadata missing");
@@ -123,12 +123,12 @@ try {
   const smokeModule = join(consumer, "smoke.mjs");
   await writeFile(smokeModule, `
 const checks = [
-  ["pumble-sdk", "PumbleSDK"],
-  ["pumble-sdk/core.js", "PumbleSDKCore"],
-  ["pumble-sdk/models/errors", "PumbleSDKError"],
-  ["pumble-sdk/extensions/index.js", "searchAllMessages"],
-  ["pumble-sdk/extensions/webhooks.js", "createWebhookHandler"],
-  ["pumble-sdk/lib/http", "HTTPClient"],
+  ["pumble-keys-sdk", "PumbleSDK"],
+  ["pumble-keys-sdk/core.js", "PumbleSDKCore"],
+  ["pumble-keys-sdk/models/errors", "PumbleSDKError"],
+  ["pumble-keys-sdk/extensions/index.js", "searchAllMessages"],
+  ["pumble-keys-sdk/extensions/webhooks.js", "createWebhookHandler"],
+  ["pumble-keys-sdk/lib/http", "HTTPClient"],
 ];
 
 for (const [specifier, exportName] of checks) {
@@ -141,14 +141,14 @@ console.log("documented exports ok");
 `);
   await run("node", [smokeModule], { cwd: consumer });
 
-  const pumbleHelp = await run(binPath(consumer, "pumble"), ["--help"], { cwd: consumer, capture: true });
-  if (!/Usage:/i.test(pumbleHelp.stdout)) throw new Error("pumble --help did not print usage");
+  const pumbleHelp = await run(binPath(consumer, "pumble-keys"), ["--help"], { cwd: consumer, capture: true });
+  if (!/Usage:/i.test(pumbleHelp.stdout)) throw new Error("pumble-keys --help did not print usage");
 
-  const mcpHelp = await run(binPath(consumer, "pumble-mcp"), ["--help"], { cwd: consumer, capture: true });
-  if (!/Usage:/i.test(mcpHelp.stdout)) throw new Error("pumble-mcp --help did not print usage");
-  const generatedMcpHelp = await run(binPath(consumer, "pumble-mcp"), ["start", "--help"], { cwd: consumer, capture: true });
-  if (!/transport/i.test(generatedMcpHelp.stdout)) throw new Error("pumble-mcp start --help did not reach generated server");
-  const curatedHelp = await run("node", [join(consumer, "node_modules/pumble-sdk/bin/pumble-mcp-curated.js"), "--help"], {
+  const mcpHelp = await run(binPath(consumer, "pumble-keys-mcp"), ["--help"], { cwd: consumer, capture: true });
+  if (!/Usage:/i.test(mcpHelp.stdout)) throw new Error("pumble-keys-mcp --help did not print usage");
+  const generatedMcpHelp = await run(binPath(consumer, "pumble-keys-mcp"), ["start", "--help"], { cwd: consumer, capture: true });
+  if (!/transport/i.test(generatedMcpHelp.stdout)) throw new Error("pumble-keys-mcp start --help did not reach generated server");
+  const curatedHelp = await run("node", [join(consumer, "node_modules/pumble-keys-sdk/bin/pumble-mcp-curated.js"), "--help"], {
     cwd: consumer,
     capture: true,
   });
@@ -156,6 +156,8 @@ console.log("documented exports ok");
     throw new Error("pumble-mcp-curated --help did not run from installed package");
   }
   assertNoBin(consumer, "mcp");
+  assertNoBin(consumer, "pumble");
+  assertNoBin(consumer, "pumble-mcp");
 
   console.log(`pack smoke passed: ${tarballName}`);
 } finally {

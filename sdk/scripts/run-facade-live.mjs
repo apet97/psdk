@@ -53,7 +53,7 @@ try {
     client.raw.channels.createChannel({
     name: channelName,
     type: "PUBLIC",
-    description: "Created by pumble-sdk facade live smoke.",
+    description: "Created by pumble-keys-sdk facade live smoke.",
   }));
   await smoke.run("resolvers.refresh", {}, () => client.resolvers.refresh());
 

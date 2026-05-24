@@ -48,7 +48,7 @@ if (!sent.ok) {
 ### Facade — assert
 
 ```ts
-import { assertFacadeOk } from "pumble-sdk/extensions/index.js";
+import { assertFacadeOk } from "pumble-keys-sdk/extensions/index.js";
 const value = assertFacadeOk(await client.messages.send({ channel: "#general", text: "hi" }));
 ```
 

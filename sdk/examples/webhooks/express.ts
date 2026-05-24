@@ -13,7 +13,7 @@
  *   app.listen(3000);
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createWebhookHandler } from "pumble-sdk/extensions/webhooks.js";
+import { createWebhookHandler } from "pumble-keys-sdk/extensions/webhooks.js";
 
 type ExpressRouterLike = {
   post(

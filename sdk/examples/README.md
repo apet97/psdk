@@ -1,6 +1,6 @@
-# pumble-sdk examples
+# pumble-keys-sdk examples
 
-Small examples for the published `pumble-sdk` package.
+Small examples for the published `pumble-keys-sdk` package.
 
 ## Prerequisites
 

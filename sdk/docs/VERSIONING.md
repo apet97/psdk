@@ -1,6 +1,6 @@
 # Versioning
 
-`pumble-sdk` follows semantic versioning **within tiers**. Tiers are defined in `STABILITY.md`.
+`pumble-keys-sdk` follows semantic versioning **within tiers**. Tiers are defined in `STABILITY.md`.
 
 ## What is a breaking change
 

@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 const execFile = promisify(execFileCallback);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const sdkRoot = resolve(__dirname, "..");
-const cliPath = join(sdkRoot, "bin/pumble-cli.mjs");
+const cliPath = join(sdkRoot, "bin/pumble-keys-cli.mjs");
 const genYamlPath = join(sdkRoot, ".speakeasy/gen.yaml");
 const packageJsonPath = join(sdkRoot, "package.json");
 const dryRunShim = pathToFileURL(join(sdkRoot, "bin/dry-run-shim.mjs")).href;
@@ -22,7 +22,7 @@ describe("pumble CLI", () => {
   let dryRunLogPath: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "pumble-cli-test-"));
+    tempDir = mkdtempSync(join(tmpdir(), "pumble-keys-cli-test-"));
     requestLogPath = join(tempDir, "requests.jsonl");
     dryRunLogPath = join(tempDir, "dry-run.jsonl");
     mockShimPath = join(tempDir, "mock-fetch.mjs");
@@ -36,8 +36,8 @@ describe("pumble CLI", () => {
   it("wires the npm bin through Speakeasy config and regenerated package metadata", () => {
     const gen = parseYaml(readFileSync(genYamlPath, "utf8"));
     const pkg = JSON.parse(readFileSync(packageJsonPath, "utf8"));
-    expect(gen.typescript.additionalPackageJSON.bin.pumble).toBe("./bin/pumble-cli.mjs");
-    expect(pkg.bin.pumble).toBe("./bin/pumble-cli.mjs");
+    expect(gen.typescript.additionalPackageJSON.bin["pumble-keys"]).toBe("./bin/pumble-keys-cli.mjs");
+    expect(pkg.bin["pumble-keys"]).toBe("./bin/pumble-keys-cli.mjs");
   });
 
   it("prints authenticated user information as JSON", async () => {

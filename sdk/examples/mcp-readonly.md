@@ -3,7 +3,7 @@
 Start the curated MCP profile and use the task-oriented read tools first:
 
 ```bash
-PUMBLE_API_KEY=<your-api-key> pumble-mcp start --profile curated
+PUMBLE_API_KEY=<your-api-key> pumble-keys-mcp start --profile curated
 ```
 
 Useful read calls:

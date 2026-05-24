@@ -3,7 +3,7 @@ import {
   createPumbleClient,
   type PumbleClient,
   type ReplyToThreadRequest,
-} from "pumble-sdk/extensions/index.js";
+} from "pumble-keys-sdk/extensions/index.js";
 
 export const replyToThreadRequiredEnv = [
   "PUMBLE_API_KEY",

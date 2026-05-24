@@ -1,6 +1,6 @@
 # CLI reference
 
-Run `pumble --help` for a top-level overview. Every command supports `--json` unless noted.
+Run `pumble-keys --help` for a top-level overview. Every command supports `--json` unless noted.
 
 ## Global flags
 
@@ -40,9 +40,9 @@ to suppress it, or `--json` to emit the full structured receipt instead.
 ## Examples
 
 ```bash
-pumble doctor
-pumble whoami
-pumble channels list --json
-pumble send '#general' "ship it"
-pumble search "release"
+pumble-keys doctor
+pumble-keys whoami
+pumble-keys channels list --json
+pumble-keys send '#general' "ship it"
+pumble-keys search "release"
 ```

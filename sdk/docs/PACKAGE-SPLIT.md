@@ -1,6 +1,6 @@
 # Package Split Decision Matrix
 
-`pumble-sdk` intentionally ships as one npm package today. The generated API
+`pumble-keys-sdk` intentionally ships as one npm package today. The generated API
 layer, hand-written facades, app helpers, test fixtures, and curated MCP
 server are still being hardened together, so keeping one package preserves
 stable import paths while that work finishes.
@@ -72,9 +72,9 @@ Evidence recorded for this decision:
 Blocking evidence still required before extraction:
 
 - Two live verification runs must be recorded for the same candidate commit.
-- Compatibility tests must prove existing `pumble-sdk` import paths keep
+- Compatibility tests must prove existing `pumble-keys-sdk` import paths keep
   working through any transitional package.
 - Migration docs must state the exact replacement import paths for every
   extracted public API.
 
-Until those are proven, keep publishing `pumble-sdk` as the single package.
+Until those are proven, keep publishing `pumble-keys-sdk` as the single package.

@@ -7,6 +7,14 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
 
 ## Unreleased
 
+### Identity
+
+- Package renamed from `pumble-sdk` to `pumble-keys-sdk` to clear the npm
+  namespace collision with CAKE.com's official `pumble-sdk` (workspace OAuth
+  apps SDK). Our package targets the Pumble API-Keys add-on. CLI binaries
+  renamed to `pumble-keys` and `pumble-keys-mcp`; bin files renamed in lock
+  step.
+
 ### Governance
 
 - Added `.goals/` registry: one YAML per goal (G00–G25), validated by `sdk/scripts/goal-check.mjs` and spliced into `verify:offline`.

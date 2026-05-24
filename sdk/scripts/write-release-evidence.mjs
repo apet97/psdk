@@ -37,7 +37,7 @@ function runUrl(idVarName, explicitUrlVarName) {
 const ciRun = runUrl("CI_RUN_ID", "CI_RUN_URL");
 const releaseRun = runUrl("GITHUB_RUN_ID", "RELEASE_RUN_URL");
 const npmUrl = env("NPM_RELEASE_URL")
-  || (env("NPM_PUBLISHED") === "true" ? `https://www.npmjs.com/package/pumble-sdk/v/${version}` : PENDING);
+  || (env("NPM_PUBLISHED") === "true" ? `https://www.npmjs.com/package/pumble-keys-sdk/v/${version}` : PENDING);
 
 const provenanceEnv = env("NPM_PROVENANCE");
 const provenance = ["attested", "none", "unverified"].includes(provenanceEnv)
@@ -46,7 +46,7 @@ const provenance = ["attested", "none", "unverified"].includes(provenanceEnv)
 
 const smokeArtifact = env("LIVE_SMOKE_ARTIFACT") || "pending";
 
-const tarballPath = env("TARBALL_PATH") || join(sdkRoot, `pumble-sdk-${version}.tgz`);
+const tarballPath = env("TARBALL_PATH") || join(sdkRoot, `pumble-keys-sdk-${version}.tgz`);
 if (!existsSync(tarballPath)) {
   console.error(
     `write-release-evidence: tarball not found at ${tarballPath}. ` +
@@ -67,7 +67,7 @@ const outFile = join(outDir, `v${version}.md`);
 const body = `# v${version} Verification
 
 Date: ${today}
-Package: \`pumble-sdk@${version}\`
+Package: \`pumble-keys-sdk@${version}\`
 Commit: \`${commit}\`
 CI run: ${ciRun}
 Release run: ${releaseRun}

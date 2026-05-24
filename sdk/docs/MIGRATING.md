@@ -1,11 +1,11 @@
-# Migrating pumble-sdk
+# Migrating pumble-keys-sdk
 
 ## 0.3.x To Explicit Export Map
 
 - Replace unsupported wildcard imports with documented public imports.
-- Use `pumble-sdk/extensions/index.js` for facade helpers.
-- Use `pumble-sdk/extensions/webhooks.js` for webhook verification.
-- Use raw SDK imports from `pumble-sdk`, `pumble-sdk/models`, `pumble-sdk/models/operations`, and `pumble-sdk/models/errors`.
+- Use `pumble-keys-sdk/extensions/index.js` for facade helpers.
+- Use `pumble-keys-sdk/extensions/webhooks.js` for webhook verification.
+- Use raw SDK imports from `pumble-keys-sdk`, `pumble-keys-sdk/models`, `pumble-keys-sdk/models/operations`, and `pumble-keys-sdk/models/errors`.
 
 ## Scheduled Messages
 

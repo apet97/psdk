@@ -8,7 +8,7 @@
 | Package smoke | Tarball install reproduces public exports + bins | `tests/package-metadata.test.ts`, `tests/examples.test.ts`, `tests/package-split-dry-run.test.ts`, `tests/ci-workflow.test.ts`, `tests/release-workflow.test.ts` |
 | Replay contract | Recorded HTTP fixtures still satisfy current code | `tests/replay.test.ts`, `tests/search-all.test.ts` (replay mode) |
 | Live contract | Sacrificial workspace API still behaves as the SDK assumes | run by `scripts/verify-live.mjs`, `scripts/run-arazzo-live.mjs`, `scripts/run-facade-live.mjs`; gated by `tests/verify-live.test.ts`, `tests/live-smoke-*.test.ts` |
-| MCP safety | Curated MCP excludes destructive tools and keeps writes behind preview/confirm | `tests/mcp-agent-safety.test.ts`, `tests/mcp-tool-manifest.test.ts`, `tests/mcp-curated-*.test.ts`, `tests/pumble-mcp.test.ts`, `tests/pumble-mcp-curated.test.ts`, `tests/dry-run-shim.test.ts` |
+| MCP safety | Curated MCP excludes destructive tools and keeps writes behind preview/confirm | `tests/mcp-agent-safety.test.ts`, `tests/mcp-tool-manifest.test.ts`, `tests/mcp-curated-*.test.ts`, `tests/pumble-keys-mcp.test.ts`, `tests/pumble-mcp-curated.test.ts`, `tests/dry-run-shim.test.ts` |
 | CLI smoke | CLI commands surface predictable output and exit codes | `tests/cli.test.ts` |
 
 ## Replay fixture freshness
@@ -20,4 +20,4 @@ Fixtures live in `tests/fixtures/`. They are re-recorded when:
 
 ## Live workspace setup
 
-`scripts/live-env.mjs` resolves credentials in this order: `PUMBLE_API_KEY`, `~/.pumble-sdk/live.env`, then aborts. The sacrificial workspace has its own channel set. Never point live tests at a production workspace.
+`scripts/live-env.mjs` resolves credentials in this order: `PUMBLE_API_KEY`, `~/.pumble-keys-sdk/live.env`, then aborts. The sacrificial workspace has its own channel set. Never point live tests at a production workspace.

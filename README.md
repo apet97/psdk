@@ -1,4 +1,4 @@
-# pumble-sdk
+# pumble-keys-sdk
 
 Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
 
@@ -40,13 +40,13 @@ Common entry points:
 ## Install
 
 ```bash
-npm install pumble-sdk
+npm install pumble-keys-sdk
 ```
 
 ## Basic Usage
 
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const sdk = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -59,7 +59,7 @@ console.log(me.id, me.name);
 ## MCP
 
 ```bash
-npx -y --package pumble-sdk -- pumble-mcp start \
+npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport stdio \
   --profile readonly
 ```

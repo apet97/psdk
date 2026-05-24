@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 const execFile = promisify(execFileCallback);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const sdkRoot = resolve(__dirname, "..");
-const cliPath = join(sdkRoot, "bin", "pumble-cli.mjs");
+const cliPath = join(sdkRoot, "bin", "pumble-keys-cli.mjs");
 const dryRunShim = pathToFileURL(join(sdkRoot, "bin", "dry-run-shim.mjs")).href;
 
 describe("cli write output", () => {
@@ -19,7 +19,7 @@ describe("cli write output", () => {
   let dryRunLogPath: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "pumble-cli-quiet-"));
+    tempDir = mkdtempSync(join(tmpdir(), "pumble-keys-cli-quiet-"));
     requestLogPath = join(tempDir, "requests.jsonl");
     dryRunLogPath = join(tempDir, "dry-run.jsonl");
     mockShimPath = join(tempDir, "mock-fetch.mjs");

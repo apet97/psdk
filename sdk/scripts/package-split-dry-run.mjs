@@ -71,7 +71,7 @@ const mappings = [
   {
     name: "@pumble/mcp",
     sources: [
-      "bin/pumble-mcp.mjs",
+      "bin/pumble-keys-mcp.mjs",
       "bin/pumble-mcp-args.mjs",
       "src/mcp-server/curated/server.ts",
       "src/mcp-server/curated/tools.ts",

@@ -1,4 +1,4 @@
-import { createPumbleClient } from "pumble-sdk/extensions/index.js";
+import { createPumbleClient } from "pumble-keys-sdk/extensions/index.js";
 
 export const searchAndReplyRequiredEnv = ["PUMBLE_API_KEY"];
 

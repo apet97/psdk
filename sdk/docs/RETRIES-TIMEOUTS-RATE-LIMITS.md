@@ -16,7 +16,7 @@ The spec contract (`docs/SPEC-CONTRACT.md`) enforces a per-operation `x-speakeas
 ## Timeouts
 
 ```ts
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const sdk = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -31,7 +31,7 @@ Default: none (uses the runtime's fetch default). Per-call: pass `signal` from a
 `createRateLimiter` is a **process-local** token bucket. It can shape this process's outbound traffic but cannot coordinate across processes.
 
 ```ts
-import { createRateLimiter } from "pumble-sdk/extensions/index.js";
+import { createRateLimiter } from "pumble-keys-sdk/extensions/index.js";
 
 const limiter = createRateLimiter({ tokensPerSecond: 5, burst: 10 });
 await limiter.acquire(); // throws on AbortSignal cancellation
@@ -42,7 +42,7 @@ For multi-process fan-out, coordinate externally (job queue, shared service) —
 ## withRetries helper
 
 ```ts
-import { withRetries, categorizeError } from "pumble-sdk/extensions/index.js";
+import { withRetries, categorizeError } from "pumble-keys-sdk/extensions/index.js";
 
 await withRetries(() => client.messages.send({ channel: "#general", text: "ping" }), {
   retries: 3,

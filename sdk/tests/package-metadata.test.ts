@@ -10,10 +10,10 @@ const gen = parse(readFileSync(join(__dirname, "../.speakeasy/gen.yaml"), "utf8"
 
 describe("package metadata", () => {
   it("publishes only the supported CLI bins", () => {
-    expect(Object.keys(pkg.bin).sort()).toEqual(["pumble", "pumble-mcp"]);
+    expect(Object.keys(pkg.bin).sort()).toEqual(["pumble-keys", "pumble-keys-mcp"]);
     expect(pkg.bin).toEqual({
-      pumble: "./bin/pumble-cli.mjs",
-      "pumble-mcp": "./bin/pumble-mcp.mjs",
+      "pumble-keys": "./bin/pumble-keys-cli.mjs",
+      "pumble-keys-mcp": "./bin/pumble-keys-mcp.mjs",
     });
   });
 
@@ -75,10 +75,10 @@ describe("package metadata", () => {
       "bin/audit-log-shim.mjs",
       "bin/dry-run-shim.mjs",
       "bin/mcp-server.js",
-      "bin/pumble-cli.mjs",
+      "bin/pumble-keys-cli.mjs",
       "bin/pumble-mcp-args.mjs",
       "bin/pumble-mcp-curated.js",
-      "bin/pumble-mcp.mjs",
+      "bin/pumble-keys-mcp.mjs",
       "docs/API-REFERENCE.md",
       "docs/ERRORS.md",
       "docs/INTEGRATION-USAGE.md",

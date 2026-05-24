@@ -12,7 +12,7 @@ Migration notes: [`docs/MIGRATING.md`](docs/MIGRATING.md).
 Use the generated SDK when you need direct endpoint coverage.
 
 ```ts
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const sdk = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -45,7 +45,7 @@ Use the facade for application flows that benefit from target resolution,
 receipts, and value failures.
 
 ```ts
-import { createPumbleClient } from "pumble-sdk/extensions/index.js";
+import { createPumbleClient } from "pumble-keys-sdk/extensions/index.js";
 
 const pumble = createPumbleClient({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -138,17 +138,17 @@ windows.
 The default agent profile is curated:
 
 ```bash
-pumble-mcp start --transport stdio --profile curated
+pumble-keys-mcp start --transport stdio --profile curated
 ```
 
-`pumble-mcp start --profile curated` also selects the curated profile with the
+`pumble-keys-mcp start --profile curated` also selects the curated profile with the
 local stdio default.
 
 Stdio is the local default transport for MCP clients. SSE binds to `127.0.0.1`
 by default and supports optional bearer auth:
 
 ```bash
-pumble-mcp start --transport sse --host 127.0.0.1 --auth-token "$PUMBLE_MCP_TOKEN"
+pumble-keys-mcp start --transport sse --host 127.0.0.1 --auth-token "$PUMBLE_MCP_TOKEN"
 ```
 
 Curated MCP read tools and confirmed-write tools are the stable agent-facing
@@ -157,26 +157,26 @@ surface.
 Raw readwrite mode is intentionally loud:
 
 ```bash
-PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
+PUMBLE_API_KEY=... pumble-keys-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-keys-mcp-audit.jsonl
 ```
 
 ## CLI
 
 The package provides these binaries:
 
-- `pumble`
-- `pumble-mcp`
+- `pumble-keys`
+- `pumble-keys-mcp`
 
-Use `pumble --help` for SDK shell commands and `pumble-mcp start --help` for MCP
+Use `pumble-keys --help` for SDK shell commands and `pumble-keys-mcp start --help` for MCP
 transport/profile flags.
 
 Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin` over command-line keys.
 
 ```bash
 export PUMBLE_API_KEY="<pumble-api-key>"
-pumble whoami
-pumble whoami --api-key-file ~/.config/pumble/api-key
-printf '%s\n' "$PUMBLE_API_KEY" | pumble --api-key-stdin whoami
+pumble-keys whoami
+pumble-keys whoami --api-key-file ~/.config/pumble/api-key
+printf '%s\n' "$PUMBLE_API_KEY" | pumble-keys --api-key-stdin whoami
 ```
 
 ## Webhooks
@@ -202,20 +202,20 @@ Common rules:
 
 | Export key | Import path | Surface | Tier |
 | --- | --- | --- | --- |
-| `.` | `pumble-sdk` | Raw SDK + façade re-exports | stable |
-| `./extensions/index.js` | `pumble-sdk/extensions/index.js` | Façade helpers | stable |
-| `./extensions/webhooks.js` | `pumble-sdk/extensions/webhooks.js` | Webhook verification | stable |
-| `./extensions/telemetry.js` | `pumble-sdk/extensions/telemetry.js` | Telemetry helpers | beta |
-| `./extensions/testing/index.js` | `pumble-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |
-| `./extensions/app/index.js` | `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |
-| `./extensions/app/socket-mode.js` | `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |
+| `.` | `pumble-keys-sdk` | Raw SDK + façade re-exports | stable |
+| `./extensions/index.js` | `pumble-keys-sdk/extensions/index.js` | Façade helpers | stable |
+| `./extensions/webhooks.js` | `pumble-keys-sdk/extensions/webhooks.js` | Webhook verification | stable |
+| `./extensions/telemetry.js` | `pumble-keys-sdk/extensions/telemetry.js` | Telemetry helpers | beta |
+| `./extensions/testing/index.js` | `pumble-keys-sdk/extensions/testing/index.js` | Testing/replay helpers | beta |
+| `./extensions/app/index.js` | `pumble-keys-sdk/extensions/app/index.js` | App/OAuth helpers | experimental |
+| `./extensions/app/socket-mode.js` | `pumble-keys-sdk/extensions/app/socket-mode.js` | Socket Mode | experimental |
 
 Legacy table — the previous row format is kept for tooling that greps for it:
 
 | Import path | Surface | Stability |
 | --- | --- | --- |
-| `pumble-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |
-| `pumble-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |
+| `pumble-keys-sdk/extensions/app/index.js` | App/OAuth helpers | Experimental |
+| `pumble-keys-sdk/extensions/app/socket-mode.js` | Socket Mode | Experimental |
 | Curated MCP stdio/read/confirmed-write tools | Agent tools | Stable |
 | Audit-log helpers | Audit-log helpers | Beta |
 | Package split | Future packaging shape | Experimental |
@@ -241,7 +241,7 @@ Every release should link or attach:
 
 The built-in rate limiter is process-local. It does not coordinate across workers, serverless instances, containers, or machines.
 
-For distributed deployments, place rate-limit coordination outside the SDK. Use a shared store such as Redis in application code, then call the SDK only after the shared limiter grants a slot. Do not add Redis as a core dependency of `pumble-sdk`.
+For distributed deployments, place rate-limit coordination outside the SDK. Use a shared store such as Redis in application code, then call the SDK only after the shared limiter grants a slot. Do not add Redis as a core dependency of `pumble-keys-sdk`.
 
 ## OpenTelemetry
 

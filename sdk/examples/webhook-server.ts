@@ -1,5 +1,5 @@
 import express from "express";
-import { PumbleApp } from "pumble-sdk/extensions/index.js";
+import { PumbleApp } from "pumble-keys-sdk/extensions/index.js";
 
 const signingSecret = process.env["PUMBLE_SIGNING_SECRET"];
 if (!signingSecret) {

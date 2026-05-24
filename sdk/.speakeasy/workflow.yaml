@@ -8,7 +8,7 @@ sources:
         registry:
             location: registry.speakeasyapi.dev/a5115/a5115/pumble-api-addon-documentation
 targets:
-    pumble-sdk:
+    pumble-keys-sdk:
         target: typescript
         source: Pumble API Addon documentation
         codeSamples:

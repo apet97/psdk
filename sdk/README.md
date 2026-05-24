@@ -1,4 +1,4 @@
-# pumble-sdk
+# pumble-keys-sdk
 
 Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
 
@@ -6,7 +6,7 @@ Use it when you want a typed raw SDK plus safer Pumble workflows: facade-first c
 
 This package is not a general generator for SDKs. The generated raw SDK comes from `PumbleOpenApi.yaml`; the handwritten layers make Pumble API-key workflows safer and more ergonomic than raw endpoints.
 
-[![npm version](https://img.shields.io/npm/v/pumble-sdk.svg)](https://www.npmjs.com/package/pumble-sdk)
+[![npm version](https://img.shields.io/npm/v/pumble-keys-sdk.svg)](https://www.npmjs.com/package/pumble-keys-sdk)
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -23,11 +23,11 @@ A **Pumble TypeScript SDK / Developer Toolkit**: one generated raw client from `
 ## Install
 
 ```bash
-npm install pumble-sdk
+npm install pumble-keys-sdk
 ```
 
 The package is ESM-only and requires Node.js 20 or newer. CommonJS callers can
-load it with `await import("pumble-sdk")`.
+load it with `await import("pumble-keys-sdk")`.
 
 Runtime support: Node.js 20+ ESM. Browser and edge runtimes are not supported in `0.3.x`.
 
@@ -47,7 +47,7 @@ The façade is the recommended entry point. It accepts human-friendly inputs
 import {
   assertFacadeOk,
   createPumbleClient,
-} from "pumble-sdk/extensions/index.js";
+} from "pumble-keys-sdk/extensions/index.js";
 
 const pumble = createPumbleClient({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -67,13 +67,13 @@ Need raw endpoint access? See [Raw SDK Usage](#raw-sdk-usage) below.
 
 | Surface | Status | Use for |
 | --- | --- | --- |
-| `pumble-sdk` raw SDK | Stable | Direct typed endpoint access generated from `PumbleOpenApi.yaml`. |
-| `pumble-sdk/extensions/index.js` facade | Stable | Resolver-first users, channels, messages, threads, search, and scheduled-message workflows. |
-| `pumble-sdk/extensions/webhooks.js` | Stable | Signed webhook verification and routing helpers. |
+| `pumble-keys-sdk` raw SDK | Stable | Direct typed endpoint access generated from `PumbleOpenApi.yaml`. |
+| `pumble-keys-sdk/extensions/index.js` facade | Stable | Resolver-first users, channels, messages, threads, search, and scheduled-message workflows. |
+| `pumble-keys-sdk/extensions/webhooks.js` | Stable | Signed webhook verification and routing helpers. |
 | Curated MCP profile | Stable | Agent-facing read tools and preview/confirm writes. |
-| `pumble-sdk/extensions/telemetry.js` | Beta | Local telemetry hooks and examples. |
-| `pumble-sdk/extensions/testing/index.js` | Beta | Replay fixtures and test helpers. |
-| `pumble-sdk/extensions/app/*` and Socket Mode | Experimental | App/OAuth/socket helpers that are not a complete production app framework. |
+| `pumble-keys-sdk/extensions/telemetry.js` | Beta | Local telemetry hooks and examples. |
+| `pumble-keys-sdk/extensions/testing/index.js` | Beta | Replay fixtures and test helpers. |
+| `pumble-keys-sdk/extensions/app/*` and Socket Mode | Experimental | App/OAuth/socket helpers that are not a complete production app framework. |
 
 ## Authentication
 
@@ -81,7 +81,7 @@ Create a Pumble API key in **Workspace settings -> API keys** and pass it as
 `apiKeyAuth`:
 
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const sdk = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -104,7 +104,7 @@ making callers stitch together raw endpoint responses:
 import {
   assertFacadeOk,
   createPumbleClient,
-} from "pumble-sdk/extensions/index.js";
+} from "pumble-keys-sdk/extensions/index.js";
 
 const pumble = createPumbleClient({
   apiKeyAuth: process.env["PUMBLE_API_KEY"]!,
@@ -112,7 +112,7 @@ const pumble = createPumbleClient({
 
 const sent = await pumble.messages.send({
   channel: "#general",
-  text: "Hello from pumble-sdk.",
+  text: "Hello from pumble-keys-sdk.",
 });
 assertFacadeOk(sent);
 
@@ -140,7 +140,7 @@ choices by `choice.label`:
 ```typescript
 const result = await pumble.messages.send({
   channel: "gen",
-  text: "Hello from pumble-sdk.",
+  text: "Hello from pumble-keys-sdk.",
 });
 
 if (!result.ok) {
@@ -207,23 +207,23 @@ Keep the raw escape hatch as `client.raw.scheduledMessages` for direct endpoint 
 
 ## CLI
 
-The package ships a `pumble` binary for one-shot shell use:
+The package ships a `pumble-keys` binary for one-shot shell use:
 
 ```bash
 export PUMBLE_API_KEY="<pumble-api-key>"
 
-pumble --help
-pumble whoami --api-key-file ~/.config/pumble/api-key
-pumble whoami --api-key-stdin
-pumble whoami
-pumble channels list
-pumble channels find general
-pumble users find ada@example.com
-pumble send '#general' "deploy finished"
-pumble dm ada@example.com "can you review this?"
-pumble search "incident" --limit 5
-pumble messages '#general' --limit 10 --json
-pumble thread <message-id> --channel '#general' --json
+pumble-keys --help
+pumble-keys whoami --api-key-file ~/.config/pumble/api-key
+pumble-keys whoami --api-key-stdin
+pumble-keys whoami
+pumble-keys channels list
+pumble-keys channels find general
+pumble-keys users find ada@example.com
+pumble-keys send '#general' "deploy finished"
+pumble-keys dm ada@example.com "can you review this?"
+pumble-keys search "incident" --limit 5
+pumble-keys messages '#general' --limit 10 --json
+pumble-keys thread <message-id> --channel '#general' --json
 ```
 
 Text output is the default for read commands. Pass `--json` on commands that
@@ -233,15 +233,15 @@ Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin` over command-lin
 
 ## MCP Server
 
-`pumble-mcp` starts an MCP server over stdio. The default `curated` profile
+`pumble-keys-mcp` starts an MCP server over stdio. The default `curated` profile
 exposes the task-oriented tools (`whoami`, `find_channel`, `find_user`,
 `list_channels`, `search_messages`, `get_channel_context`,
 `get_thread_context`) and keeps writes behind preview/confirmation tools:
 
 ```bash
-pumble-mcp start --help
+pumble-keys-mcp start --help
 
-npx -y --package pumble-sdk -- pumble-mcp start \
+npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport stdio \
   --profile curated
 ```
@@ -249,7 +249,7 @@ npx -y --package pumble-sdk -- pumble-mcp start \
 Use `readonly` when a host must not expose mutating tools:
 
 ```bash
-npx -y --package pumble-sdk -- pumble-mcp start \
+npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport stdio \
   --profile readonly
 ```
@@ -258,7 +258,7 @@ Use `readwrite` only when you intentionally want the raw generated endpoint
 surface, and require an audit log:
 
 ```bash
-PUMBLE_API_KEY=... pumble-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-mcp-audit.jsonl
+PUMBLE_API_KEY=... pumble-keys-mcp start --transport stdio --profile readwrite --allow-raw-writes --audit-log ./pumble-keys-mcp-audit.jsonl
 ```
 
 Do not expose this to agents you do not control. The curated profile is the
@@ -268,7 +268,7 @@ full safety profile matrix.
 SSE is for local HTTP clients. Bind to localhost and require a bearer token:
 
 ```bash
-npx -y --package pumble-sdk -- pumble-mcp start \
+npx -y --package pumble-keys-sdk -- pumble-keys-mcp start \
   --transport sse \
   --host 127.0.0.1 \
   --auth-token "$PUMBLE_MCP_TOKEN"
@@ -282,8 +282,8 @@ Example MCP client config:
     "PumbleSDK": {
       "command": "npx",
       "args": [
-        "-y", "--package", "pumble-sdk", "--",
-        "pumble-mcp", "start",
+        "-y", "--package", "pumble-keys-sdk", "--",
+        "pumble-keys-mcp", "start",
         "--transport", "stdio",
         "--profile", "readonly"
       ],
@@ -302,7 +302,7 @@ handlers from a raw-body route:
 
 ```typescript
 import express from "express";
-import { createWebhookHandler } from "pumble-sdk/extensions/index.js";
+import { createWebhookHandler } from "pumble-keys-sdk/extensions/index.js";
 
 const app = express();
 const webhook = createWebhookHandler({
@@ -357,7 +357,7 @@ temporary app, and checks the exported package surface and bins.
 - Hand-written helpers live under `src/extensions/`, `bin/`, `docs/`,
   `examples/`, `scripts/`, and `tests/`.
 - Package split planning is tracked in
-  [`docs/PACKAGE-SPLIT.md`](docs/PACKAGE-SPLIT.md). This repository currently publishes one package: `pumble-sdk`.
+  [`docs/PACKAGE-SPLIT.md`](docs/PACKAGE-SPLIT.md). This repository currently publishes one package: `pumble-keys-sdk`.
 
 ## Stable Workflow Examples
 
