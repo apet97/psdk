@@ -107,6 +107,44 @@ describe("pumble CLI", () => {
     );
   });
 
+  it("--help lists every global flag the CLI-REFERENCE doc claims", async () => {
+    // Source of truth = what `pumble-keys --help` actually prints.
+    // The doc must not advertise flags that don't surface from --help, and
+    // the help must not silently drop flags the doc names (the failure
+    // mode caught by review GAP - --quiet and --version existed in the
+    // source but were absent from --help before this commit).
+    const { stdout } = await execFile("node", [cliPath, "--help"], {
+      cwd: sdkRoot,
+      env: cliEnvNoApiKey(),
+    });
+    const docPath = join(sdkRoot, "docs/CLI-REFERENCE.md");
+    const doc = readFileSync(docPath, "utf8");
+
+    for (const flag of [
+      "--api-key-auth",
+      "--api-key-file",
+      "--api-key-stdin",
+      "--base-url",
+      "--timeout-ms",
+      "--verbose",
+      "--quiet",
+      "--version",
+      "--help",
+    ]) {
+      expect(stdout, `${flag} in --help`).toContain(flag);
+      expect(doc, `${flag} in CLI-REFERENCE.md`).toContain(flag);
+    }
+  });
+
+  it("--version prints the package version", async () => {
+    const { stdout } = await execFile("node", [cliPath, "--version"], {
+      cwd: sdkRoot,
+      env: cliEnvNoApiKey(),
+    });
+    const pkg = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    expect(stdout.trim()).toBe(pkg.version);
+  });
+
   it("lists channels in human-readable form by default", async () => {
     const { stdout } = await runCli(["channels", "list"]);
     expect(stdout).toContain("#general");

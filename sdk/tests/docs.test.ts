@@ -308,6 +308,12 @@ describe("docs", () => {
     expect(quickstart).not.toContain("pumble-mcp-curated");
     expect(quickstart).not.toMatch(/\bOAuth\b/i);
     expect(quickstart).not.toMatch(/\bsocket mode\b/i);
+    // Decision-table CLI row must use the post-rename bin name. The
+    // pre-rename token `pumble ...` (with a trailing space and ellipsis)
+    // would silently slip past the rename test in identity.test.ts because
+    // it lives inside a doc, not the bin file.
+    expect(quickstart).not.toMatch(/\bpumble\s+\.{3}\b/);
+    expect(quickstart).toMatch(/pumble-keys\s+\.{3}/);
   });
 
   test("documented package imports resolve through package exports", () => {
@@ -682,7 +688,14 @@ describe("product identity guard", () => {
     "world-class",
     "best-in-class",
   ];
-  const ALLOWED_FILES = ["docs/product/sdk-generator-product-boundary.md"];
+  // AGENTS.md and CLAUDE.md enumerate the forbidden list verbatim as
+  // part of their guidance role - that is their job, not a regression.
+  // Pinning sync with the manifest moves to tests/agents-docs.test.ts.
+  const ALLOWED_FILES = [
+    "docs/product/sdk-generator-product-boundary.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+  ];
   const docFiles = listMarkdownFiles(guardRepoRoot, (rel) =>
     rel.includes("node_modules") ||
     rel.includes("esm/") ||
@@ -725,7 +738,9 @@ describe("docs IA", () => {
     "Raw SDK reference",
     "CLI",
     "MCP",
+    "Knowledge",
     "Webhooks",
+    "Observability",
     "Testing & replay",
     "Errors",
     "Releases & support",
@@ -745,8 +760,41 @@ describe("docs IA", () => {
     "SUPPORT.md",
     "MIGRATING.md",
     "verification/v0.3.21.md",
+    "OBSERVABILITY.md",
+    "RETRIES-TIMEOUTS-RATE-LIMITS.md",
+    "SECURITY-CHECKLIST.md",
+    "OPERATIONS-CHECKLIST.md",
+    "REALTIME.md",
+    "EXPERIMENTAL.md",
+    "THIRD_PARTY_NOTICES.md",
   ])("INDEX links %s", (path) => {
     expect(idx).toContain(path);
+  });
+
+  // Knowledge section names the new MCP resource/prompt URIs so an
+  // operator reading the index can find them without grepping MCP-SAFETY.
+  it.each([
+    "pumble://knowledge/{+path}",
+    "pumble://events/{name}",
+    "write_pumble_handler",
+    "debug_pumble_webhook",
+  ])("INDEX names knowledge surface %s", (token) => {
+    expect(idx).toContain(token);
+  });
+
+  // Every doc file under sdk/docs/ that is a top-level .md (not adr/,
+  // models/, lib/, sdks/, verification/) must be reachable from INDEX.md
+  // so a future doc add can't ship orphaned. The exclusion list is the
+  // index itself plus generated/raw artefacts.
+  it("every top-level sdk/docs/*.md is linked from INDEX or explicitly excluded", () => {
+    const docsDir = new URL("../docs/", import.meta.url).pathname;
+    const EXCLUDE = new Set(["INDEX.md"]);
+    const topLevel = readdirSync(docsDir, { withFileTypes: true })
+      .filter((d) => d.isFile() && d.name.endsWith(".md"))
+      .map((d) => d.name)
+      .filter((n) => !EXCLUDE.has(n));
+    const missing = topLevel.filter((name) => !idx.includes(name));
+    expect(missing, "docs missing from INDEX.md").toEqual([]);
   });
 });
 
