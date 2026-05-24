@@ -55,3 +55,4 @@ goals:
   - { id: G30, file: G30-upstream-knowledge.yaml }
   - { id: G31, file: G31-mcp-knowledge-resources.yaml }
   - { id: G32, file: G32-mcp-knowledge-prompts.yaml }
+  - { id: G33, file: G33-version-consistency.yaml }

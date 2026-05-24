@@ -68,6 +68,16 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
   unparseable JSON before producing guidance. `CURATED_PROMPT_NAMES`
   exports both new names.
 
+### Versioning
+
+- Added `sdk/scripts/version-consistency.mjs` which enforces that
+  `sdk/package.json#version` matches a `## <version>` heading in the
+  repo CHANGELOG and a `docs/verification/v<version>.md` evidence file.
+  The script tolerates an `Unreleased` section and pre-release suffixes
+  such as `0.4.0-rc.1`. `verify:offline` now runs the check between
+  `attribution-audit` and `spec:audit` so a version bump that misses
+  one of the three sources fails the offline pipeline.
+
 ### Governance
 
 - Added `.goals/` registry: one YAML per goal (G00–G25), validated by `sdk/scripts/goal-check.mjs` and spliced into `verify:offline`.
