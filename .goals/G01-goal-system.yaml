@@ -10,6 +10,7 @@ scope:
     - .goals/**
     - sdk/scripts/goal-check.mjs
     - sdk/tests/goal-registry.test.ts
+    - sdk/tests/goal-check.test.ts
     - sdk/package.json
   forbidden:
     - sdk/src/**
@@ -28,4 +29,5 @@ links:
     - .goals/README.md
   tests:
     - sdk/tests/goal-registry.test.ts
+    - sdk/tests/goal-check.test.ts
 rollback: "Remove .goals/ and the npm script; suite returns to prior state."
