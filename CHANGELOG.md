@@ -28,6 +28,15 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
   out of sync with `sdk/knowledge/upstream/`. `verify:offline` now runs
   the audit immediately after `goals:check`.
 
+### Knowledge
+
+- Shipped `sdk/knowledge/native/` (`README.md`, `glossary.md`,
+  `api-shape.md`, `error-model.md`) — a curated agent-readable summary
+  of the SDK's vocabulary, transport shape, and error model. Each file
+  is held under 8 KB and is included in the npm tarball under
+  `knowledge/native/`. G31 will expose them through the curated MCP
+  via the `pumble://knowledge/{+path}` resource template.
+
 ### Governance
 
 - Added `.goals/` registry: one YAML per goal (G00–G25), validated by `sdk/scripts/goal-check.mjs` and spliced into `verify:offline`.

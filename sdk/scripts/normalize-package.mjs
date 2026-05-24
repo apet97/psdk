@@ -118,6 +118,7 @@ const desired = {
     "docs/MIGRATING.md",
     "docs/verification/v0.3.21.md",
     "esm",
+    "knowledge",
     "src",
   ],
   exports: publicExports,

@@ -51,3 +51,4 @@ goals:
   - { id: G26, file: G26-rename-package.yaml }
   - { id: G27, file: G27-product-boundary-docs.yaml }
   - { id: G28, file: G28-third-party-notices.yaml }
+  - { id: G29, file: G29-native-knowledge.yaml }

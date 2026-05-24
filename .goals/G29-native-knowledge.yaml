@@ -1,0 +1,49 @@
+id: G29
+title: Native knowledge tree (sdk/knowledge/native/) curated for agents
+priority: P1
+status: done
+why: "Agents using our MCP need to be able to read static Pumble knowledge (API shape, error model, glossary) without having to call the network. Shipping a small curated tree gives them a deterministic source of truth."
+scope:
+  allowed:
+    - sdk/knowledge/native/**
+    - sdk/package.json
+    - sdk/.speakeasy/gen.yaml
+    - sdk/scripts/normalize-package.mjs
+    - sdk/tests/knowledge-native.test.ts
+    - sdk/scripts/pack-smoke.mjs
+    - CHANGELOG.md
+    - .goals/G29-native-knowledge.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/knowledge/upstream/**
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+    - PumbleOpenApi.yaml
+acceptance:
+  - "sdk/knowledge/native/ contains: glossary.md, api-shape.md, error-model.md, README.md"
+  - "Each markdown file in sdk/knowledge/native/ has H1, brief intro paragraph, ≥2 H2 sections"
+  - "package.json#files lists 'knowledge/native/**' so it ships in the tarball"
+  - "tests/knowledge-native.test.ts asserts file presence + structural shape (H1, sections, ≤8 KB each)"
+  - "npm pack --dry-run shows the new files; tarball stays under 2.5 MB"
+  - "npm run verify:offline exits 0"
+commands:
+  - "cd sdk && npm test -- tests/knowledge-native.test.ts"
+  - "cd sdk && npm pack --dry-run | grep 'knowledge/native'"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Test fails if a required file is removed"
+  - "Test fails if a file grows beyond 8 KB (knowledge files must stay tight)"
+  - "Test fails if a file has no H1 or no H2 sections (structural rot)"
+  - "knowledge/native/ files contain no references to upstream-only concepts (slash commands, modals, OAuth)"
+links:
+  docs:
+    - sdk/knowledge/native/README.md
+  tests:
+    - sdk/tests/knowledge-native.test.ts
+rollback: "git revert <commit-sha>; knowledge files are additive."
