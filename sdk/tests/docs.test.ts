@@ -786,3 +786,21 @@ describe("safe search pagination", () => {
     expect(readme).toContain("searchAllMessages");
   });
 });
+
+describe("product boundary", () => {
+  const BOUNDARY_PHRASE = "Pumble API-Keys add-on";
+  const UPSTREAM_REPO_LINK = "CAKE-com/pumble-node-sdk";
+  const UPSTREAM_NPM_LINK = "npmjs.com/package/pumble-sdk";
+
+  it.each([
+    "../README.md",
+    "README.md",
+    "docs/API-REFERENCE.md",
+  ])("%s contains the product boundary statement", (relativePath) => {
+    const text = readFileSync(resolve(sdkRoot, relativePath), "utf8");
+    expect(text, `${relativePath}: boundary phrase`).toContain(BOUNDARY_PHRASE);
+    expect(text, `${relativePath}: upstream repo link`).toContain(UPSTREAM_REPO_LINK);
+    expect(text, `${relativePath}: upstream npm link`).toContain(UPSTREAM_NPM_LINK);
+    expect(text, `${relativePath}: product-boundary heading`).toMatch(/##\s+Product boundary/);
+  });
+});

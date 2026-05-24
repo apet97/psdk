@@ -14,6 +14,10 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
   apps SDK). Our package targets the Pumble API-Keys add-on. CLI binaries
   renamed to `pumble-keys` and `pumble-keys-mcp`; bin files renamed in lock
   step.
+- Added a *Product boundary* section to the repo README, sdk README, and
+  API-Reference that names CAKE.com's upstream `pumble-sdk` and explains
+  which Pumble product surface each SDK targets. A docs test pins the
+  phrase so the boundary cannot silently disappear.
 
 ### Governance
 

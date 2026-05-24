@@ -10,6 +10,22 @@ This package is not a general generator for SDKs. The generated raw SDK comes fr
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## Product boundary
+
+This SDK targets the **Pumble API-Keys add-on**
+(`https://pumble-api-keys.addons.marketplace.cake.com`, static `ApiKey`
+header issued from *Workspace settings → API keys*). It is the right
+choice for scripting your own workspace from a server or letting an
+agent operate inside it.
+
+For building **Pumble apps** with OAuth install flow, slash commands,
+shortcuts, modals/views, and Socket Mode, use CAKE.com's official
+`pumble-sdk`:
+[`pumble-sdk` on npm](https://www.npmjs.com/package/pumble-sdk) ·
+[`CAKE-com/pumble-node-sdk` on GitHub](https://github.com/CAKE-com/pumble-node-sdk).
+The two SDKs target different Pumble products and do not overlap in
+functionality.
+
 ## What this is
 
 A **Pumble TypeScript SDK / Developer Toolkit**: one generated raw client from `PumbleOpenApi.yaml`, plus handwritten façade, webhooks, CLI, and curated MCP for Pumble specifically.
