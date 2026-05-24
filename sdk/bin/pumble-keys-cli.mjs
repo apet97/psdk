@@ -224,7 +224,7 @@ async function cmdChannels(sdk, args, globals) {
       });
       const [name, ...extra] = parsed.positionals;
       if (!name || extra.length > 0) {
-        throw new UsageError("usage: pumble-keyschannels create <name> [--private] [--json]");
+        throw new UsageError("usage: pumble-keys channels create <name> [--private] [--json]");
       }
       const created = await sdk.channels.createChannel({
         name,
@@ -241,7 +241,7 @@ async function cmdChannels(sdk, args, globals) {
       });
       const [query, ...extra] = parsed.positionals;
       if (!query || extra.length > 0) {
-        throw new UsageError("usage: pumble-keyschannels find <name-or-id> [--json]");
+        throw new UsageError("usage: pumble-keys channels find <name-or-id> [--json]");
       }
       const result = await resolveChannel(sdk, query);
       if (!result.ok) throw resolveCliError("channel", query, result);
@@ -250,7 +250,7 @@ async function cmdChannels(sdk, args, globals) {
       return;
     }
     default:
-      throw new UsageError("usage: pumble-keyschannels list|find|create ...");
+      throw new UsageError("usage: pumble-keys channels list|find|create ...");
   }
 }
 
@@ -263,7 +263,7 @@ async function cmdUsers(sdk, args) {
       });
       const [query, ...extra] = parsed.positionals;
       if (!query || extra.length > 0) {
-        throw new UsageError("usage: pumble-keysusers find <email-or-id> [--json]");
+        throw new UsageError("usage: pumble-keys users find <email-or-id> [--json]");
       }
       const result = await resolveUser(sdk, query);
       if (!result.ok) throw resolveCliError("user", query, result);
@@ -272,7 +272,7 @@ async function cmdUsers(sdk, args) {
       return;
     }
     default:
-      throw new UsageError("usage: pumble-keysusers find ...");
+      throw new UsageError("usage: pumble-keys users find ...");
   }
 }
 
@@ -283,7 +283,7 @@ async function cmdSend(sdk, args, globals) {
   const [channelArg, ...textParts] = parsed.positionals;
   const text = textParts.join(" ");
   if (!channelArg || !text) {
-    throw new UsageError("usage: pumble-keyssend <channel> <text> [--json]");
+    throw new UsageError("usage: pumble-keys send <channel> <text> [--json]");
   }
   const channelId = await resolveChannelId(sdk, channelArg);
   const sent = await sdk.messages.sendMessage({ channelId, text });
@@ -299,7 +299,7 @@ async function cmdDm(sdk, args, globals) {
   const [userArg, ...textParts] = parsed.positionals;
   const text = textParts.join(" ");
   if (!userArg || !text) {
-    throw new UsageError("usage: pumble-keysdm <user-id-or-email> <text> [--json]");
+    throw new UsageError("usage: pumble-keys dm <user-id-or-email> <text> [--json]");
   }
   const userId = await resolveUserId(sdk, userArg);
   const sent = await sdk.messages.dmUser({ userId, text });
@@ -315,7 +315,7 @@ async function cmdSearch(sdk, args) {
   });
   const query = parsed.positionals.join(" ");
   if (!query) {
-    throw new UsageError("usage: pumble-keyssearch <query> [--limit N] [--json]");
+    throw new UsageError("usage: pumble-keys search <query> [--limit N] [--json]");
   }
   const limit = parsePositiveInt(parsed.values.limit, "--limit");
   const page = await sdk.messages.searchMessages({ text: query, limit });
@@ -331,7 +331,7 @@ async function cmdMessages(sdk, args) {
   });
   const [channelArg, ...extra] = parsed.positionals;
   if (!channelArg || extra.length > 0) {
-    throw new UsageError("usage: pumble-keysmessages <channel> [--limit N] [--json]");
+    throw new UsageError("usage: pumble-keys messages <channel> [--limit N] [--json]");
   }
   const limit = parsePositiveInt(parsed.values.limit, "--limit");
   const channelId = await resolveChannelId(sdk, channelArg);
@@ -349,7 +349,7 @@ async function cmdThread(sdk, args) {
   });
   const [messageId, ...extra] = parsed.positionals;
   if (!messageId || extra.length > 0 || !parsed.values.channel) {
-    throw new UsageError("usage: pumble-keysthread <message-id> --channel <channel> [--limit N] [--json]");
+    throw new UsageError("usage: pumble-keys thread <message-id> --channel <channel> [--limit N] [--json]");
   }
   const limit = parsePositiveInt(parsed.values.limit, "--limit");
   const channelId = await resolveChannelId(sdk, parsed.values.channel);
@@ -378,7 +378,7 @@ async function cmdStatus(sdk, args, globals) {
       const status = statusParts.join(" ");
       if (!code || !status) {
         throw new UsageError(
-          "usage: pumble-keysstatus set <emoji> <text> [--expires-at <ms>] [--json]",
+          "usage: pumble-keys status set <emoji> <text> [--expires-at <ms>] [--json]",
         );
       }
       const result = await sdk.users.customStatus({
@@ -403,7 +403,7 @@ async function cmdStatus(sdk, args, globals) {
       return;
     }
     default:
-      throw new UsageError("usage: pumble-keysstatus set|clear ...");
+      throw new UsageError("usage: pumble-keys status set|clear ...");
   }
 }
 
@@ -433,7 +433,7 @@ async function cmdSchedule(sdk, args, globals) {
       });
       const [scheduledMessageId, ...extra] = parsed.positionals;
       if (!scheduledMessageId || extra.length > 0) {
-        throw new UsageError("usage: pumble-keysschedule cancel <id> [--json]");
+        throw new UsageError("usage: pumble-keys schedule cancel <id> [--json]");
       }
       const result = await sdk.scheduledMessages.deleteScheduledMessage({
         scheduledMessageId,
@@ -444,7 +444,7 @@ async function cmdSchedule(sdk, args, globals) {
       return;
     }
     default:
-      throw new UsageError("usage: pumble-keysschedule list|cancel ...");
+      throw new UsageError("usage: pumble-keys schedule list|cancel ...");
   }
 }
 
@@ -486,7 +486,7 @@ function parseCommandArgs(args, options) {
 
 function ensureNoPositionals(parsed, command) {
   if (parsed.positionals.length > 0) {
-    throw new UsageError(`usage: pumble-keys${command}`);
+    throw new UsageError(`usage: pumble-keys ${command}`);
   }
 }
 

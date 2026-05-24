@@ -90,6 +90,10 @@ describe("mcp knowledge prompts", () => {
     expect(text).toContain("pumble://events/Message");
     expect(text).toContain("pumble-keys-sdk/extensions");
     expect(text).toContain("typescript");
+    // Interpolation guard: the typed-payload line must produce
+    // `NotificationMessage`, not the literal `+ args.event +` fragment.
+    expect(text).toContain("NotificationMessage");
+    expect(text).not.toContain("+ args.event +");
   });
 
   it("write_pumble_handler honours the language argument", async () => {
@@ -100,6 +104,7 @@ describe("mcp knowledge prompts", () => {
     }));
     expect(text).toContain("javascript");
     expect(text).toContain("pumble://events/Reaction");
+    expect(text).toContain("NotificationReaction");
   });
 
   it("write_pumble_handler rejects an empty event name", () => {

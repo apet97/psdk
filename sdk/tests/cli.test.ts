@@ -40,6 +40,27 @@ describe("pumble CLI", () => {
     expect(pkg.bin["pumble-keys"]).toBe("./bin/pumble-keys-cli.mjs");
   });
 
+  it("usage hints carry a space between the bin name and the subcommand", () => {
+    // Guards against a global "pumble " -> "pumble-keys" substitution dropping
+    // the separating space and emitting nonsense like "usage: pumble-keyschannels".
+    const source = readFileSync(cliPath, "utf8");
+    const broken = /\bpumble-keys[a-z]/g;
+    const hits = source.match(broken) ?? [];
+    expect(hits, `lost-space usage strings in ${cliPath}: ${hits.join(", ")}`).toEqual([]);
+  });
+
+  it("UsageError messages run through the program name as `pumble-keys <subcommand>`", async () => {
+    // `channels` with no further argument hits the channels list|find|create
+    // dispatch error path, which throws UsageError. We assert the rendered
+    // text has the canonical space.
+    const result = await execFile(process.execPath, [cliPath, "channels"], {
+      env: { ...process.env, PUMBLE_API_KEY: "fake-key" },
+    }).catch((err: NodeJS.ErrnoException & { stderr?: string }) => err);
+    const stderr = (result as { stderr?: string }).stderr ?? "";
+    expect(stderr).toContain("pumble-keys channels");
+    expect(stderr).not.toMatch(/\bpumble-keys[a-z]/);
+  });
+
   it("prints authenticated user information as JSON", async () => {
     const { stdout, stderr } = await runCli(["whoami", "--json"]);
     expect(stderr).toBe("");

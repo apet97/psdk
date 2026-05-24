@@ -5,9 +5,11 @@ status: done
 why: "We're about to lift typed event/block defs from CAKE-com/pumble-node-sdk (ISC). ISC requires preserving copyright + license text. A standing audit prevents lift-without-attribution drift; the notices file lists every upstream-derived path."
 scope:
   allowed:
-    - THIRD_PARTY_NOTICES.md
+    - sdk/THIRD_PARTY_NOTICES.md
     - sdk/scripts/attribution-audit.mjs
+    - sdk/scripts/normalize-package.mjs
     - sdk/tests/attribution-audit.test.ts
+    - sdk/tests/package-metadata.test.ts
     - sdk/package.json
     - sdk/.speakeasy/gen.yaml
     - CHANGELOG.md
@@ -24,9 +26,9 @@ scope:
     - sdk/src/index.ts
     - PumbleOpenApi.yaml
 acceptance:
-  - "THIRD_PARTY_NOTICES.md exists at repo root and lists CAKE-com/pumble-node-sdk (ISC) with copyright line"
-  - "scripts/attribution-audit.mjs CLI exits 0 today (notices file present, no upstream files yet)"
-  - "scripts/attribution-audit.mjs CLI exits non-zero when a file under sdk/knowledge/upstream/ lacks the required header (simulated in test)"
+  - "sdk/THIRD_PARTY_NOTICES.md exists inside the package root (so it ships in the tarball, per ISC) and lists CAKE-com/pumble-node-sdk (ISC) with copyright line + full permission paragraph"
+  - "package.json#files includes 'THIRD_PARTY_NOTICES.md' so the notices file is in the npm tarball; package-metadata test enforces this"
+  - "scripts/attribution-audit.mjs CLI exits 0 when notices and disk agree, non-zero on disagreement"
   - "verify:offline pipeline calls scripts/attribution-audit.mjs and fails on attribution errors"
   - "tests/attribution-audit.test.ts covers: missing header, missing entry in notices, extra entry in notices not on disk"
 commands:
@@ -40,7 +42,7 @@ adversarial_checks:
   - "Test uses tmp dirs; does not mutate real notices"
 links:
   docs:
-    - THIRD_PARTY_NOTICES.md
+    - sdk/THIRD_PARTY_NOTICES.md
   tests:
     - sdk/tests/attribution-audit.test.ts
 rollback: "git revert <commit-sha>; attribution gate is additive and removable."

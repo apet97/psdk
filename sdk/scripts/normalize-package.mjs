@@ -120,6 +120,7 @@ const desired = {
     "esm",
     "knowledge",
     "src",
+    "THIRD_PARTY_NOTICES.md",
   ],
   exports: publicExports,
 };

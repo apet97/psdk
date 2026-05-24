@@ -31,7 +31,8 @@
     "docs/verification/v0.3.21.md",
     "esm",
     "knowledge",
-    "src"
+    "src",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "peerDependenciesMeta": {
     "@opentelemetry/api": {

@@ -7,7 +7,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SDK_ROOT = resolve(__dirname, "..");
 const REPO_ROOT = resolve(SDK_ROOT, "..");
 const UPSTREAM_DIR = resolve(SDK_ROOT, "knowledge", "upstream");
-const NOTICES_PATH = resolve(REPO_ROOT, "THIRD_PARTY_NOTICES.md");
+// THIRD_PARTY_NOTICES.md lives inside sdk/ so it ships in the npm tarball
+// (ISC requires the permission notice "in all copies"). Listed paths in the
+// notices table stay relative to the repo root, since they include the
+// "sdk/" prefix.
+const NOTICES_PATH = resolve(SDK_ROOT, "THIRD_PARTY_NOTICES.md");
 
 export const REQUIRED_HEADER_MARKERS = [
   "@derived-from CAKE-com/pumble-node-sdk",

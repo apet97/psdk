@@ -87,6 +87,7 @@ typescript:
       - esm
       - knowledge
       - src
+      - THIRD_PARTY_NOTICES.md
     exports:
       ".":
         source: ./src/index.ts

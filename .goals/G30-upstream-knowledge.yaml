@@ -6,7 +6,7 @@ why: "CAKE.com's pumble-node-sdk has the canonical typed event payloads and bloc
 scope:
   allowed:
     - sdk/knowledge/upstream/**
-    - THIRD_PARTY_NOTICES.md
+    - sdk/THIRD_PARTY_NOTICES.md
     - sdk/scripts/refresh-knowledge.mjs
     - sdk/scripts/refresh-knowledge.test.ts
     - sdk/tests/knowledge-upstream.test.ts
@@ -50,7 +50,7 @@ adversarial_checks:
 links:
   docs:
     - sdk/knowledge/upstream/events/README.md
-    - THIRD_PARTY_NOTICES.md
+    - sdk/THIRD_PARTY_NOTICES.md
   tests:
     - sdk/tests/knowledge-upstream.test.ts
 rollback: "git revert <commit-sha>; upstream tree is additive and isolated from runtime code."

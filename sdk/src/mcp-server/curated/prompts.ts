@@ -101,7 +101,7 @@ export function registerCuratedPrompts(server: McpServer): void {
         `Write a ${args.language} handler for Pumble event "${args.event}".`,
         "",
         `1. Read the typed payload via the MCP resource \`pumble://events/${args.event}\`.`,
-        "   Use the upstream \`Notification\" + args.event + \"\` type as the source of truth.",
+        `   Use the upstream \`Notification${args.event}\` type as the source of truth.`,
         "2. Import the relevant facade helpers from `pumble-keys-sdk/extensions/index.js`.",
         "3. Validate inputs (channel id, message id, user id) with the branded ID helpers from the same barrel.",
         "4. Return a value-style result that mirrors the facade's `FacadeResult` shape ({ ok, summary, ids, data, nextActions }).",

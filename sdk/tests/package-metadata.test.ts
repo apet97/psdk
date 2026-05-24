@@ -92,6 +92,7 @@ describe("package metadata", () => {
       "esm",
       "knowledge",
       "src",
+      "THIRD_PARTY_NOTICES.md",
     ]);
   });
 
@@ -148,6 +149,21 @@ describe("npm pack budget", () => {
       expect(path).not.toMatch(/(^|\/)examples\//);
       expect(path).not.toMatch(/(^|\/)\.speakeasy\//);
     }
+  });
+
+  it("tarball ships THIRD_PARTY_NOTICES.md with the full ISC permission text", () => {
+    const paths = pack().files.map((f) => f.path);
+    expect(paths).toContain("THIRD_PARTY_NOTICES.md");
+
+    const notices = readFileSync(
+      join(__dirname, "..", "THIRD_PARTY_NOTICES.md"),
+      "utf8",
+    );
+    // ISC's "permission notice [must] appear in all copies" — the published
+    // package re-distributes lifted ISC code under sdk/knowledge/upstream/,
+    // so the permission paragraph must travel with it.
+    expect(notices).toContain("Permission to use, copy, modify, and/or distribute");
+    expect(notices).toContain("ISC");
   });
 });
 
