@@ -1,6 +1,6 @@
 # SDK Generator Product Boundary
 
-`pumble-sdk` is not the SDK generator product. It is a Pumble-specific TypeScript SDK / Developer Toolkit generated with Speakeasy.
+`pumble-keys-sdk` is not the SDK generator product. It is a Pumble-specific TypeScript SDK / Developer Toolkit generated with Speakeasy.
 
 If the company wants a Stainless/Speakeasy-like platform, build that as a separate product with:
 
@@ -13,4 +13,4 @@ If the company wants a Stainless/Speakeasy-like platform, build that as a separa
 - Versioning and release automation.
 - Contract test suites for generated SDKs.
 
-Do not add these concerns to `pumble-sdk` unless the repo is explicitly repurposed.
+Do not add these concerns to `pumble-keys-sdk` unless the repo is explicitly repurposed.
