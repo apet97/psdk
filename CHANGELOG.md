@@ -7,6 +7,22 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
 
 ## Unreleased
 
+### Public release & hardening
+
+- Added a non-affiliation disclaimer to the repo and package READMEs: this is
+  an independent, personal open-source project, not affiliated with, endorsed
+  by, or sponsored by CAKE.com Inc. or Pumble.
+- Set the package `author` and the MIT `LICENSE` copyright holder to the
+  maintainer's personal identity (previously "Pumble SDK Team"); added a
+  repo-root `LICENSE` so the license is detected at the repository level.
+- `SECURITY.md` now points reporters at a concrete channel (GitHub private
+  vulnerability reporting) instead of an undefined "documented security channel".
+- Removed stale internal notes (`docs/site-plan.md` and a one-off review log)
+  and fixed a stale MCP entrypoint in the `Dockerfile` left by the bin rename.
+- Hardened the curated MCP knowledge resource guard to resolve symlinks
+  (path-traversal defense) and extended the fixture secret scan to `.json`
+  fixtures, not just `.jsonl`.
+
 ### Identity
 
 - Package renamed from `pumble-sdk` to `pumble-keys-sdk` to clear the npm
