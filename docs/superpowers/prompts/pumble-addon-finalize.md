@@ -122,9 +122,8 @@ sandbox workspace. Never call destructive Pumble tools without
 explicit user confirmation; the curated MCP's preview/confirm
 contract is the model.
 
-`PUMBLE_API_KEY` is sourced from
-`/Users/15x/Downloads/WORKING/addons-me/pumble-mcp-pro/.env` via
-`~/.claude/mcp-launchers/pumble-keys-readwrite.sh`. Use this key
+`PUMBLE_API_KEY` is sourced from a local `.env` file via your MCP
+launcher. Use this key
 only against a sandbox workspace; never against a customer
 workspace.
 
