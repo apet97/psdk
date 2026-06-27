@@ -36,4 +36,16 @@ describe("CI workflow", () => {
     // permitted so docs templates can ship in the repo.
     expect(ciWorkflow).toContain("env_ok='\\.env\\.(example|template|sample)$'");
   });
+
+  // The drift guard's GUARDED_PATHS must name bins that actually exist
+  // on disk. After the rename the bins are pumble-keys-cli.mjs /
+  // pumble-keys-mcp.mjs; the pre-rename names are dead no-ops (a git
+  // diff over a missing path matches nothing), so a regen could rewrite
+  // the renamed bins undetected.
+  it("drift guard names the post-rename bin paths, not the stale ones", () => {
+    expect(ciWorkflow).toContain("sdk/bin/pumble-keys-cli.mjs");
+    expect(ciWorkflow).toContain("sdk/bin/pumble-keys-mcp.mjs");
+    expect(ciWorkflow).not.toContain("sdk/bin/pumble-cli.mjs");
+    expect(ciWorkflow).not.toContain("sdk/bin/pumble-mcp.mjs");
+  });
 });
