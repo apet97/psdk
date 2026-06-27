@@ -30,6 +30,10 @@ jobs:
       - name: Install Speakeasy CLI
         env:
           SPEAKEASY_INSTALLER_SHA256: 9e2c4f1054e214d05352597cfd9ed1ab117a089e9442f532dd4a0d168665d757
+          # The Speakeasy installer looks up its latest release via the GitHub
+          # API; unauthenticated shared-runner requests get rate-limited to a
+          # 403. The CLI install script sends this token as a Bearer header.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           node sdk/scripts/install-speakeasy.mjs
