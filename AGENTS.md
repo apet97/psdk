@@ -36,7 +36,7 @@ the curated MCP server via `pumble://knowledge/{+path}` and
 ```
 SDKP/                       repo root  (CONTEXT.md, AGENTS.md, CLAUDE.md, .goals/)
   sdk/                      npm package root  (package.json, src/, tests/, docs/, knowledge/, scripts/, bin/)
-  docs/                     repo-level docs (ADRs 0001-0007, product/, superpowers/reviews/)
+  docs/                     repo-level docs (ADRs 0001-0007, product/, superpowers/prompts/)
   officialsdk/              local clone of CAKE-com/pumble-node-sdk (gitignored; opt-in)
   PumbleOpenApi.yaml        spec source of truth for the generated SDK
 ```
