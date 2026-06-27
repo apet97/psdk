@@ -13,7 +13,7 @@ The Pumble MCP server runs in one of four profiles. The curated profile is the d
 
 - Curated is the only mode reachable from the published binary without flags.
 - `readwrite` requires `--allow-raw-writes` **and** `--audit-log <path>`.
-- SSE transport binds to `127.0.0.1` only and requires a bearer token.
+- SSE transport defaults to `127.0.0.1` and warns when bound to `0.0.0.0`; a bearer token is optional and enforced only when `--auth-token` is set.
 - Audit log redacts auth headers, message bodies, emails, and 24-char Pumble IDs.
 
 ## Knowledge resources
