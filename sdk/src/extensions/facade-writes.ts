@@ -6,7 +6,6 @@ import type {
   SendReplyRequest,
 } from "../models/operations/index.js";
 import type { SearchHit } from "../models/search-hit.js";
-import { PumbleSDKError } from "../models/errors/pumble-sdk-error.js";
 import type {
   ChannelSummary,
   FacadeFailure,
@@ -26,6 +25,11 @@ import {
   createFacadeInvalidRequest,
   createFacadeOperationFailure,
 } from "./facade-failure.js";
+import {
+  isFacadeOperationFailure,
+  operationFailureNextAction,
+  operationFailureReason,
+} from "./facade-operation.js";
 import {
   asChannelId,
   asMessageId,
@@ -60,23 +64,6 @@ function displayChannel(channel: ChannelSummary): string {
 
 function displayUser(user: UserSummary): string {
   return user.name.trim().length > 0 ? user.name : user.email;
-}
-
-const operationFailureNextAction = "Inspect the raw error or retry after correcting the request.";
-
-function operationFailureReason(error: unknown): "api_error" | "transport_error" {
-  if (error instanceof PumbleSDKError) return "api_error";
-  const statusCode = (error as { statusCode?: unknown } | null)?.statusCode;
-  return typeof statusCode === "number" ? "api_error" : "transport_error";
-}
-
-function isFacadeOperationFailure<T>(
-  value: T | FacadeFailure<never>,
-): value is FacadeFailure<never> {
-  return typeof value === "object"
-    && value !== null
-    && "ok" in value
-    && value.ok === false;
 }
 
 export function createFacadeWrites({

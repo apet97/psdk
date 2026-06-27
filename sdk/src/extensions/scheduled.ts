@@ -1,5 +1,4 @@
 import type { RequestOptions } from "../lib/sdks.js";
-import { PumbleSDKError } from "../models/errors/pumble-sdk-error.js";
 import type { ScheduledMessage } from "../models/scheduled-message.js";
 import type { ScheduledMessageRef } from "../models/scheduled-message-ref.js";
 import type {
@@ -30,6 +29,11 @@ import {
   createFacadeInvalidRequest,
   createFacadeOperationFailure,
 } from "./facade-failure.js";
+import {
+  isFacadeOperationFailure,
+  operationFailureNextAction,
+  operationFailureReason,
+} from "./facade-operation.js";
 
 interface ScheduledRawClient {
   scheduledMessages: {
@@ -60,23 +64,6 @@ export interface CreateScheduledFacadeOptions {
   raw: ScheduledRawClient;
   resolveFacadeChannel(input: string): Promise<FacadeFindChannelResult>;
   now?: () => number;
-}
-
-const operationFailureNextAction = "Inspect the raw error or retry after correcting the request.";
-
-function operationFailureReason(error: unknown): "api_error" | "transport_error" {
-  if (error instanceof PumbleSDKError) return "api_error";
-  const statusCode = (error as { statusCode?: unknown } | null)?.statusCode;
-  return typeof statusCode === "number" ? "api_error" : "transport_error";
-}
-
-function isFacadeOperationFailure<T>(
-  value: T | FacadeFailure<never>,
-): value is FacadeFailure<never> {
-  return typeof value === "object"
-    && value !== null
-    && "ok" in value
-    && value.ok === false;
 }
 
 function displayChannel(channel: ChannelSummary): string {
