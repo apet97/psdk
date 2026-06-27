@@ -42,10 +42,10 @@ describe("superpowers prompts", () => {
     expect(body, `${name} missing ## Prompt section`).toContain("## Prompt");
   });
 
-  it.each(THEMED_PROMPTS)("themed prompt %s references SDKP as the canonical patterns repo", (name) => {
+  it.each(THEMED_PROMPTS)("themed prompt %s references the SDK repo as the canonical patterns repo", (name) => {
     const body = readFileSync(resolve(promptsDir, name), "utf8");
-    // Each themed prompt should point future agents at SDKP for the
-    // canonical Pumble patterns it audits against.
-    expect(body).toContain("/Users/15x/Downloads/WORKING/addons-me/SDKP");
+    // Each themed prompt should point future agents at the public
+    // pumble-keys-sdk repo for the canonical Pumble patterns it audits against.
+    expect(body).toContain("https://github.com/apet97/psdk");
   });
 });

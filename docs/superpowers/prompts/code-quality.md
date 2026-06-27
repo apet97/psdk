@@ -104,7 +104,7 @@ For SDKP and any project that ships Speakeasy-generated code:
 Findings as `OK / GAP / FLAG` rows in a Markdown checklist with
 file:line evidence. GAPs get a TDD fix. FLAGs stop for input.
 
-Reference: SDKP at `/Users/15x/Downloads/WORKING/addons-me/SDKP` for
+Reference: SDKP at `https://github.com/apet97/psdk` for
 the canonical patterns - `.goals/manifest.yaml`, AGENTS.md sections 3
 and 10, the `sdk/tests/docs.test.ts` product-identity guard, and the
 `sdk/tests/goal-registry.test.ts` schema enforcement.

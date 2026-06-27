@@ -106,7 +106,7 @@ Findings as `OK / GAP / FLAG` rows with file:line evidence.
 - `FLAG`: stop for input on anything that requires changing the
   runtime architecture.
 
-Reference: SDKP at `/Users/15x/Downloads/WORKING/addons-me/SDKP` for
+Reference: SDKP at `https://github.com/apet97/psdk` for
 the canonical patterns - `tests/package-metadata.test.ts` (tarball
 budget), `scripts/perf-smoke.mjs` (bench), `ADR-0004` (resolver cache
 explicit semantics), `extensions/with-retries.ts` (bounded backoff),

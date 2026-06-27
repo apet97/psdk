@@ -116,7 +116,7 @@ Findings as `OK / GAP / FLAG` rows in a Markdown checklist. Cite
 file:line evidence for OK. For GAP, propose a TDD fix (red first).
 For FLAG, stop for input.
 
-Reference: SDKP at `/Users/15x/Downloads/WORKING/addons-me/SDKP` for
+Reference: SDKP at `https://github.com/apet97/psdk` for
 canonical patterns - `sdk/scripts/attribution-audit.mjs`,
 `sdk/src/extensions/webhooks.ts`,
 `sdk/src/mcp-server/curated/resources.ts` (path-traversal guard),

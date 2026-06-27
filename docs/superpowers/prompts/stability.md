@@ -86,7 +86,7 @@ Findings as `OK / GAP / FLAG` rows in a Markdown checklist.
 - `FLAG` stops for input - typically when the fix needs a design
   decision or touches code outside this repo.
 
-Reference: SDKP at `/Users/15x/Downloads/WORKING/addons-me/SDKP` for
+Reference: SDKP at `https://github.com/apet97/psdk` for
 the canonical Pumble stability patterns (façade failure-value model,
 categorizeError taxonomy, with-retries shape, telemetry proxy
 behaviour, ADRs 0001-0007).

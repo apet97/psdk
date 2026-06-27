@@ -82,7 +82,7 @@ Constraints throughout:
 
 ## Reference material (SDKP repo)
 
-Repo: `/Users/15x/Downloads/WORKING/addons-me/SDKP`
+Repo: pumble-keys-sdk
 Remote: <https://github.com/apet97/psdk>
 
 Open before touching the addon:
