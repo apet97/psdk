@@ -2,6 +2,8 @@
 
 Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
 
+> **Disclaimer:** This is an independent, personal open-source project. It is not affiliated with, endorsed by, or sponsored by CAKE.com Inc. or Pumble. "Pumble" and "CAKE.com" are trademarks of their respective owners.
+
 Use it when you want a typed raw SDK plus safer Pumble workflows: facade-first channel/user/message helpers, CLI commands, curated MCP tools, webhook verification, redaction, replay/live testing, and release verification.
 
 This package is not a general generator for SDKs. The generated raw SDK comes from `PumbleOpenApi.yaml`; the handwritten layers make Pumble API-key workflows safer and more ergonomic than raw endpoints.
