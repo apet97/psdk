@@ -8,7 +8,7 @@
 - `tags` (one or more).
 - `description` or `summary` (one sentence).
 - `responses` (at least `200` or `204`, plus `4xx` where applicable).
-- For write operations (`post`, `put`, `patch`, `delete`): explicit `x-speakeasy-retries`. Use `*noWriteRetries` (`strategy: none`) for non-idempotent writes and `*safeReadRetries` for read-shaped POSTs.
+- For write operations (`post`, `put`, `patch`, `delete`): an explicit retry posture. Mark non-idempotent writes with `x-sdk-no-write-retries: true` (the generated runtime patch clears their retry codes; see ADR 0006), and use `x-speakeasy-retries: *safeReadRetries` for read-shaped POSTs.
 - For paginated operations: `x-speakeasy-pagination` block aligned with the runtime helpers.
 
 ## Drift control

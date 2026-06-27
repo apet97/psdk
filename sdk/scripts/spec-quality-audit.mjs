@@ -206,7 +206,7 @@ function hasIdempotencyKeySupport(...values) {
 }
 
 function hasRetriesDisabled(operation) {
-  return operation?.["x-speakeasy-retries"]?.strategy === "none";
+  return operation?.["x-sdk-no-write-retries"] === true;
 }
 
 function hasRetryConfig(operation, doc) {
@@ -258,7 +258,7 @@ export function auditSpec(specPath) {
   if (report.unsafeWriteRetries.length > 0) {
     sections.push(
       formatBucket(
-        "Write operations missing x-speakeasy-retries declaration",
+        "Write operations missing a retry-posture declaration",
         report.unsafeWriteRetries,
       ),
     );
@@ -305,10 +305,11 @@ export function runAudit({ specPath = DEFAULT_SPEC_PATH } = {}) {
     const isWrite = ["post", "put", "delete", "patch"].includes(method);
     if (isWrite) {
       const retries = operation["x-speakeasy-retries"];
-      // A write op must declare its retry posture: either strategy:none
-      // (non-idempotent) or an explicit safe-read backoff (idempotent
-      // read-shaped POST like searchMessages).
-      if (!isRecord(retries)) {
+      // A write op must declare its retry posture: either
+      // `x-sdk-no-write-retries: true` (non-idempotent — the generated
+      // runtime patch clears retry codes; see ADR-0006) or an explicit
+      // safe-read backoff (idempotent read-shaped POST like searchMessages).
+      if (!isRecord(retries) && operation["x-sdk-no-write-retries"] !== true) {
         report.unsafeWriteRetries.push(where);
       }
     }

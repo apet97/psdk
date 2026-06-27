@@ -48,8 +48,9 @@ runtime survives the failure modes a busy Pumble workspace produces.
   explicit idempotency key. See pumble-keys-sdk ADR-0006.
 - 429 responses honour `Retry-After` (seconds OR HTTP-date).
 - Generated SDK retry hook only runs on the operations marked
-  `*safeReadRetries` in `PumbleOpenApi.yaml`; mutating operations
-  use `*noWriteRetries`.
+  `*safeReadRetries` in `PumbleOpenApi.yaml`; non-idempotent writes are
+  tagged `x-sdk-no-write-retries: true` and have retry codes cleared by
+  the generated runtime patch.
 
 ### 4. Webhook handler durability
 

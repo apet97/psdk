@@ -7,6 +7,17 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
 
 ## Unreleased
 
+### CI & tooling
+
+- Fixed public CI: the Speakeasy CLI installer now authenticates its GitHub API
+  "latest release" lookup with `GITHUB_TOKEN`, avoiding the unauthenticated
+  shared-runner rate-limit (HTTP 403) that was breaking every run.
+- Replaced the now lint-invalid `x-speakeasy-retries: { strategy: none }`
+  no-retry marker on non-idempotent writes with `x-sdk-no-write-retries: true`
+  (newer Speakeasy lint rejects `strategy: none`). Runtime behavior is
+  unchanged — the generated runtime patch still clears those operations' retry
+  codes (ADR-0006); the spec audit, its tests, and docs moved to the new marker.
+
 ### Public release & hardening
 
 - Added a non-affiliation disclaimer to the repo and package READMEs: this is

@@ -134,14 +134,14 @@ describe("spec quality audit", () => {
     ]);
   });
 
-  it("accepts retry-unsafe message creation when retries are explicitly disabled", () => {
+  it("accepts message creation marked x-sdk-no-write-retries (non-idempotent)", () => {
     const doc = documentWithOperation(
       "/sendMessage",
       "post",
       baseOperation({
         operationId: "sendMessage",
         tags: ["Messages"],
-        "x-speakeasy-retries": { strategy: "none", statusCodes: ["5XX"] },
+        "x-sdk-no-write-retries": true,
       }),
     );
 
@@ -150,19 +150,19 @@ describe("spec quality audit", () => {
 
   it("flags x-speakeasy-retries blocks missing statusCodes (matches speakeasy lint)", () => {
     const doc = documentWithOperation(
-      "/sendMessage",
-      "post",
+      "/listChannels",
+      "get",
       baseOperation({
-        operationId: "sendMessage",
-        tags: ["Messages"],
-        "x-speakeasy-retries": { strategy: "none" },
+        operationId: "listChannels",
+        tags: ["Channels"],
+        "x-speakeasy-retries": { strategy: "backoff" },
       }),
     );
 
     expect(auditOpenApiDocument(doc)).toEqual([
       {
         code: "retries/missing-statuscodes",
-        location: "POST /sendMessage",
+        location: "GET /listChannels",
         message:
           "x-speakeasy-retries must declare a non-empty statusCodes array (required by speakeasy lint).",
       },
@@ -230,7 +230,7 @@ describe("spec quality audit (extended)", () => {
     expect(report.missingDescription).toEqual([]);
   });
 
-  it("write operations declare x-speakeasy-retries strategy:none", () => {
+  it("write operations declare a retry posture (no-write marker or safe-read backoff)", () => {
     expect(report.unsafeWriteRetries).toEqual([]);
   });
 
@@ -280,7 +280,7 @@ paths:
     });
   });
 
-  it("fails when a write op lacks x-speakeasy-retries (gate the test asserts)", () => {
+  it("fails when a write op declares no retry posture (gate the test asserts)", () => {
     const file = writeSpec(`openapi: 3.0.0
 info:
   title: t
@@ -298,6 +298,6 @@ paths:
 
     const result = auditSpec(file);
     expect(result.ok).toBe(false);
-    expect(result.message).toMatch(/Write operations missing x-speakeasy-retries/);
+    expect(result.message).toMatch(/Write operations missing a retry-posture/);
   });
 });

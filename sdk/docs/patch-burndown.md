@@ -4,7 +4,7 @@ Five patches are applied to generated SDK code by `scripts/patch-generated-runti
 
 | ID | File | Protects | Test | Removal condition |
 | --- | --- | --- | --- | --- |
-| non-idempotent-write-retries | `src/funcs/messages-*.ts`, `src/funcs/scheduled-messages-create-scheduled-message.ts` | Drops default retries on writes that are not idempotent | `tests/retries.test.ts`, `tests/with-retries.test.ts` | Speakeasy generator supports operation-level no-retry config; expressed in spec via `x-speakeasy-retries: { strategy: none }`. |
+| non-idempotent-write-retries | `src/funcs/messages-*.ts`, `src/funcs/scheduled-messages-create-scheduled-message.ts` | Drops default retries on writes that are not idempotent | `tests/retries.test.ts`, `tests/with-retries.test.ts` | Speakeasy generator honors an operation-level no-retry config; non-idempotent writes are tagged in spec via `x-sdk-no-write-retries: true`. |
 | debug-redaction | `src/lib/sdks.ts` | Redacts headers/bodies in generated debug output | `tests/debug-redaction.test.ts` | Generator emits a logger hook we can plug into. |
 | malformed-json-response | `src/lib/sdks.ts` | Wraps JSON parse failures as `ResponseValidationError` | `tests/response-validation.test.ts` | Generator wraps JSON parse failures. |
 | outbound-write-validation | `src/lib/sdks.ts` | Validates request bodies before sending | `tests/generated-request-validation.test.ts` | OpenAPI/schema generation emits the current outbound constraints unaided. |
