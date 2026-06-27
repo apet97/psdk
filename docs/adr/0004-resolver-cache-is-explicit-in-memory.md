@@ -10,8 +10,11 @@ results harder to reason about.
 
 ## Decision
 
-Resolver cache is explicit in-memory per client instance. It has no TTL, no
-background refresh, no persistence, and no resolverCache `"auto"` mode.
+Resolver cache is explicit in-memory per client instance. It is disabled by
+default and has no background refresh, no persistence, and no resolverCache
+`"auto"` mode. A bounded per-entry TTL is opt-in via
+`resolverCache: { enabled: true, ttlMs }`; with `resolverCache: true` (no
+`ttlMs`) entries never expire.
 
 ## Consequences
 

@@ -23,8 +23,10 @@ returns structured receipts or facade failure values.
 IDs and human inputs such as channel names, `#channel` names, emails, and names.
 
 **Resolver cache**: optional per-client in-memory `listChannels` and `listUsers`
-cache. It has no TTL, no background refresh, no persistence, and no hidden
-invalidation beyond clearing failed list promises so callers can retry.
+cache. It is off by default; a bounded per-entry TTL is opt-in via
+`resolverCache: { enabled: true, ttlMs }`. It has no background refresh, no
+persistence, and no hidden invalidation beyond clearing failed list promises so
+callers can retry.
 
 **Curated MCP**: the agent-facing MCP profile. It exposes compact read tools and
 preview/confirm write tools rather than the full generated tool surface.
@@ -63,8 +65,9 @@ headers are mandatory on every upstream file and enforced by
 - Fresh writes should be proven with direct read endpoints, not search indexing.
 - MCP writes must remain preview/confirm where that contract already exists.
 - Final live-smoke output must remain redacted.
-- Resolver cache behavior stays explicit: no TTL, no background refresh, no
-  persistence, and no resolverCache `"auto"` mode.
+- Resolver cache behavior stays explicit: off by default, optional bounded
+  per-entry `ttlMs`, no background refresh, no persistence, and no resolverCache
+  `"auto"` mode.
 - Live scripts and docs must not contain API keys, live emails, or raw live IDs.
 - Every upstream-derived file under `sdk/knowledge/upstream/` carries
   the three required attribution markers (`@derived-from
