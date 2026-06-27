@@ -13,6 +13,12 @@ header issued from *Workspace settings -> API keys*). It is the right
 choice for scripting your own Pumble workspace from a server or
 letting an agent operate inside it.
 
+`pumble-keys-sdk` is an independent, personal open-source project. It is
+not affiliated with, endorsed by, or sponsored by CAKE.com Inc. or
+Pumble; "Pumble" and "CAKE.com" are trademarks of their respective
+owners. Licensed MIT (see `LICENSE`); the upstream knowledge lift is
+ISC-attributed in `sdk/THIRD_PARTY_NOTICES.md`.
+
 This package is **not** a fork or competitor of CAKE.com's official
 `pumble-sdk`, which targets a different Pumble surface:
 
