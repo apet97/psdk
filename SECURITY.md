@@ -6,10 +6,13 @@ fixtures.
 Sensitive values include Pumble API keys, webhook signatures, user emails,
 message text, workspace names, and live 24-character Pumble IDs.
 
-Use a private channel for vulnerability reports. Include reproduction steps,
-affected version, and redacted logs.
+Report vulnerabilities privately. Use GitHub private vulnerability reporting on
+this repository — open the **Security** tab, then **Report a vulnerability**
+(<https://github.com/apet97/psdk/security/advisories/new>). Include reproduction
+steps, the affected version, and redacted logs.
 
-Do not include Pumble API keys, tokens, cookies, message bodies, or private workspace data in public issues. Use GitHub private vulnerability reporting if enabled, or contact maintainers through the documented security channel.
+Do not include Pumble API keys, tokens, cookies, message bodies, or private
+workspace data in public issues or in the report.
 
 ## Organization Deployments
 
