@@ -164,7 +164,7 @@ typescript:
     bench:smoke: node scripts/perf-smoke.mjs
     package-split:dry-run: node scripts/package-split-dry-run.mjs
   alwaysIncludeInboundAndOutbound: false
-  author: Pumble SDK Team
+  author: apet97 (https://github.com/apet97)
   baseErrorName: PumbleSDKError
   clientServerStatusCodesAsErrors: true
   constFieldsAlwaysOptional: false
