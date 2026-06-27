@@ -1,7 +1,7 @@
 # Security audit
 
 Use with Claude Code: enter plan mode, paste this prompt, then execute
-inside the repo you want to audit (defaults to SDKP itself; usable
+inside the repo you want to audit (defaults to pumble-keys-sdk itself; usable
 against any Pumble addon).
 
 ---
@@ -27,7 +27,7 @@ identity can leak or be abused.
   the secret; do not just `rm` the file.
 - The CI workflow runs the "Check no secrets are tracked" step
   (greps git ls-files for `.env`, `tokens.json`, `*.db`, `*.pem`).
-  See SDKP `.github/workflows/ci.yml` for the canonical recipe.
+  See pumble-keys-sdk `.github/workflows/ci.yml` for the canonical recipe.
 - No live workspace IDs, channel IDs, user IDs, or message IDs in
   tracked fixtures. Use synthetic 24-char hex placeholders.
 
@@ -78,7 +78,7 @@ view-action):
 - Event resource handlers reject names outside an explicit allow-list.
 - Destructive tools (`delete*`, `archive*`, `remove*`) never appear
   in a `readonly` profile manifest.
-- Write tools use preview/confirm (see SDKP `confirmed-writes.ts`)
+- Write tools use preview/confirm (see pumble-keys-sdk `confirmed-writes.ts`)
   or require `--allow-raw-writes --audit-log <path>` flags.
 - SSE transport binds to `127.0.0.1` by default; bearer-token
   required for remote SSE.
@@ -94,7 +94,7 @@ If the project lifts code from upstream (e.g. CAKE-com/pumble-node-sdk):
   permission text.
 - An attribution-audit script wired into CI fails the build when
   the markers drift or the notices file falls out of sync. See
-  SDKP `sdk/scripts/attribution-audit.mjs` for the recipe.
+  pumble-keys-sdk `sdk/scripts/attribution-audit.mjs` for the recipe.
 
 ### 7. Authorization
 
@@ -116,7 +116,7 @@ Findings as `OK / GAP / FLAG` rows in a Markdown checklist. Cite
 file:line evidence for OK. For GAP, propose a TDD fix (red first).
 For FLAG, stop for input.
 
-Reference: SDKP at `https://github.com/apet97/psdk` for
+Reference: pumble-keys-sdk at `https://github.com/apet97/psdk` for
 canonical patterns - `sdk/scripts/attribution-audit.mjs`,
 `sdk/src/extensions/webhooks.ts`,
 `sdk/src/mcp-server/curated/resources.ts` (path-traversal guard),

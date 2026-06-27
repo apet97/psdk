@@ -1,6 +1,6 @@
-# SDKP Context
+# Repository context
 
-SDKP is the local working repo for the Pumble TypeScript SDK. The SDK package
+This repository holds the Pumble TypeScript SDK. The SDK package
 lives under `sdk/` and combines generated API client code with a smaller set of
 handwritten extensions, curated MCP tools, scripts, fixtures, knowledge files,
 and docs.

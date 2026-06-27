@@ -361,7 +361,7 @@ describe("docs", () => {
     }
   });
 
-  test("root context documents SDKP vocabulary and non-negotiables", () => {
+  test("root context documents repository vocabulary and non-negotiables", () => {
     for (const phrase of [
       "Generated SDK",
       "Handwritten extensions",

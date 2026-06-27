@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Context
 
-SDKP contains Speakeasy-generated endpoint, model, client, function, hook,
+This repository contains Speakeasy-generated endpoint, model, client, function, hook,
 library, and raw MCP-tool files. These files are large, mechanical outputs and
 are expected to change through regeneration.
 

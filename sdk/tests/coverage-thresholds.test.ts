@@ -19,7 +19,7 @@ const ciYaml = readFileSync(
   "utf8",
 );
 
-// Borrowed (loosely) from anon's vitest coverage gate. SDKP measures
+// Borrowed (loosely) from anon's vitest coverage gate. This repo measures
 // only the handwritten tree because the generated code is exercised at
 // the integration/replay level; counting unhit generated branches
 // against the gate produces noise that does not reflect handwritten
