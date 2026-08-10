@@ -7,7 +7,7 @@
 ## SDK basics
 
 - [API reference](API-REFERENCE.md)
-- [Errors](ERRORS.md) / [Error model](ERROR-MODEL.md)
+- [Errors](ERRORS.md)
 - [Stability](STABILITY.md)
 - [Resolvers](RESOLVERS.md)
 
@@ -59,7 +59,7 @@ through the curated MCP server. See [MCP-SAFETY.md#knowledge-resources](MCP-SAFE
 
 ## Errors
 
-- [Error model](ERROR-MODEL.md)
+- [Errors](ERRORS.md)
 
 ## Releases & support
 

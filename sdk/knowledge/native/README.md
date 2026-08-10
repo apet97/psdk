@@ -21,7 +21,7 @@ resource template (see `sdk/docs/MCP-SAFETY.md`).
 - [`error-model.md`](error-model.md) — distilled error taxonomy per
   surface (raw SDK throws, facade returns values, CLI exit codes, MCP
   envelopes, webhook 4xx semantics) with cross-link to the long-form
-  [`sdk/docs/ERROR-MODEL.md`](../../docs/ERROR-MODEL.md).
+  [`sdk/docs/ERRORS.md`](../../docs/ERRORS.md).
 
 ## Style and size budget
 

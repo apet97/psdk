@@ -78,7 +78,7 @@ view-action):
 - Event resource handlers reject names outside an explicit allow-list.
 - Destructive tools (`delete*`, `archive*`, `remove*`) never appear
   in a `readonly` profile manifest.
-- Write tools use preview/confirm (see SDKP `confirmed-writes.ts`)
+- Write tools use preview/confirm (see SDKP `curated/write-tools.ts`)
   or require `--allow-raw-writes --audit-log <path>` flags.
 - SSE transport binds to `127.0.0.1` by default; bearer-token
   required for remote SSE.

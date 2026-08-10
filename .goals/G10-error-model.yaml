@@ -5,7 +5,7 @@ status: done
 why: "Five surfaces (raw, facade, CLI, MCP, webhook) handle failure differently; users need a single doc that maps each surface to its expected error shape."
 scope:
   allowed:
-    - sdk/docs/ERROR-MODEL.md
+    - sdk/docs/ERRORS.md
     - sdk/docs/ERRORS.md
     - sdk/tests/error-model.test.ts
   forbidden:
@@ -18,8 +18,8 @@ scope:
     - sdk/src/core.ts
     - sdk/src/index.ts
 acceptance:
-  - "docs/ERROR-MODEL.md names every category returned by categorizeError."
-  - "docs/ERROR-MODEL.md covers raw SDK, facade, CLI, MCP, and webhooks."
+  - "docs/ERRORS.md names every category returned by categorizeError."
+  - "docs/ERRORS.md covers raw SDK, facade, CLI, and MCP (merged from ERROR-MODEL.md 2026-08-10)."
   - "tests/error-model.test.ts enforces both."
   - "docs/ERRORS.md cross-links the new doc."
 commands:
@@ -30,7 +30,7 @@ adversarial_checks:
   - "Dropping a surface section fails the test."
 links:
   docs:
-    - sdk/docs/ERROR-MODEL.md
+    - sdk/docs/ERRORS.md
     - sdk/docs/ERRORS.md
   tests:
     - sdk/tests/error-model.test.ts

@@ -117,7 +117,7 @@ try {
   await sdk.messages.sendMessage({ channelId, text });
 } catch (error) {
   const categorized = categorizeError(error);
-  console.error(categorized.summary);
+  console.error(categorized.message);
 }
 
 const result = await pumble.messages.send({ channel: "#ops", text });

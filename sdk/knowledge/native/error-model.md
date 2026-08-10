@@ -1,7 +1,7 @@
 # Pumble SDK error model
 
 Five surfaces, three failure styles. This page is the agent-readable
-summary; the long-form is [`docs/ERROR-MODEL.md`](../../docs/ERROR-MODEL.md).
+summary; the long-form is [`docs/ERRORS.md`](../../docs/ERRORS.md).
 
 ## By surface
 
@@ -57,7 +57,7 @@ summary; the long-form is [`docs/ERROR-MODEL.md`](../../docs/ERROR-MODEL.md).
 
 ## Pointers
 
-- Long-form taxonomy: [`docs/ERROR-MODEL.md`](../../docs/ERROR-MODEL.md).
+- Long-form taxonomy: [`docs/ERRORS.md`](../../docs/ERRORS.md).
 - Per-class details: [`docs/ERRORS.md`](../../docs/ERRORS.md).
 - Why facade failures are values:
   [`docs/adr/0002-facade-failures-are-values.md`](../../docs/adr/0002-facade-failures-are-values.md).

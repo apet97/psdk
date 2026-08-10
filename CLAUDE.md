@@ -18,15 +18,14 @@ truth and never contradict it.
 
 ## Two non-negotiables that bite first
 
-1. **Do not hand-edit generated paths.** The list is in
-   `.goals/manifest.yaml#guardrails.generated_paths`
-   (`sdk/src/funcs/**`, `sdk/src/sdk/**`, `sdk/src/models/**`,
-   `sdk/src/lib/**`, `sdk/src/hooks/**`, `sdk/src/types/**`,
-   `sdk/src/core.ts`, `sdk/src/index.ts`,
-   `sdk/src/mcp-server/tools/**`). They will be overwritten by the
-   next `speakeasy run`. Change `PumbleOpenApi.yaml`,
+1. **Do not hand-edit generated paths.** The authoritative list is
+   `.goals/manifest.yaml#guardrails.generated_paths`; AGENTS.md §3
+   enumerates it. The next `speakeasy run` overwrites those paths.
+   To change generated behavior, edit `PumbleOpenApi.yaml`,
    `sdk/.speakeasy/gen.yaml`, or
-   `sdk/scripts/patch-generated-runtime.mjs` instead.
+   `sdk/scripts/patch-generated-runtime.mjs`. Handwritten code you
+   can edit freely: `sdk/src/extensions/**` and
+   `sdk/src/mcp-server/curated/**`.
 2. **Run `cd sdk && npm run verify:offline` before any commit.** It
    must exit 0. Never bypass with `--no-verify` or test deletions. If
    a gate fails, fix the root cause.

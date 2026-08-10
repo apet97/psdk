@@ -165,9 +165,13 @@ matching file and update the matching `CURATED_*_NAMES` export:
 
 | Kind | File | Names export |
 | --- | --- | --- |
-| Tool | `tools.ts` / `confirmed-writes.ts` | `CURATED_TOOL_NAMES` |
+| Read tool | `read-tools.ts` | `CURATED_TOOL_NAMES` (aggregated in `tools.ts`) |
+| Write tool | `write-tools.ts` | `CURATED_WRITE_TOOL_NAMES` |
 | Resource | `resources.ts` | `CURATED_RESOURCE_NAMES` |
 | Prompt | `prompts.ts` | `CURATED_PROMPT_NAMES` |
+
+Shared curated plumbing: `targets.ts` (channel/user resolution),
+`payloads.ts` (result envelopes), `types.ts`, `server.ts`, `cli.ts`.
 
 Add a test that pins the manifest (`sdk/tests/mcp-tool-manifest.test.ts`
 snapshots tools; resource and prompt names are pinned by
@@ -238,7 +242,11 @@ Out of scope; do not lift, port, or re-implement these even if
 upstream provides them:
 
 - Pumble apps bot framework (OAuth install flow, multi-workspace
-  token storage, install/uninstall lifecycle handlers).
+  token storage, install/uninstall lifecycle handlers). Recorded
+  exception: `sdk/src/extensions/app/` (including `token-store.ts`
+  and `oauth.ts`) stays as isolated, experimental helpers per the
+  G08 decision (`.goals/G08-app-helpers-decision.yaml`); do not
+  extend it into a bot host.
 - Slash command runtime, shortcut runtime, modal/view-submission
   runtime, `ack()` semantics.
 - Socket Mode runtime (we have an experimental helper but it is not

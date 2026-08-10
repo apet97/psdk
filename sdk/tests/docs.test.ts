@@ -753,7 +753,6 @@ describe("docs IA", () => {
     "API-REFERENCE.md",
     "CLI-REFERENCE.md",
     "MCP-SAFETY.md",
-    "ERROR-MODEL.md",
     "RESOLVERS.md",
     "TESTING.md",
     "STABILITY.md",

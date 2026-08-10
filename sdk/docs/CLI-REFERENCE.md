@@ -17,6 +17,20 @@ Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin` over
 command-line keys. Command-line secrets can leak through shell history,
 process listings, CI logs, and terminal recordings.
 
+## Exit codes
+
+- `0` - success.
+- `1` - runtime error (API failure, network failure).
+- `2` - usage error (unknown command or flag value). The CLI prints a
+  pointer to `--help`.
+
+## Environment variables
+
+- `PUMBLE_API_KEY` - API key. `PUMBLESDK_API_KEY_AUTH` is also read as
+  a fallback.
+- `PUMBLE_BASE_URL` - API base URL override. `PUMBLESDK_SERVER_URL` is
+  also read as a fallback.
+
 ## Write command output
 
 Write commands (`send`, `dm`, `channels create`, `status set`/`clear`,
