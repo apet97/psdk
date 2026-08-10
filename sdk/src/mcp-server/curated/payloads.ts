@@ -1,4 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { categorizeError } from "../../extensions/categorize-error.js";
 
 export interface CuratedFailurePayload {
   ok: false;
@@ -15,9 +16,10 @@ function jsonResult(value: unknown): CallToolResult {
 }
 
 function errorResult(error: unknown): CallToolResult {
-  const message = error instanceof Error ? error.message : String(error);
+  const categorized = categorizeError(error);
+  const retry = categorized.retryable ? "retryable" : "not retryable";
   return {
-    content: [{ type: "text", text: message }],
+    content: [{ type: "text", text: `[${categorized.category}, ${retry}] ${categorized.message}` }],
     isError: true,
   };
 }

@@ -225,7 +225,7 @@ export function registerCuratedReadTools(
 
   server.tool(
     "search_messages",
-    "Search messages by text, actor, channel, or bounded time window.",
+    "Search messages by text, actor, channel, or bounded time window. At least one of text, from, or in is required.",
     searchMessagesSchema,
     async (args: SearchMessagesArgs, ctx: ToolExtra) =>
       jsonTool(async () => {

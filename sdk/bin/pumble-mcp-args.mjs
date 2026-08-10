@@ -129,31 +129,31 @@ export function buildMcpInvocation({ argv, env, generatedMcp, curatedMcp, dryRun
     };
   }
   if (parsed.dryRun && parsed.profile === "readonly") {
-    throw new WrapperUsageError("pumble-mcp: --dry-run and --profile readonly are mutually exclusive — pick one.");
+    throw new WrapperUsageError("pumble-keys-mcp: --dry-run and --profile readonly are mutually exclusive — pick one.");
   }
   if (parsed.auditLog !== null && (typeof parsed.auditLog !== "string" || parsed.auditLog.length === 0)) {
-    throw new WrapperUsageError("pumble-mcp: --audit-log requires a non-empty path argument.");
+    throw new WrapperUsageError("pumble-keys-mcp: --audit-log requires a non-empty path argument.");
   }
 
   const callerSuppliedTool = parsed.passthrough.some((a) => a === "--tool" || a.startsWith("--tool="));
   const effectiveProfile = parsed.profile ?? (parsed.dryRun || callerSuppliedTool ? "readwrite" : "curated");
   if (effectiveProfile !== "readonly" && effectiveProfile !== "readwrite" && effectiveProfile !== "curated") {
-    throw new WrapperUsageError(`pumble-mcp: --profile must be 'readonly', 'readwrite', or 'curated', got: ${effectiveProfile}`);
+    throw new WrapperUsageError(`pumble-keys-mcp: --profile must be 'readonly', 'readwrite', or 'curated', got: ${effectiveProfile}`);
   }
   if (effectiveProfile === "readonly" && callerSuppliedTool) {
     throw new WrapperUsageError(
-      "pumble-mcp: --profile readonly and --tool are mutually exclusive — a caller-supplied tool would bypass the readonly whitelist.",
+      "pumble-keys-mcp: --profile readonly and --tool are mutually exclusive — a caller-supplied tool would bypass the readonly whitelist.",
     );
   }
   const exposesRawWrites = effectiveProfile === "readwrite" && !parsed.dryRun;
   if (exposesRawWrites && !parsed.allowRawWrites) {
     throw new WrapperUsageError(
-      "pumble-mcp: --profile readwrite exposes raw mutating tools; pass --allow-raw-writes and --audit-log <path> to acknowledge.",
+      "pumble-keys-mcp: --profile readwrite exposes raw mutating tools; pass --allow-raw-writes and --audit-log <path> to acknowledge.",
     );
   }
   if (exposesRawWrites && !parsed.auditLog) {
     throw new WrapperUsageError(
-      "pumble-mcp: raw readwrite mode requires --audit-log <path>.",
+      "pumble-keys-mcp: raw readwrite mode requires --audit-log <path>.",
     );
   }
 

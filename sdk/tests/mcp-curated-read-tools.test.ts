@@ -67,6 +67,18 @@ describe("curated read workflow tools", () => {
     expect(harness.tools.has("messages-send-message")).toBe(false);
     expect(harness.tools.has("get_message")).toBe(false);
     expect(harness.tools.has("list_thread_replies")).toBe(false);
+    expect(harness.tools.get("search_messages")?.description).toContain(
+      "At least one of text, from, or in is required.",
+    );
+  });
+
+  it("prefixes SDK/transport failures with category and retryability", async () => {
+    const searchMessages = vi.fn().mockRejectedValue(new Error("socket hang up"));
+    const harness = registerCuratedHarness(readClient({ searchMessages }));
+
+    const result = await harness.invoke("search_messages", { text: "release" });
+
+    expect(harness.errorText(result)).toBe("[unknown, not retryable] socket hang up");
   });
 
   it("lists channels in a clean MCP envelope", async () => {

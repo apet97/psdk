@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { createCuratedMcpServer } from "./server.js";
+import { CURATED_TOOL_NAMES } from "./tools.js";
 import type { CuratedStartOptions, CuratedTransport } from "./types.js";
 
 class CuratedUsageError extends Error {
@@ -19,10 +20,10 @@ class CuratedUsageError extends Error {
 
 async function printHelp(): Promise<void> {
   await writeStdout(`
-pumble-mcp-curated — workflow-first Pumble MCP server
+pumble-keys-mcp (curated profile) — workflow-first Pumble MCP server
 
 Usage:
-  pumble-mcp-curated start [options]
+  pumble-keys-mcp start [options]
 
 Options:
   --transport stdio|sse   Transport to use (default: stdio).
@@ -36,17 +37,7 @@ Options:
   -h, --help              Show this help.
 
 Curated tools:
-  whoami
-  find_channel
-  find_user
-  list_channels
-  search_messages
-  get_channel_context
-  get_thread_context
-  send_message_preview
-  send_message_confirmed
-  reply_to_thread_preview
-  reply_to_thread_confirmed
+${CURATED_TOOL_NAMES.map((name) => `  ${name}`).join("\n")}
 `);
 }
 
@@ -75,7 +66,7 @@ function valueFor(
 
   const value = args[index + 1];
   if (!value || value.startsWith("--")) {
-    throw new CuratedUsageError(`pumble-mcp-curated: ${flag} requires a value.`);
+    throw new CuratedUsageError(`pumble-keys-mcp: ${flag} requires a value.`);
   }
   return { value, nextIndex: index + 1 };
 }
@@ -83,7 +74,7 @@ function valueFor(
 function parseTransport(value: string): CuratedTransport {
   if (value === "stdio" || value === "sse") return value;
   throw new CuratedUsageError(
-    `pumble-mcp-curated: --transport must be 'stdio' or 'sse', got: ${value}`,
+    `pumble-keys-mcp: --transport must be 'stdio' or 'sse', got: ${value}`,
   );
 }
 
@@ -91,7 +82,7 @@ function parsePort(value: string): number {
   const port = Number(value);
   if (!Number.isInteger(port) || port < 0 || port >= 65536) {
     throw new CuratedUsageError(
-      `pumble-mcp-curated: --port must be an integer from 0 to 65535, got: ${value}`,
+      `pumble-keys-mcp: --port must be an integer from 0 to 65535, got: ${value}`,
     );
   }
   return port;
@@ -99,7 +90,7 @@ function parsePort(value: string): number {
 
 function parseHost(value: string): string {
   if (value.trim().length === 0) {
-    throw new CuratedUsageError("pumble-mcp-curated: --host requires a non-empty value.");
+    throw new CuratedUsageError("pumble-keys-mcp: --host requires a non-empty value.");
   }
   return value;
 }
@@ -108,7 +99,7 @@ function parseEnv(value: string): [string, string] {
   const sep = value.indexOf("=");
   if (sep <= 0 || sep === value.length - 1) {
     throw new CuratedUsageError(
-      "pumble-mcp-curated: --env must use KEY=VALUE with non-empty key and value.",
+      "pumble-keys-mcp: --env must use KEY=VALUE with non-empty key and value.",
     );
   }
   return [value.slice(0, sep), value.slice(sep + 1)];
@@ -124,7 +115,7 @@ export function parseCuratedStartArgs(
   const [command, ...args] = argv;
   if (command !== "start") {
     throw new CuratedUsageError(
-      `pumble-mcp-curated: expected 'start', got: ${command}`,
+      `pumble-keys-mcp: expected 'start', got: ${command}`,
     );
   }
 
@@ -180,7 +171,7 @@ export function parseCuratedStartArgs(
       const parsedIndex = Number(next.value);
       if (!Number.isInteger(parsedIndex)) {
         throw new CuratedUsageError(
-          `pumble-mcp-curated: --server-index must be an integer, got: ${next.value}`,
+          `pumble-keys-mcp: --server-index must be an integer, got: ${next.value}`,
         );
       }
       serverIdx = parsedIndex;
@@ -200,10 +191,10 @@ export function parseCuratedStartArgs(
     }
     if (arg === "--tool" || arg?.startsWith("--tool=")) {
       throw new CuratedUsageError(
-        "pumble-mcp-curated: --tool is not supported by the curated profile.",
+        "pumble-keys-mcp: --tool is not supported by the curated profile.",
       );
     }
-    throw new CuratedUsageError(`pumble-mcp-curated: unknown option ${arg}`);
+    throw new CuratedUsageError(`pumble-keys-mcp: unknown option ${arg}`);
   }
 
   return { transport, port, host, authToken, apiKeyAuth, serverURL, serverIdx, env };
