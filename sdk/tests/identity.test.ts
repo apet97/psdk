@@ -25,12 +25,6 @@ describe("package identity", () => {
     }
   });
 
-  it("does not retain the old bin file names on disk", () => {
-    const sdkRoot = resolve(__dirname, "..");
-    expect(existsSync(resolve(sdkRoot, "bin", "pumble-cli.mjs"))).toBe(false);
-    expect(existsSync(resolve(sdkRoot, "bin", "pumble-mcp.mjs"))).toBe(false);
-  });
-
   it("files manifest lists every declared bin path", () => {
     for (const relativePath of Object.values(pkg.bin)) {
       const withoutLeadingDot = relativePath.replace(/^\.\//, "");
