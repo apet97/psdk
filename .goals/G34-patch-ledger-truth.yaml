@@ -1,7 +1,7 @@
 id: G34
 title: Truthful generated-runtime patch ledger
 priority: P1
-status: planned
+status: done
 why: "The burndown ledger lists wrong target files for four of five patches. Registry, docs, and tests must derive from one data structure."
 scope:
   allowed:

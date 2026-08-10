@@ -47,4 +47,27 @@ describe("patch burndown", () => {
     expect(row, `missing row for ${id}`).toBeDefined();
     expect(row).toMatch(/\|[^|]+\|[^|]+\|[^|]+\|[^|]+\|[^|]+\|/);
   });
+
+  it("doc File column matches the registry files array", () => {
+    type Entry = { id: string; files?: string[] };
+    for (const entry of PATCH_REGISTRY as Entry[]) {
+      expect(
+        Array.isArray(entry.files),
+        `patch '${entry.id}' must declare a files array`,
+      ).toBe(true);
+      const row = doc
+        .split("\n")
+        .find((line) =>
+          line.startsWith(`| ${entry.id} `) || line.startsWith(`| ${entry.id}|`)
+        );
+      expect(row, `missing burndown row for ${entry.id}`).toBeDefined();
+      const fileCell = row!.split("|")[2] ?? "";
+      const listed = fileCell
+        .split(",")
+        .map((cell) => cell.replace(/`/g, "").trim())
+        .filter(Boolean)
+        .sort();
+      expect(listed).toEqual([...(entry.files ?? [])].sort());
+    }
+  });
 });
