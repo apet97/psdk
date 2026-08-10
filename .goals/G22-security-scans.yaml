@@ -18,16 +18,17 @@ scope:
     - sdk/src/index.ts
 acceptance:
   - "docs/SECURITY-CHECKLIST.md has Secrets, Webhooks, MCP, and CI sections."
-  - "tests/security-checklist.test.ts enforces section headers and key bullets."
+  - "Property tests pin the checklist claims: auth-header, debug-redaction/serialized-error, replay fixture scan (prose-pin security-checklist.test.ts deleted 2026-08-10)."
 commands:
-  - "cd sdk && npm test -- tests/security-checklist.test.ts"
+  - "cd sdk && npm test -- tests/auth-header.test.ts tests/debug-redaction.test.ts tests/replay.test.ts"
   - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "Removing the scan-fixtures bullet flags the test."
-  - "Dropping a required section header fails the test."
+  - "Removing the ApiKey header or leaking key material through errors fails the property tests."
 links:
   docs:
     - sdk/docs/SECURITY-CHECKLIST.md
   tests:
-    - sdk/tests/security-checklist.test.ts
+    - sdk/tests/auth-header.test.ts
+    - sdk/tests/debug-redaction.test.ts
+    - sdk/tests/replay.test.ts
 rollback: "Revert this commit; automated guards remain in place."

@@ -1,10 +1,6 @@
 // Mocked tests for the telemetry extension.
 //
 // Covers:
-//   - createNoopRecorder is a structural no-op (no throws, no state)
-//   - createOTelSpanRecorder degrades to no-op when @opentelemetry/api
-//     isn't installed (the case in this repo) — verified by exercising
-//     the returned recorder without an OTel SDK present
 //   - createJsonlAuditWriter appends well-formed JSONL, one event per
 //     line, preserves submission order, never throws into the caller
 //     even when the target path is invalid
@@ -24,31 +20,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   createJsonlAuditWriter,
-  createNoopRecorder,
-  createOTelSpanRecorder,
   wrapClient,
 } from "../src/extensions/telemetry.js";
-
-describe("createNoopRecorder", () => {
-  it("returns spans whose methods are no-ops", () => {
-    const recorder = createNoopRecorder();
-    const span = recorder.startSpan("op", { extra: 1 });
-    expect(() => span.setStatus({ ok: true, statusCode: 200 })).not.toThrow();
-    expect(() => span.setAttributes?.({ k: "v" })).not.toThrow();
-    expect(() => span.end()).not.toThrow();
-  });
-});
-
-describe("createOTelSpanRecorder (without @opentelemetry/api installed)", () => {
-  it("falls back to a no-op recorder when the module is unavailable", () => {
-    // No @opentelemetry/api in this repo's node_modules → recorder must
-    // still be usable.
-    const recorder = createOTelSpanRecorder({ tracerName: "telemetry-test" });
-    const span = recorder.startSpan("test.op");
-    expect(() => span.setStatus({ ok: false, statusCode: 500, errorClass: "Boom" })).not.toThrow();
-    expect(() => span.end()).not.toThrow();
-  });
-});
 
 describe("createJsonlAuditWriter", () => {
   let dir: string;

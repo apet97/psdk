@@ -19,18 +19,18 @@ scope:
     - sdk/src/index.ts
 acceptance:
   - "sdk/docs/CI-GATES.md documents every gate (offline, speakeasy regen, live arazzo/search, facade live, MCP live, release required)."
-  - "tests/ci-gates.test.ts enforces each required-gate row and runs/skips columns."
+  - "tests/ci-workflow.test.ts and tests/release-workflow.test.ts pin the real workflow YAML (prose-only ci-gates.test.ts deleted 2026-08-10)."
   - "ci.yml emits a Markdown job summary listing offline + speakeasy gate status."
   - "release.yml runs verify:live with --required so the publish step refuses to proceed without live verification."
 commands:
-  - "cd sdk && npm test -- tests/ci-gates.test.ts"
+  - "cd sdk && npm test -- tests/ci-workflow.test.ts tests/release-workflow.test.ts"
   - "cd sdk && npm run goals:check"
 adversarial_checks:
-  - "Test fails if any required gate name is removed from the doc."
-  - "Doc keeps the runs-vs-skips columns even when reorganised."
+  - "ci-workflow/release-workflow tests fail when a workflow gate step is removed."
 links:
   docs:
     - sdk/docs/CI-GATES.md
   tests:
-    - sdk/tests/ci-gates.test.ts
+    - sdk/tests/ci-workflow.test.ts
+    - sdk/tests/release-workflow.test.ts
 rollback: "Revert this commit; no production impact until the owning task lands."
