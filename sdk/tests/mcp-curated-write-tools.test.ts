@@ -135,6 +135,25 @@ describe("curated write workflow tools", () => {
     expect(client.messages.sendMessage).not.toHaveBeenCalled();
   });
 
+  it("rejects a confirmed send whose text differs beyond the preview excerpt", async () => {
+    const client = writeClient();
+    const harness = registerCuratedHarness(client);
+    const sharedHead = "x".repeat(157);
+    const payload = harness.json(await harness.invoke("send_message_preview", {
+      channelId: "channel-1",
+      text: `${sharedHead} original tail`,
+    }));
+
+    const data = payload.data as { request: Record<string, unknown> } & Record<string, unknown>;
+    const result = await harness.invoke("send_message_confirmed", {
+      ...data,
+      request: { ...data.request, text: `${sharedHead} tampered tail` },
+    });
+
+    expect(harness.errorText(result)).toMatch(/confirmation/i);
+    expect(client.messages.sendMessage).not.toHaveBeenCalled();
+  });
+
   it("confirmed send calls the generated SDK once with the resolved request", async () => {
     const client = writeClient();
     const harness = registerCuratedHarness(client);

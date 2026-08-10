@@ -47,6 +47,7 @@ const writePreviewSchema = z.object({
   targetId: nonBlank.optional(),
   targetName: nonBlank.optional(),
   textExcerpt: z.string(),
+  textSha256: nonBlank,
   riskLevel,
 }).strict();
 
@@ -167,6 +168,7 @@ function normalizePreview(preview: ParsedWritePreview): WritePreview {
     actionType: preview.actionType,
     targetKind: preview.targetKind,
     textExcerpt: preview.textExcerpt,
+    textSha256: preview.textSha256,
     riskLevel: preview.riskLevel,
   };
   if (preview.targetId !== undefined) normalized.targetId = preview.targetId;
@@ -180,6 +182,7 @@ function samePreview(left: WritePreview, right: WritePreview): boolean {
     && left.targetId === right.targetId
     && left.targetName === right.targetName
     && left.textExcerpt === right.textExcerpt
+    && left.textSha256 === right.textSha256
     && left.riskLevel === right.riskLevel;
 }
 

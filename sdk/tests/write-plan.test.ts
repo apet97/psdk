@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   createConfirmationToken,
@@ -22,6 +23,9 @@ describe("write-plan helpers", () => {
       targetId: "channel-1",
       targetName: "#general",
       textExcerpt: "Ship this message after human approval.",
+      textSha256: createHash("sha256")
+        .update("Ship this message after human approval.", "utf8")
+        .digest("hex"),
       riskLevel: "medium",
     });
 
@@ -67,5 +71,27 @@ describe("write-plan helpers", () => {
     expect(preview.textExcerpt).not.toContain("hunter2");
     expect(preview.textExcerpt.length).toBeLessThanOrEqual(160);
     expect(preview.textExcerpt.endsWith("...")).toBe(true);
+  });
+
+  it("binds the full message text, not only the 160-char excerpt", () => {
+    const sharedHead = "x".repeat(200);
+    const original = createWritePreview({
+      type: "send_message",
+      targetKind: "channel",
+      targetId: "channel-1",
+      text: `${sharedHead} original tail`,
+    });
+    const tampered = createWritePreview({
+      type: "send_message",
+      targetKind: "channel",
+      targetId: "channel-1",
+      text: `${sharedHead} tampered tail`,
+    });
+
+    expect(tampered.textExcerpt).toBe(original.textExcerpt);
+    expect(tampered.textSha256).not.toBe(original.textSha256);
+
+    const token = createConfirmationToken(original, "agent-local-salt");
+    expect(verifyConfirmationToken(tampered, token, "agent-local-salt")).toBe(false);
   });
 });
