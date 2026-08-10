@@ -44,7 +44,7 @@ typescript:
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
   additionalPackageJSON:
-    description: TypeScript SDK and MCP server for the Pumble API-Keys add-on
+    description: Unofficial TypeScript SDK and MCP server for the Pumble API-Keys add-on
     license: MIT
     repository:
       type: git
@@ -56,6 +56,7 @@ typescript:
     keywords:
       - pumble
       - sdk
+      - unofficial
       - typescript
       - api-client
       - mcp
@@ -164,7 +165,7 @@ typescript:
     fixtures:minimize: node scripts/minimize-fixtures.mjs
     package-split:dry-run: node scripts/package-split-dry-run.mjs
   alwaysIncludeInboundAndOutbound: false
-  author: Pumble SDK Team
+  author: apet97
   baseErrorName: PumbleSDKError
   clientServerStatusCodesAsErrors: true
   constFieldsAlwaysOptional: false

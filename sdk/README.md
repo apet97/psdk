@@ -1,5 +1,10 @@
 # pumble-keys-sdk
 
+> **Unofficial.** This community package is not affiliated with or
+> endorsed by CAKE.com. The official Pumble apps SDK is
+> [`pumble-sdk`](https://www.npmjs.com/package/pumble-sdk); see the
+> [product boundary](#product-boundary) below.
+
 Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
 
 Use it when you want a typed raw SDK plus safer Pumble workflows: facade-first channel/user/message helpers, CLI commands, curated MCP tools, webhook verification, redaction, replay/live testing, and release verification.

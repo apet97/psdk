@@ -76,7 +76,7 @@ const publicExports = {
 };
 
 const desired = {
-  description: "TypeScript SDK and MCP server for the Pumble API-Keys add-on",
+  description: "Unofficial TypeScript SDK and MCP server for the Pumble API-Keys add-on",
   license: "MIT",
   repository: {
     type: "git",
@@ -88,6 +88,7 @@ const desired = {
   keywords: [
     "pumble",
     "sdk",
+    "unofficial",
     "typescript",
     "api-client",
     "mcp",

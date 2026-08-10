@@ -1,9 +1,9 @@
 {
   "name": "pumble-keys-sdk",
   "version": "0.3.21",
-  "description": "TypeScript SDK and MCP server for the Pumble API-Keys add-on",
+  "description": "Unofficial TypeScript SDK and MCP server for the Pumble API-Keys add-on",
   "license": "MIT",
-  "author": "Pumble SDK Team",
+  "author": "apet97",
   "bin": {
     "pumble-keys": "./bin/pumble-keys-cli.mjs",
     "pumble-keys-mcp": "./bin/pumble-keys-mcp.mjs"
@@ -175,6 +175,7 @@
   "keywords": [
     "pumble",
     "sdk",
+    "unofficial",
     "typescript",
     "api-client",
     "mcp",
