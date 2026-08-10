@@ -114,7 +114,7 @@ async function $do(
     retryConfig: options?.retries
       || client._options.retryConfig
       || { strategy: "none" },
-    retryCodes: options?.retryCodes || ["429", "500", "502", "503", "504"],
+    retryCodes: options?.retryCodes || [],
   };
 
   const requestRes = client._createRequest(context, {

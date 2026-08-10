@@ -1,7 +1,7 @@
 id: G35
 title: Align no-retry patch coverage with the duplicate-creating write set
 priority: P1
-status: planned
+status: done
 why: "The spec tags 15 writes but the patch covers 5. The duplicate-creating set must be explicit, complete, and pinned by a test."
 scope:
   allowed:

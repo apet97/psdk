@@ -12,7 +12,7 @@ templates, or the upstream spec.
 
 | Patch | Owner | Why it remains | Removal condition |
 | --- | --- | --- | --- |
-| `non-idempotent-write-retries` | `sdk-maintainers` | Removes default retries from non-idempotent generated writes. | Speakeasy config/templates support operation-level no-retry generation. |
+| `non-idempotent-write-retries` | `sdk-maintainers` | Clears default retry status codes on the six duplicate-creating writes when a user sets a global retryConfig. | Speakeasy config/templates support operation-level no-retry generation. |
 | `debug-redaction` | `sdk-maintainers` | Redacts sensitive headers and bodies in generated debug output. | Generator supports safe debug logger hooks. |
 | `malformed-json-response` | `sdk-maintainers` | Wraps malformed JSON responses in `ResponseValidationError`. | Generator wraps JSON parse failures as `ResponseValidationError`. |
 | `outbound-write-validation` | `sdk-maintainers` | Validates generated write request bodies before sending. | OpenAPI/schema generation emits the current outbound constraints without patching. |

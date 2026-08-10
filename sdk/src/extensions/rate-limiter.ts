@@ -4,7 +4,7 @@
 // acquires its own token:
 //
 //   const limiter = createRateLimiter({ rps: 5, burst: 10 });
-//   await withRetries(() => limiter.limit(() => sdk.messages.sendMessage(...)));
+//   await withRetries(() => limiter.limit(() => sdk.messages.searchMessages(...)));
 //
 // In-process only. Multi-process rate limiting would need a shared
 // store (Redis, etc.) and is out of scope.

@@ -4,20 +4,25 @@ Status: Accepted
 
 ## Context
 
-Message creation endpoints can duplicate user-visible writes when a retry
-happens after the server accepted the first request but before the client saw
-the response.
+A write is duplicate-creating when a silent retry can create a second
+user-visible object or leave a confusing lost-response state: the server
+accepted the first request, but the client never saw the response and retries
+into a second create.
 
 ## Decision
 
-Non-idempotent message-creating operations disable generated automatic retries
-unless the API documents and verifies an idempotency key.
+Duplicate-creating writes disable generated automatic retries unless the API
+documents and verifies an idempotency key. The current set:
+`sendMessage`, `sendReply`, `dmUser`, `dmGroup`, `createScheduledMessage`,
+`createChannel`. Writes where a retry is idempotent or fails loudly instead
+(`addReaction`, `addUsersToChannel`, `removeUserFromChannel`, edits, deletes,
+`customStatus`) stay out of the set.
 
 Speakeasy does not honor an operation-level no-retry strategy in generated
-output, so non-idempotent writes are tagged `x-sdk-no-write-retries: true` for
-traceability and the generated runtime patch clears their default retry codes
-after regeneration. Safe read operations carry explicit `x-speakeasy-retries`
-backoff config.
+output, so duplicate-creating writes are tagged `x-sdk-no-write-retries: true`
+in the spec for traceability, and the generated runtime patch clears their
+default retry codes after regeneration. Safe read operations carry explicit
+`x-speakeasy-retries` backoff config.
 
 ## Consequences
 

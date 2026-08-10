@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -97,5 +97,52 @@ describe("generated runtime patch", () => {
 
       expect(source).toContain(".min(1)");
     }
+  });
+
+  it("clears default retry codes on every duplicate-creating write", () => {
+    const duplicateCreatingWrites = [
+      "sendMessage",
+      "sendReply",
+      "dmUser",
+      "dmGroup",
+      "createScheduledMessage",
+      "createChannel",
+    ];
+    const spec = readFileSync(
+      join(__dirname, "../../PumbleOpenApi.yaml"),
+      "utf8",
+    ).split("\n");
+    const funcsDir = join(__dirname, "../src/funcs");
+    const funcFiles = readdirSync(funcsDir).filter((f) => f.endsWith(".ts"));
+
+    for (const opId of duplicateCreatingWrites) {
+      const specLine = spec.findIndex((l) =>
+        l.trim().startsWith(`operationId: ${opId}`),
+      );
+      expect(specLine, `${opId} must exist in the spec`).toBeGreaterThan(-1);
+      const tagged = spec
+        .slice(specLine, specLine + 6)
+        .some((l) => l.trim() === "x-sdk-no-write-retries: true");
+      expect(tagged, `${opId} must carry x-sdk-no-write-retries`).toBe(true);
+
+      const funcFile = funcFiles.find((f) =>
+        readFileSync(join(funcsDir, f), "utf8").includes(
+          `operationID: "${opId}"`,
+        ),
+      );
+      expect(funcFile, `${opId} must have a generated func`).toBeDefined();
+      const source = readFileSync(join(funcsDir, funcFile!), "utf8");
+      expect(
+        source.includes("retryCodes: options?.retryCodes || []"),
+        `${funcFile} must clear default retry codes`,
+      ).toBe(true);
+    }
+
+    const cleared = funcFiles.filter((f) =>
+      readFileSync(join(funcsDir, f), "utf8").includes(
+        "retryCodes: options?.retryCodes || []",
+      ),
+    );
+    expect(cleared.length).toBe(duplicateCreatingWrites.length);
   });
 });

@@ -89,7 +89,7 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 /**
  * Wrap a thunk in retry-on-transient-error behaviour.
  *
- *   const result = await withRetries(() => sdk.messages.sendMessage({ ... }));
+ *   const result = await withRetries(() => sdk.messages.searchMessages({ ... }));
  *
  * Permanent errors (auth, validation, 4xx other than 408/425/429) are
  * thrown immediately. Transient errors and network blips trigger

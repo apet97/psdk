@@ -5,9 +5,14 @@
 // This file isolates the timer-sensitive cases so vi.useFakeTimers()
 // doesn't leak setup state to other suites.
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { withRetries } from "../src/extensions/with-retries.js";
 import { PumbleSDKError } from "../src/models/errors/pumble-sdk-error.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function makeRateLimitedError(retryAfter: string | null, status = 429): PumbleSDKError {
   const headers = new Headers();
@@ -106,5 +111,22 @@ describe("withRetries — Retry-After honour", () => {
     await expect(p).resolves.toBe("ok");
     expect(attempts).toBe(2);
     expect(onRetry.mock.calls[0]![0].delayMs).toBeLessThanOrEqual(1_000);
+  });
+});
+
+describe("handwritten write paths and default retries", () => {
+  it("no handwritten write path uses withRetries", () => {
+    const writePaths = [
+      "src/extensions/facade-writes.ts",
+      "src/extensions/scheduled.ts",
+      "src/mcp-server/curated/write-tools.ts",
+    ];
+    for (const rel of writePaths) {
+      const source = readFileSync(join(__dirname, "..", rel), "utf8");
+      expect(
+        source.includes("withRetries"),
+        `${rel} must not wrap writes in withRetries (ADR 0006)`,
+      ).toBe(false);
+    }
   });
 });

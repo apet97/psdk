@@ -26,6 +26,7 @@ export const PATCH_REGISTRY = [
       "src/funcs/messages-dm-user.ts",
       "src/funcs/messages-dm-group.ts",
       "src/funcs/scheduled-messages-create-scheduled-message.ts",
+      "src/funcs/channels-create-channel.ts",
     ],
   },
   {
@@ -76,6 +77,7 @@ const PATCH_REPLACEMENTS = {
     "src/funcs/scheduled-messages-create-scheduled-message.ts": [
       NO_DEFAULT_RETRY_CODES,
     ],
+    "src/funcs/channels-create-channel.ts": [NO_DEFAULT_RETRY_CODES],
   },
   "debug-redaction": {
     "src/lib/sdks.ts": [
