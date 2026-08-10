@@ -9,7 +9,7 @@
 | stable | Removed export, changed return type, narrowed accepted input, changed thrown error class |
 | beta | Same as stable, but documented as "may change" - still announced |
 | experimental | Anything - change without bump |
-| generated raw SDK | Schema-level change in `PumbleOpenApi.yaml` (validated on every release) |
+| generated raw SDK | Schema-level change in `PumbleOpenApi.yaml` (spec audited and replay-verified on every release) |
 | façade receipt shape | Change to `{ ok, value, error }` discriminator |
 
 ## Every release

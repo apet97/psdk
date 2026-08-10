@@ -12,11 +12,9 @@ on:
 
 jobs:
   lint-and-test:
-    name: Lint OAS · Generate · Build · Mocked tests
+    name: Spec audit · Build · Mocked tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
 
     steps:
       - uses: actions/checkout@v5
@@ -27,73 +25,13 @@ jobs:
           cache: "npm"
           cache-dependency-path: sdk/package-lock.json
 
-      - name: Install Speakeasy CLI
-        env:
-          SPEAKEASY_INSTALLER_SHA256: 9e2c4f1054e214d05352597cfd9ed1ab117a089e9442f532dd4a0d168665d757
-        run: |
-          set -euo pipefail
-          node sdk/scripts/install-speakeasy.mjs
-          echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
-
       - name: Install SDK deps
         working-directory: sdk
         run: npm ci --no-audit --no-fund
 
-      - name: Lint OpenAPI spec (0 errors, 0 warnings required)
-        run: |
-          set -euo pipefail
-          out=$(speakeasy lint openapi -s PumbleOpenApi.yaml 2>&1)
-          echo "$out"
-          echo "$out" | grep -qE '0 errors, 0 warnings' || {
-            echo "::error::speakeasy lint reported issues"
-            exit 1
-          }
-
       - name: Audit OpenAPI spec quality
         working-directory: sdk
         run: npm run spec:audit
-
-      - name: Regenerate SDK (sanity check — no source drift)
-        # Catches schema drift that would silently break a downstream
-        # regen. We don't commit the regen output in CI; the diff check
-        # below would fail loudly if it had to.
-        if: env.SPEAKEASY_API_KEY != ''
-        run: |
-          speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
-          node sdk/scripts/patch-generated-runtime.mjs
-
-      - name: Full regeneration verification unavailable without SPEAKEASY_API_KEY
-        if: env.SPEAKEASY_API_KEY == ''
-        run: |
-          echo "Public CI ran offline verification only; release regeneration requires SPEAKEASY_API_KEY."
-
-      - name: Normalize generated package metadata
-        run: node sdk/scripts/normalize-package.mjs
-
-      - name: Check generated diff whitespace
-        run: git diff --check
-
-      - name: Verify no drift in committed hand-written paths
-        env:
-          GUARDED_PATHS: >-
-            sdk/src/extensions
-            sdk/tests
-            sdk/scripts
-            sdk/bin
-            sdk/package.json
-            sdk/package-lock.json
-        run: |
-          # Speakeasy regen MUST NOT touch hand-written paths — both
-          # src/extensions, tests, scripts, and the wrapper shims under bin/
-          # are out-of-scope for the generator.
-          for p in $GUARDED_PATHS; do
-            test -e "$p" || { echo "::error::guarded path missing: $p"; exit 1; }
-          done
-          if ! git diff --quiet -- $GUARDED_PATHS; then
-            git diff --stat -- $GUARDED_PATHS
-            echo "::error::regen touched hand-written paths"
-            exit 1
-          fi
 
       - name: Check no secrets are tracked
         # Borrowed from anon's CI - if a file matching the secret-like
@@ -129,9 +67,8 @@ jobs:
         # Runs vitest with --coverage and applies the threshold floor
         # configured in sdk/vitest.config.ts. Gates the handwritten
         # src/extensions/** and src/mcp-server/curated/** tree only;
-        # generated code is intentionally excluded (Speakeasy unit-tests
-        # the emitted code and SDKP exercises it at the
-        # integration/replay level via arazzo). Kept out of verify:offline
+        # the vendored generated code is exercised at the
+        # integration/replay level via arazzo. Kept out of verify:offline
         # so local dev iterations stay fast - run npm run test:coverage
         # locally before pushing if you've added handwritten code.
         working-directory: sdk
@@ -140,19 +77,13 @@ jobs:
       - name: CI gate summary
         if: always()
         env:
-          SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
           JOB_STATUS: ${{ job.status }}
         run: |
           {
             echo "## CI gate matrix"
             echo "| Gate | Status |"
             echo "| --- | --- |"
-            echo "| Offline verification | $JOB_STATUS |"
-            if [ -n "$SPEAKEASY_API_KEY" ]; then
-              echo "| Speakeasy regeneration | ran |"
-            else
-              echo "| Speakeasy regeneration | skipped (no secret) |"
-            fi
+            echo "| Offline verification + coverage | $JOB_STATUS |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   live-arazzo:
@@ -163,8 +94,6 @@ jobs:
     if: github.event_name == 'schedule'
     timeout-minutes: 20
     needs: lint-and-test
-    env:
-      SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
 
     steps:
       - uses: actions/checkout@v5
@@ -175,30 +104,9 @@ jobs:
           cache: "npm"
           cache-dependency-path: sdk/package-lock.json
 
-      - name: Install Speakeasy CLI
-        env:
-          SPEAKEASY_INSTALLER_SHA256: 9e2c4f1054e214d05352597cfd9ed1ab117a089e9442f532dd4a0d168665d757
-        run: |
-          node sdk/scripts/install-speakeasy.mjs
-          echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
-
       - name: Install SDK deps
         working-directory: sdk
         run: npm ci --no-audit --no-fund
-
-      - name: Regenerate SDK
-        if: env.SPEAKEASY_API_KEY != ''
-        run: |
-          speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
-          node sdk/scripts/patch-generated-runtime.mjs
-
-      - name: Full regeneration verification unavailable without SPEAKEASY_API_KEY
-        if: env.SPEAKEASY_API_KEY == ''
-        run: |
-          echo "Public CI ran offline verification only; release regeneration requires SPEAKEASY_API_KEY."
-
-      - name: Normalize generated package metadata
-        run: node sdk/scripts/normalize-package.mjs
 
       - name: Offline verification
         working-directory: sdk

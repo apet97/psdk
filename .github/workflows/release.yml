@@ -17,8 +17,6 @@ jobs:
     name: Publish pumble-keys-sdk to npm
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
 
     steps:
       - uses: actions/checkout@v5
@@ -44,24 +42,6 @@ jobs:
           cache: "npm"
           cache-dependency-path: sdk/package-lock.json
 
-      - name: Install Speakeasy CLI
-        env:
-          SPEAKEASY_INSTALLER_SHA256: 9e2c4f1054e214d05352597cfd9ed1ab117a089e9442f532dd4a0d168665d757
-        run: |
-          set -euo pipefail
-          node sdk/scripts/install-speakeasy.mjs
-          echo "${HOME}/.speakeasy/bin" >> "${GITHUB_PATH}"
-
-      - name: Lint OpenAPI spec (0 errors, 0 warnings required)
-        run: |
-          set -euo pipefail
-          out=$(speakeasy lint openapi -s PumbleOpenApi.yaml 2>&1)
-          echo "$out"
-          echo "$out" | grep -qE '0 errors, 0 warnings' || {
-            echo "::error::speakeasy lint reported issues"
-            exit 1
-          }
-
       - name: Install SDK deps
         working-directory: sdk
         run: npm ci --no-audit --no-fund
@@ -70,68 +50,20 @@ jobs:
         working-directory: sdk
         run: npm run spec:audit
 
-      - name: Require Speakeasy credentials for release regeneration
-        run: test -n "${SPEAKEASY_API_KEY}"
-        env:
-          SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}
-
-      - name: Regenerate SDK from YAML
-        # Releases always ship a fresh regen so we never publish stale
-        # generated code that drifted from the spec.
-        run: |
-          set -euo pipefail
-          if [ -z "${SPEAKEASY_API_KEY}" ]; then
-            echo "::error::SPEAKEASY_API_KEY secret is required for release regeneration"
-            exit 1
-          fi
-          speakeasy generate sdk -l typescript -s ./PumbleOpenApi.yaml -o ./sdk -y
-          node sdk/scripts/patch-generated-runtime.mjs
-
-      - name: Normalize generated package metadata
-        run: node sdk/scripts/normalize-package.mjs
-
-      - name: Check generated diff whitespace
-        run: git diff --check
-
-      - name: Verify regen left hand-written paths untouched
-        env:
-          GUARDED_PATHS: >-
-            sdk/src/extensions
-            sdk/tests
-            sdk/scripts
-            sdk/bin/pumble-keys-cli.mjs
-            sdk/bin/pumble-keys-mcp.mjs
-            sdk/bin/pumble-mcp-args.mjs
-            sdk/bin/dry-run-shim.mjs
-            sdk/bin/audit-log-shim.mjs
-            sdk/package.json
-            sdk/package-lock.json
-        run: |
-          if ! git diff --quiet -- $GUARDED_PATHS; then
-            git diff --stat -- $GUARDED_PATHS
-            echo "::error::regen touched hand-written paths"
-            exit 1
-          fi
-
-      - name: Pin package.json version to the git tag
+      - name: Require package.json version to match the git tag
+        # The SDK source is vendored: the release publishes exactly the
+        # committed tree. A tag that disagrees with package.json means
+        # the bump commit is missing — fail, do not silently rewrite.
         working-directory: sdk
         env:
           TARGET_VERSION: ${{ steps.tag.outputs.version }}
         run: |
           set -euo pipefail
-          # Reject the tag-vs-package mismatch loudly. Speakeasy bumps
-          # the patch on every regen, so the regenerated package.json
-          # may be ahead/behind the git tag — we want the published
-          # artifact to match the tag exactly.
           current=$(node -p "require('./package.json').version")
           if [ "$current" != "$TARGET_VERSION" ]; then
-            echo "::notice::pinning package.json $current → $TARGET_VERSION"
-            npm version "$TARGET_VERSION" --no-git-tag-version --allow-same-version
+            echo "::error::package.json is $current but the tag is $TARGET_VERSION — commit the version bump before tagging"
+            exit 1
           fi
-
-      - name: Install
-        working-directory: sdk
-        run: npm install --no-audit --no-fund
 
       - name: Offline verification (gate)
         working-directory: sdk

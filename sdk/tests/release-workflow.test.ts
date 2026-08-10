@@ -14,34 +14,18 @@ describe("release workflow parity", () => {
     expect(releaseWorkflow).not.toContain("actions/setup-node@v4");
   });
 
-  it("enforces the same strict Speakeasy lint result as CI", () => {
-    expect(releaseWorkflow).toContain("0 errors, 0 warnings");
-    expect(releaseWorkflow).toContain("speakeasy lint reported issues");
+  it("publishes the vendored source with no Speakeasy dependency", () => {
+    // Releases publish exactly the committed tree; no CLI install, no
+    // regeneration, no SPEAKEASY_API_KEY.
+    expect(releaseWorkflow.toLowerCase()).not.toContain("speakeasy");
+    expect(releaseWorkflow).toContain("npm run spec:audit");
+    expect(releaseWorkflow).toContain("npm run verify:offline");
   });
 
-  it("requires Speakeasy credentials before release regeneration", () => {
-    expect(releaseWorkflow).toContain("SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}");
-    expect(releaseWorkflow).toContain("Require Speakeasy credentials for release regeneration");
-    expect(releaseWorkflow).toContain("SPEAKEASY_API_KEY secret is required");
-    expect(releaseWorkflow).toContain("speakeasy generate sdk");
-    expect(releaseWorkflow).toContain("node sdk/scripts/patch-generated-runtime.mjs");
-  });
-
-  it("guards generated-regeneration drift in hand-written release paths", () => {
-    for (const guardedPath of [
-      "sdk/src/extensions",
-      "sdk/tests",
-      "sdk/scripts",
-      "sdk/bin/pumble-keys-cli.mjs",
-      "sdk/bin/pumble-keys-mcp.mjs",
-      "sdk/bin/pumble-mcp-args.mjs",
-      "sdk/bin/dry-run-shim.mjs",
-      "sdk/bin/audit-log-shim.mjs",
-      "sdk/package.json",
-      "sdk/package-lock.json",
-    ]) {
-      expect(releaseWorkflow).toContain(guardedPath);
-    }
+  it("fails loudly when the tag disagrees with package.json", () => {
+    expect(releaseWorkflow).toContain("Require package.json version to match the git tag");
+    expect(releaseWorkflow).toContain("commit the version bump before tagging");
+    expect(releaseWorkflow).not.toContain("--allow-same-version");
   });
 
   it("requires live verification before npm publish", () => {
@@ -51,8 +35,8 @@ describe("release workflow parity", () => {
       .toBeLessThan(releaseWorkflow.indexOf("npm publish --provenance"));
   });
 
-  it("does not pipe an unpinned Speakeasy installer into the release shell", () => {
-    expect(releaseWorkflow).not.toContain("curl -fsSL https://go.speakeasy.com/cli-install.sh | sh");
-    expect(releaseWorkflow).toMatch(/SPEAKEASY_VERSION|sha256|checksum/i);
+  it("publishes with provenance and skips already-published versions", () => {
+    expect(releaseWorkflow).toContain("npm publish --provenance --access public");
+    expect(releaseWorkflow).toContain("already_published");
   });
 });

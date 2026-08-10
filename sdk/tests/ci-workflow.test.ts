@@ -14,13 +14,14 @@ describe("CI workflow", () => {
     expect(ciWorkflow).not.toContain("actions/setup-node@v4");
   });
 
-  it("does not fail public CI when Speakeasy regeneration credentials are absent", () => {
-    expect(ciWorkflow).toContain("SPEAKEASY_API_KEY: ${{ secrets.SPEAKEASY_API_KEY }}");
-    expect(ciWorkflow).toContain("if: env.SPEAKEASY_API_KEY != ''");
-    expect(ciWorkflow).toContain("if: env.SPEAKEASY_API_KEY == ''");
-    expect(ciWorkflow).toContain("offline verification only");
-    expect(ciWorkflow).toContain("release regeneration requires SPEAKEASY_API_KEY");
-    expect(ciWorkflow).toContain("node sdk/scripts/patch-generated-runtime.mjs");
+  it("verifies the vendored source with no Speakeasy dependency", () => {
+    // The SDK source is vendored: CI runs the offline gate against the
+    // committed tree and never installs the Speakeasy CLI or a
+    // regeneration credential.
+    expect(ciWorkflow.toLowerCase()).not.toContain("speakeasy");
+    expect(ciWorkflow).toContain("npm run spec:audit");
+    expect(ciWorkflow).toContain("npm run verify:offline");
+    expect(ciWorkflow).toContain("npm run test:coverage");
   });
 
   // Borrowed from anon's CI - a tracked .env / tokens.json / *.db file is
