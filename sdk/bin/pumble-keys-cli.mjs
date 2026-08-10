@@ -93,7 +93,6 @@ function parseGlobalOptions(argv) {
     apiKeyStdin: false,
     baseURL: process.env.PUMBLE_BASE_URL ?? process.env.PUMBLESDK_SERVER_URL ?? DEFAULT_BASE_URL,
     timeoutMs: undefined,
-    verbose: false,
     quiet: false,
     help: false,
     version: false,
@@ -140,10 +139,6 @@ function parseGlobalOptions(argv) {
     }
     if (arg.startsWith("--timeout-ms=")) {
       globals.timeoutMs = parsePositiveInt(arg.slice("--timeout-ms=".length), "--timeout-ms");
-      continue;
-    }
-    if (arg === "-v" || arg === "--verbose") {
-      globals.verbose = true;
       continue;
     }
     if (arg === "--quiet" || arg === "-q") {
@@ -230,7 +225,7 @@ async function cmdChannels(sdk, args, globals) {
         name,
         type: parsed.values.private ? "PRIVATE" : "PUBLIC",
       });
-      printMutation(created, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, (c) =>
+      printMutation(created, parsed.values.json, { quiet: globals.quiet }, (c) =>
         `created #${c.name ?? name} (${c.id})`
       );
       return;
@@ -287,7 +282,7 @@ async function cmdSend(sdk, args, globals) {
   }
   const channelId = await resolveChannelId(sdk, channelArg);
   const sent = await sdk.messages.sendMessage({ channelId, text });
-  printMutation(sent, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, (m) =>
+  printMutation(sent, parsed.values.json, { quiet: globals.quiet }, (m) =>
     `sent ${m.id} in ${m.channelId}`
   );
 }
@@ -303,7 +298,7 @@ async function cmdDm(sdk, args, globals) {
   }
   const userId = await resolveUserId(sdk, userArg);
   const sent = await sdk.messages.dmUser({ userId, text });
-  printMutation(sent, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, (m) =>
+  printMutation(sent, parsed.values.json, { quiet: globals.quiet }, (m) =>
     `sent DM ${m.id} in ${m.channelId}`
   );
 }
@@ -386,7 +381,7 @@ async function cmdStatus(sdk, args, globals) {
         status,
         expiresAt: parseNonNegativeInt(parsed.values["expires-at"], "--expires-at"),
       });
-      printMutation(result, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, () => "status updated");
+      printMutation(result, parsed.values.json, { quiet: globals.quiet }, () => "status updated");
       return;
     }
     case "clear": {
@@ -399,7 +394,7 @@ async function cmdStatus(sdk, args, globals) {
         status: "",
         expiresAt: Date.now() - 1,
       });
-      printMutation(result, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, () => "status cleared");
+      printMutation(result, parsed.values.json, { quiet: globals.quiet }, () => "status cleared");
       return;
     }
     default:
@@ -438,7 +433,7 @@ async function cmdSchedule(sdk, args, globals) {
       const result = await sdk.scheduledMessages.deleteScheduledMessage({
         scheduledMessageId,
       });
-      printMutation(result, parsed.values.json, { verbose: globals.verbose, quiet: globals.quiet }, () =>
+      printMutation(result, parsed.values.json, { quiet: globals.quiet }, () =>
         `cancelled scheduled message ${scheduledMessageId}`
       );
       return;
@@ -490,18 +485,13 @@ function ensureNoPositionals(parsed, command) {
   }
 }
 
-function printMutation(value, json, quietOrVerbose, message) {
+function printMutation(value, json, options, message) {
   if (json) {
     printJson(value ?? { ok: true });
     return;
   }
-  // Backwards-compatible second-positional accepts a boolean (verbose flag)
-  // or an options object { quiet, verbose }. Default behaviour: print the
-  // one-line success message unless quiet is set.
-  const opts = typeof quietOrVerbose === "object" && quietOrVerbose !== null
-    ? quietOrVerbose
-    : { verbose: quietOrVerbose === true, quiet: false };
-  if (opts.quiet) return;
+  // Default behaviour: print the one-line success message unless quiet is set.
+  if (options?.quiet) return;
   printLine(message(value));
 }
 
@@ -605,7 +595,6 @@ Global options:
                           --api-key is accepted as a legacy alias.
   --base-url <url>       API base URL. Defaults to PUMBLE_BASE_URL, then the production endpoint.
   --timeout-ms <ms>      Per-request timeout in milliseconds.
-  -v, --verbose          Print success messages for write commands.
   -q, --quiet            Suppress the default one-line success message for write commands.
   --version              Print the package version and exit.
   -h, --help             Show this help.

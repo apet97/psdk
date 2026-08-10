@@ -140,7 +140,6 @@ describe("pumble CLI", () => {
       "--api-key-stdin",
       "--base-url",
       "--timeout-ms",
-      "--verbose",
       "--quiet",
       "--version",
       "--help",

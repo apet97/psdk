@@ -9,7 +9,6 @@ Run `pumble-keys --help` for a top-level overview. Every command supports `--jso
 - `--api-key-stdin`
 - `--base-url <url>`
 - `--timeout-ms <ms>`
-- `-v` / `--verbose` - print success messages for write commands
 - `-q` / `--quiet` - suppress the default one-line success message for writes
 - `--version` - print the package version
 - `-h` / `--help`
@@ -22,8 +21,8 @@ process listings, CI logs, and terminal recordings.
 
 Write commands (`send`, `dm`, `channels create`, `status set`/`clear`,
 `schedule cancel`) print a one-line success message by default. Pass `--quiet`
-to suppress it, `--verbose` to elaborate, or `--json` to emit the full
-structured receipt instead.
+to suppress it, or `--json` to emit the full structured receipt
+instead.
 
 ## Commands
 
