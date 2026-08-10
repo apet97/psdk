@@ -1,6 +1,6 @@
 # pumble-keys-sdk
 
-> Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumble API-Keys add-on.
+> Pumble TypeScript SDK / Developer Toolkit for the Pumble API-Keys add-on — typed client, façade, CLI, and curated MCP server.
 
 [![npm version](https://img.shields.io/npm/v/pumble-keys-sdk.svg)](https://www.npmjs.com/package/pumble-keys-sdk)
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
@@ -8,11 +8,21 @@
 
 > **Disclaimer** — This is an independent, personal open-source project. It is not affiliated with, endorsed by, or sponsored by CAKE.com Inc. or Pumble. "Pumble" and "CAKE.com" are trademarks of their respective owners.
 
-A typed client plus safer, agent-friendly workflows for the **Pumble API-Keys add-on**. One generated raw SDK from `PumbleOpenApi.yaml`, wrapped in a handwritten façade, CLI, curated MCP server, and webhook tooling — so scripting a Pumble workspace, or letting an agent operate inside one, is ergonomic and hard to get wrong.
+A typed client plus safer, agent-friendly workflows for the **Pumble API-Keys add-on**. One raw SDK generated from `PumbleOpenApi.yaml`, wrapped in a handwritten façade, CLI, curated MCP server, and webhook tooling — so scripting a Pumble workspace, or letting an agent operate inside one, is ergonomic and hard to get wrong.
+
+## At a glance
+
+| Surface | Entry point | Use for |
+| --- | --- | --- |
+| Façade | `createPumbleClient()` from `pumble-keys-sdk/extensions/index.js` | Name-based sends, DMs, search, threads — failures are values you branch on |
+| Raw SDK | `new PumbleSDK()` from `pumble-keys-sdk` | Direct typed access to every endpoint |
+| CLI | `pumble-keys` | One-off workspace scripting from the shell |
+| MCP server | `pumble-keys-mcp` | Agent tool surface with preview/confirm writes |
+| Webhooks | `pumble-keys-sdk/extensions/webhooks.js` | Signature verification + typed event dispatch |
 
 ## Features
 
-- **Typed raw SDK** — generated from `PumbleOpenApi.yaml`, covering the API-Keys surface.
+- **Typed raw SDK** — generated from `PumbleOpenApi.yaml`, covering the API-Keys surface; the source is vendored and fully verified in CI.
 - **Façade** — `createPumbleClient(...)` resolves channels and users by name and returns *values, not exceptions* (`{ ok: true, ... }` / `{ ok: false, reason, ... }`), so agents branch instead of wrapping every call in try/catch.
 - **CLI** — `pumble-keys` for one-off workspace scripting.
 - **Curated MCP server** — `pumble-keys-mcp`, a compact agent-facing tool surface with preview/confirm writes and a read-only profile.
@@ -91,7 +101,7 @@ Start at the **[documentation map](sdk/docs/INDEX.md)**, which groups every doc
 by job. Common entry points:
 
 - [Quickstart](sdk/docs/QUICKSTART.md) · [API reference](sdk/docs/API-REFERENCE.md) · [CLI reference](sdk/docs/CLI-REFERENCE.md)
-- [Error model](sdk/docs/ERROR-MODEL.md) · [Resolvers](sdk/docs/RESOLVERS.md) · [Retries, timeouts & rate limits](sdk/docs/RETRIES-TIMEOUTS-RATE-LIMITS.md)
+- [Error handling](sdk/docs/ERRORS.md) · [Resolvers](sdk/docs/RESOLVERS.md) · [Retries, timeouts & rate limits](sdk/docs/RETRIES-TIMEOUTS-RATE-LIMITS.md)
 - [MCP safety](sdk/docs/MCP-SAFETY.md) · [Observability](sdk/docs/OBSERVABILITY.md) · [Stability](sdk/docs/STABILITY.md)
 - [Testing](sdk/docs/TESTING.md) · [CI gates](sdk/docs/CI-GATES.md) · [Versioning](sdk/docs/VERSIONING.md) · [Migrating](sdk/docs/MIGRATING.md)
 - [Examples](sdk/examples/INDEX.md) · [SDK package README](sdk/README.md)

@@ -53,10 +53,15 @@ psdk/                       repo root  (CONTEXT.md, AGENTS.md, CLAUDE.md, .goals
 
 ## 3. Generated vs handwritten boundary
 
-The following paths are regenerated from `PumbleOpenApi.yaml` via
-Speakeasy (with one sanctioned post-gen patch script) and must
-**never** be hand-edited. They will be silently overwritten on the
-next `speakeasy run`. The authoritative source is
+The SDK source is **vendored**: CI and releases verify and publish
+the committed tree and never regenerate it. Regeneration from
+`PumbleOpenApi.yaml` (Speakeasy CLI + `sdk/.speakeasy/gen.yaml`) is
+an optional local maintainer task.
+
+The boundary still applies. The following paths are generated (with
+one sanctioned post-gen patch script) and must **never** be
+hand-edited — a local regen silently overwrites them. The
+authoritative source is
 `.goals/manifest.yaml#guardrails.generated_paths`:
 
 - `sdk/src/funcs/**`
@@ -224,11 +229,13 @@ suite if any of these phrases appears in a markdown file outside
 - `best-in-class`
 
 We are not a generic SDK generator platform; we are a Pumble-specific
-TypeScript SDK that happens to use Speakeasy to generate one tier.
+TypeScript SDK whose raw tier is generated from an OpenAPI spec.
 Do not market it otherwise.
 
-## 11. Commit and PR hygiene
+## 11. Commit hygiene and branch policy
 
+- **One branch.** All work lands directly on `main`. No pull
+  requests, no feature branches. Run the offline gate, commit, push.
 - Conventional-commit prefix: `feat:`, `fix:`, `docs:`, `test:`,
   `chore:`, `refactor:`, `perf:`, `build:`, `ci:`.
 - One logical change per commit. Bundle a guard test with the
@@ -238,9 +245,6 @@ Do not market it otherwise.
 - No force pushes to `main`. No `--no-verify`. No `--no-gpg-sign`.
 - No `git rebase --no-edit`. No `git add -A` or `git add .` -
   stage explicit files so secrets and build artefacts cannot slip in.
-- Pull requests are titled with a scope and goal id where one
-  applies (e.g. `polish-followup: adversarial review (...)`,
-  `G33: cross-doc version-consistency gate`).
 
 ## 12. What we do NOT do
 

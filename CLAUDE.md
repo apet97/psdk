@@ -20,12 +20,13 @@ version-bump rules, forbidden phrases, commit hygiene, and out-of-scope
 items. CLAUDE.md is a pointer doc; treat AGENTS.md as the source of
 truth and never contradict it.
 
-## Two non-negotiables that bite first
+## Three non-negotiables that bite first
 
 1. **Do not hand-edit generated paths.** The authoritative list is
    `.goals/manifest.yaml#guardrails.generated_paths`; AGENTS.md §3
-   enumerates it. The next `speakeasy run` overwrites those paths.
-   To change generated behavior, edit `PumbleOpenApi.yaml`,
+   enumerates it. The source is vendored — CI never regenerates —
+   but a local regen silently overwrites those paths. To change
+   generated behavior, edit `PumbleOpenApi.yaml`,
    `sdk/.speakeasy/gen.yaml`, or
    `sdk/scripts/patch-generated-runtime.mjs`. Handwritten code you
    can edit freely: `sdk/src/extensions/**` and
@@ -33,6 +34,9 @@ truth and never contradict it.
 2. **Run `cd sdk && npm run verify:offline` before any commit.** It
    must exit 0. Never bypass with `--no-verify` or test deletions. If
    a gate fails, fix the root cause.
+3. **One branch.** All work lands directly on `main` — no pull
+   requests, no feature branches, no force pushes. Gate, commit,
+   push.
 
 ## Quick links
 
@@ -40,7 +44,7 @@ truth and never contradict it.
 - [Quickstart](sdk/docs/QUICKSTART.md)
 - [MCP safety profiles + knowledge surfaces](sdk/docs/MCP-SAFETY.md)
 - [Versioning runbook](sdk/docs/VERSIONING.md)
-- [Migrating from `pumble-sdk@0.3.x` (this package's pre-rename name)](sdk/docs/MIGRATING.md)
+- [Migration notes (first publish is 0.4.0; pre-rename source checkouts)](sdk/docs/MIGRATING.md)
 
 ## Forbidden phrases
 
