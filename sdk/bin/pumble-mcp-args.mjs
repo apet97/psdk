@@ -123,6 +123,11 @@ export function buildMcpInvocation({ argv, env, generatedMcp, curatedMcp, dryRun
   if (effectiveProfile !== "readonly" && effectiveProfile !== "readwrite" && effectiveProfile !== "curated") {
     throw new WrapperUsageError(`pumble-mcp: --profile must be 'readonly', 'readwrite', or 'curated', got: ${effectiveProfile}`);
   }
+  if (effectiveProfile === "readonly" && callerSuppliedTool) {
+    throw new WrapperUsageError(
+      "pumble-mcp: --profile readonly and --tool are mutually exclusive — a caller-supplied tool would bypass the readonly whitelist.",
+    );
+  }
   const exposesRawWrites = effectiveProfile === "readwrite" && !parsed.dryRun;
   if (exposesRawWrites && !parsed.allowRawWrites) {
     throw new WrapperUsageError(

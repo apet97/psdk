@@ -52,6 +52,15 @@ describe("pumble-mcp wrapper args", () => {
     expect(invocation.args).not.toContain("messages-send-message");
   });
 
+  it("rejects readonly profile combined with a caller-supplied tool whitelist", () => {
+    expect(() =>
+      buildMcpInvocation({
+        argv: ["start", "--transport", "stdio", "--profile", "readonly", "--tool=messages-send-message"],
+        env: {},
+      })
+    ).toThrow(/--profile readonly and --tool are mutually exclusive/);
+  });
+
   it("rejects raw readwrite profile without explicit raw-write acknowledgement", () => {
     expect(() =>
       buildMcpInvocation({
