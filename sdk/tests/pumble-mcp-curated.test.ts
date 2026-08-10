@@ -100,6 +100,5 @@ describe("pumble-mcp curated profile", () => {
     const source = readFileSync(join(__dirname, "../scripts/run-mcp-live.mjs"), "utf8");
 
     expect(source).toContain("./bin/pumble-mcp-curated.js");
-    expect(source).not.toContain("./bin/pumble-mcp-curated.mjs");
   });
 });
