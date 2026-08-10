@@ -13,6 +13,10 @@ guardrails:
     - sdk/src/types/**
     - sdk/src/core.ts
     - sdk/src/index.ts
+    - sdk/src/mcp-server/*.ts
+    - sdk/src/mcp-server/build.mts
+    - sdk/src/mcp-server/cli/**
+    - sdk/src/mcp-server/tools/**
   forbidden_phrases:
     - "SDK generator platform"
     - "Stainless competitor"

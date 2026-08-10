@@ -61,6 +61,9 @@ next `speakeasy run`. The authoritative source is
 - `sdk/src/types/**`
 - `sdk/src/core.ts`
 - `sdk/src/index.ts`
+- `sdk/src/mcp-server/*.ts` (root files only; `curated/` is handwritten)
+- `sdk/src/mcp-server/build.mts`
+- `sdk/src/mcp-server/cli/**`
 - `sdk/src/mcp-server/tools/**`
 
 To change generated behavior, edit one of:

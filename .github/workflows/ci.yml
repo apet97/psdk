@@ -79,17 +79,16 @@ jobs:
             sdk/src/extensions
             sdk/tests
             sdk/scripts
-            sdk/bin/pumble-cli.mjs
-            sdk/bin/pumble-mcp.mjs
-            sdk/bin/pumble-mcp-args.mjs
-            sdk/bin/dry-run-shim.mjs
-            sdk/bin/audit-log-shim.mjs
+            sdk/bin
             sdk/package.json
             sdk/package-lock.json
         run: |
           # Speakeasy regen MUST NOT touch hand-written paths — both
           # src/extensions, tests, scripts, and the wrapper shims under bin/
           # are out-of-scope for the generator.
+          for p in $GUARDED_PATHS; do
+            test -e "$p" || { echo "::error::guarded path missing: $p"; exit 1; }
+          done
           if ! git diff --quiet -- $GUARDED_PATHS; then
             git diff --stat -- $GUARDED_PATHS
             echo "::error::regen touched hand-written paths"
