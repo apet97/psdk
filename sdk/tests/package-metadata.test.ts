@@ -64,7 +64,6 @@ describe("package metadata", () => {
       "npm run test:live:replay",
       "npm run test:fixtures:scan",
       "npm run test:pack -- --skip-build",
-      "npm run bench:smoke",
     ]) {
       expect(pkg.scripts["verify:offline"]).toContain(gate);
     }

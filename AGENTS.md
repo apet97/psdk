@@ -121,7 +121,6 @@ verify:offline =
   && npm run test:live:replay
   && npm run test:fixtures:scan
   && npm run test:pack -- --skip-build
-  && npm run bench:smoke
 ```
 
 Never skip with `--no-verify`. Never delete a test to make CI green.

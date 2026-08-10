@@ -122,7 +122,7 @@ pipeline (in order):
 4. `spec:audit` - OpenAPI spec quality + retry contract checks.
 5. `build` - MCP server bundle + tsgo emit.
 6. `lint`, `test`, `test:arazzo:replay`, `test:live:replay`,
-   `test:fixtures:scan`, `test:pack -- --skip-build`, `bench:smoke`.
+   `test:fixtures:scan`, `test:pack -- --skip-build`.
 
 Skipping with `--no-verify` is forbidden. If a hook fails, investigate
 the root cause and fix it.

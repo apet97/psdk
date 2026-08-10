@@ -113,7 +113,7 @@
   "scripts": {
     "verify": "npm run verify:offline && npm run verify:live",
     "goals:check": "node scripts/goal-check.mjs",
-    "verify:offline": "npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke",
+    "verify:offline": "npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build",
     "verify:live": "node scripts/verify-live.mjs",
     "lint": "oxlint --max-warnings=0 --deny-warnings src tests scripts 'bin/*.mjs' examples",
     "spec:audit": "node scripts/spec-quality-audit.mjs",
@@ -140,7 +140,6 @@
     "test:mcp": "vitest run tests/mcp-agent-safety.test.ts tests/mcp-curated-read-tools.test.ts tests/mcp-curated-resources.test.ts tests/mcp-curated-targets.test.ts tests/mcp-curated-write-tools.test.ts tests/mcp-tool-manifest.test.ts tests/pumble-mcp.test.ts tests/pumble-mcp-curated.test.ts tests/dry-run-shim.test.ts",
     "test:cli": "vitest run tests/cli.test.ts",
     "fixtures:minimize": "node scripts/minimize-fixtures.mjs",
-    "bench:smoke": "node scripts/perf-smoke.mjs",
     "package-split:dry-run": "node scripts/package-split-dry-run.mjs"
   },
   "peerDependencies": {

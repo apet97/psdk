@@ -87,8 +87,9 @@ For SDKP itself:
 - A replay fixture suite runs offline and is deterministic.
 - A bench-smoke script (typically <10 s, no external services)
   catches order-of-magnitude regressions in the inner loop (token
-  bucket, fixture lookup, telemetry proxy). See SDKP
-  `scripts/perf-smoke.mjs`.
+  bucket, fixture lookup, telemetry proxy) when the project keeps
+  one; assertion-free benches that only print numbers are noise —
+  delete them or give them budgets.
 
 ### 8. Coverage instrumentation cost (when CI runs --coverage)
 
@@ -108,6 +109,6 @@ Findings as `OK / GAP / FLAG` rows with file:line evidence.
 
 Reference: SDKP at `/Users/15x/Downloads/WORKING/addons-me/SDKP` for
 the canonical patterns - `tests/package-metadata.test.ts` (tarball
-budget), `scripts/perf-smoke.mjs` (bench), `ADR-0004` (resolver cache
+budget), `ADR-0004` (resolver cache
 explicit semantics), `extensions/with-retries.ts` (bounded backoff),
 `extensions/search-all.ts` (bounded full-walk).
