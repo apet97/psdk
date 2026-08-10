@@ -6,6 +6,10 @@ Pumble API-Keys add-on. It is not a fork of CAKE.com's official
 definitions from that package under ISC attribution and otherwise
 target a disjoint Pumble surface.
 
+It is an independent, personal open-source project — not affiliated
+with, endorsed by, or sponsored by CAKE.com Inc. or Pumble. Licensed
+MIT.
+
 ## Read AGENTS.md before doing anything substantive
 
 The canonical agent-facing protocol is in
@@ -36,7 +40,7 @@ truth and never contradict it.
 - [Quickstart](sdk/docs/QUICKSTART.md)
 - [MCP safety profiles + knowledge surfaces](sdk/docs/MCP-SAFETY.md)
 - [Versioning runbook](sdk/docs/VERSIONING.md)
-- [Migrating from `pumble-sdk@0.3.x`](sdk/docs/MIGRATING.md)
+- [Migrating from `pumble-sdk@0.3.x` (this package's pre-rename name)](sdk/docs/MIGRATING.md)
 
 ## Forbidden phrases
 

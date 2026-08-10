@@ -47,11 +47,6 @@ x-sdk-safe-read-retries: &safeReadRetries
     - 5XX
   retryConnectionErrors: true
 
-x-sdk-no-write-retries: &noWriteRetries
-  strategy: none
-  statusCodes:
-    - 5XX
-
 tags:
   - name: Channels
     description: Channel discovery, creation, and membership management.
@@ -892,7 +887,7 @@ paths:
   /createChannel:
     post:
       operationId: createChannel
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Channels]
       summary: Create a new channel
       description: |
@@ -937,7 +932,7 @@ paths:
   /addUsersToChannel:
     post:
       operationId: addUsersToChannel
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Channels]
       summary: Add users to a channel
       requestBody:
@@ -964,7 +959,7 @@ paths:
   /removeUserFromChannel:
     post:
       operationId: removeUserFromChannel
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Channels]
       summary: Remove a user from a channel
       requestBody:
@@ -991,7 +986,7 @@ paths:
   /sendMessage:
     post:
       operationId: sendMessage
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Messages]
       summary: Send a message to a channel
       description: |
@@ -1046,7 +1041,7 @@ paths:
   /sendReply:
     post:
       operationId: sendReply
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Messages]
       summary: Reply to a message in a channel (thread)
       description: |
@@ -1095,7 +1090,7 @@ paths:
   /dmUser:
     post:
       operationId: dmUser
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Messages]
       summary: Send a direct message to a user
       description: |
@@ -1132,7 +1127,7 @@ paths:
   /dmGroup:
     post:
       operationId: dmGroup
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Messages]
       summary: Send a direct message to a group of users
       description: Opens (or reuses) a multi-party DM channel and posts a message.
@@ -1382,7 +1377,7 @@ paths:
   /deleteMessage:
     delete:
       operationId: deleteMessage
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Messages]
       summary: Delete a message by ID
       parameters:
@@ -1472,7 +1467,7 @@ paths:
   /addReaction:
     post:
       operationId: addReaction
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Messages]
       summary: Add a reaction (emoji) to a message
       description: |
@@ -1521,7 +1516,7 @@ paths:
   /removeReaction:
     delete:
       operationId: removeReaction
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Messages]
       summary: Remove a reaction from a message
       parameters:
@@ -1565,7 +1560,7 @@ paths:
   /editMessage:
     post:
       operationId: editMessage
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Messages]
       summary: Edit a message
       requestBody:
@@ -1598,7 +1593,7 @@ paths:
   /createScheduledMessage:
     post:
       operationId: createScheduledMessage
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Scheduled Messages]
       summary: Create a scheduled (future) message
       requestBody:
@@ -1731,7 +1726,7 @@ paths:
   /editScheduledMessage:
     post:
       operationId: editScheduledMessage
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Scheduled Messages]
       summary: Edit a scheduled message
       description: |
@@ -1790,7 +1785,7 @@ paths:
   /deleteScheduledMessage:
     delete:
       operationId: deleteScheduledMessage
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Scheduled Messages]
       summary: Delete a scheduled message
       parameters:
@@ -1901,7 +1896,7 @@ paths:
   /customStatus:
     post:
       operationId: customStatus
-      x-speakeasy-retries: *noWriteRetries
+      x-sdk-no-write-retries: true
       tags: [Users]
       summary: Update the custom status of the authenticated user
       description: |

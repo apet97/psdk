@@ -17,7 +17,7 @@ scope:
 acceptance:
   - "`npm run goals:check` exits non-zero if any goal lacks scope, acceptance, or commands."
   - "`verify:offline` runs goals:check."
-  - "All 26 goals exist as Gxx-*.yaml files."
+  - "All 34 goals exist as Gxx-*.yaml files."
 commands:
   - "cd sdk && npm run goals:check"
   - "cd sdk && npm test -- tests/goal-registry.test.ts"

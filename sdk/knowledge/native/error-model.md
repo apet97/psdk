@@ -13,11 +13,13 @@ summary; the long-form is [`docs/ERRORS.md`](../../docs/ERRORS.md).
   `UnexpectedClientError`. The category of an error is recoverable
   via `categorizeError(err).category`.
 - **Facade** (`createPumbleClient(...)`) — operations return
-  `FacadeResult<T> = { ok: true, summary, ids, data, nextActions }`
-  on success and `{ ok: false, summary, error: { category, raw } }`
-  on failure. Failures are values, not throws; this lets agents
-  branch on `result.ok` instead of wrapping every call in try/catch.
-  `assertFacadeOk(result)` exists for callers that prefer throws.
+  `FacadeResult<T> = ({ ok: true, summary } & T)` on success and
+  `{ ok: false, reason, summary, choices, nextActions, cause? }` on
+  failure, where `reason` is one of `not_found` | `ambiguous` |
+  `invalid_request` | `api_error` | `transport_error`. Failures are
+  values, not throws; this lets agents branch on `result.ok` instead
+  of wrapping every call in try/catch. `assertFacadeOk(result)` exists
+  for callers that prefer throws.
 - **CLI** (`pumble-keys ...`) — exit code 0 on success, 2 on usage
   errors (missing args, unknown command), 1 on operation failure.
   Mutating commands are quiet on success unless `--verbose` or
@@ -38,22 +40,24 @@ summary; the long-form is [`docs/ERRORS.md`](../../docs/ERRORS.md).
 
 ## Categories
 
-`categorizeError` returns one of:
+`categorizeError(err)` returns a `CategorizedError` whose `category`
+is one of:
 
-- `auth` — 401/403, missing or invalid API key. Do not retry on
-  auth errors; surface to the operator.
-- `rate-limit` — 429 with a `Retry-After` header. The SDK's
-  built-in retry helper waits for the header value and tries again.
-- `bad-request` — 400 with a structured `code`. Fix the request
-  shape and retry; do not loop.
-- `not-found` — 404 for an id or name that does not exist.
-- `conflict` — 409 for create operations whose target already
-  exists.
-- `server` — 5xx. The retry helper backs off and retries
-  idempotent operations; non-idempotent writes are surfaced
-  immediately (see ADR 0006).
-- `network` — DNS, TCP, TLS, or timeout failure. Retry once at a
-  longer interval before surfacing.
+- `permission` — 401, or a 403 without a structured body. Auth or
+  scope failure; do not retry, surface to the operator.
+- `not-found` — 404, or a target that does not exist after
+  resolution.
+- `rate-limit` — 429. Retryable; the retry helper respects
+  `Retry-After`.
+- `validation` — a structured 403, or a 400/422 carrying structured
+  error detail (local zod or server). Fix the request; do not loop.
+- `transient` — 408, 425, any 5xx, or a network error (connection
+  reset/refused, timeout, DNS). Retryable with backoff; note that
+  non-idempotent writes are surfaced immediately (see ADR 0006).
+- `unknown` — anything else. Not retryable by default.
+
+The exact union is defined by `ErrorCategory` in
+`src/extensions/categorize-error.ts`; keep this list in sync with it.
 
 ## Pointers
 

@@ -1,7 +1,7 @@
 # Performance audit
 
 Use with Claude Code: enter plan mode, paste this prompt, then execute
-inside the repo you want to audit (defaults to SDKP itself; usable
+inside the repo you want to audit (defaults to pumble-keys-sdk itself; usable
 against any Pumble addon).
 
 ---
@@ -27,7 +27,7 @@ If the project handles Pumble slash commands or shortcuts:
   on the request thread, so a slow downstream cannot starve the
   ack budget.
 
-For SDKP itself:
+For pumble-keys-sdk itself:
 
 - Facade methods that fan out to multiple raw endpoints (e.g.
   resolver pre-flight) batch where possible.
@@ -38,7 +38,7 @@ For SDKP itself:
 ### 2. Bundle / tarball size
 
 - `npm pack --dry-run` reports a total under the documented budget
-  (SDKP's is 2.5 MB; pinned by `tests/package-metadata.test.ts`).
+  (pumble-keys-sdk's is 2.5 MB; pinned by `tests/package-metadata.test.ts`).
 - Tarball excludes `tests/`, `scripts/`, `examples/`, `.speakeasy/`,
   `coverage/`, source maps that are not strictly needed.
 - No accidentally bundled dev dependencies (run `npm pack`,
@@ -59,8 +59,9 @@ For SDKP itself:
 ### 4. Hot-path memory
 
 - Resolver cache documents its eviction policy. If unbounded,
-  document that explicitly (SDKP: no TTL, no background refresh,
-  explicit `refresh()` and `clearCache()` only - per ADR-0004).
+  document that explicitly (pumble-keys-sdk: off by default, opt-in
+  bounded `ttlMs`, no background refresh, explicit `refresh()` and
+  `clearCache()` only - per ADR-0004).
 - Audit log writer streams append-only - does not buffer the entire
   log in memory.
 - Webhook handler streams the body via a chunk concat with a hard
@@ -107,7 +108,7 @@ Findings as `OK / GAP / FLAG` rows with file:line evidence.
 - `FLAG`: stop for input on anything that requires changing the
   runtime architecture.
 
-Reference: SDKP at `/Users/15x/Downloads/WORKING/addons-me/SDKP` for
+Reference: pumble-keys-sdk at `https://github.com/apet97/psdk` for
 the canonical patterns - `tests/package-metadata.test.ts` (tarball
 budget), `ADR-0004` (resolver cache
 explicit semantics), `extensions/with-retries.ts` (bounded backoff),

@@ -19,7 +19,7 @@ describe("package metadata", () => {
 
   it("declares npm metadata needed for a public package", () => {
     expect(pkg.description).toBe("Unofficial TypeScript SDK and MCP server for the Pumble API-Keys add-on");
-    expect(pkg.author).toBe("apet97");
+    expect(pkg.author).toBe("apet97 (https://github.com/apet97)");
     expect(pkg.license).toBe("MIT");
     expect(pkg.engines).toEqual({ node: ">=20" });
     expect(pkg.repository).toEqual({

@@ -13,10 +13,11 @@ the response.
 Non-idempotent message-creating operations disable generated automatic retries
 unless the API documents and verifies an idempotency key.
 
-The generator does not accept an operation-level `strategy: none` marker in
-this repo. Safe read operations carry explicit retry config, and the generated
-runtime patch clears default retry codes for message-creating writes after
-regeneration.
+Speakeasy does not honor an operation-level no-retry strategy in generated
+output, so non-idempotent writes are tagged `x-sdk-no-write-retries: true` for
+traceability and the generated runtime patch clears their default retry codes
+after regeneration. Safe read operations carry explicit `x-speakeasy-retries`
+backoff config.
 
 ## Consequences
 

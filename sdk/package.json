@@ -3,7 +3,7 @@
   "version": "0.4.0",
   "description": "Unofficial TypeScript SDK and MCP server for the Pumble API-Keys add-on",
   "license": "MIT",
-  "author": "apet97",
+  "author": "apet97 (https://github.com/apet97)",
   "bin": {
     "pumble-keys": "./bin/pumble-keys-cli.mjs",
     "pumble-keys-mcp": "./bin/pumble-keys-mcp.mjs"

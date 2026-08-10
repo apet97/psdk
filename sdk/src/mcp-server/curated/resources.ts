@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -262,6 +262,12 @@ export function registerCuratedResources(
       }
       if (!existsSync(resolved)) {
         throw new Error(`unknown knowledge path: ${requested}`);
+      }
+      const realRoot = realpathSync(KNOWLEDGE_ROOT);
+      const realRootWithSep = realRoot.endsWith(sep) ? realRoot : `${realRoot}${sep}`;
+      const realResolved = realpathSync(resolved);
+      if (realResolved !== realRoot && !realResolved.startsWith(realRootWithSep)) {
+        throw new Error(`refused path-traversal: ${requested}`);
       }
       return {
         contents: [{

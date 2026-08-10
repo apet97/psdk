@@ -1,7 +1,7 @@
 # Code quality audit
 
 Use with Claude Code: enter plan mode, paste this prompt, then execute
-inside the repo you want to audit (defaults to SDKP itself; usable
+inside the repo you want to audit (defaults to pumble-keys-sdk itself; usable
 against any Pumble addon).
 
 ---
@@ -21,7 +21,7 @@ over time.
   leaking through the public surface).
 - Branded ID types (`ChannelId`, `UserId`, `MessageId`, `WorkspaceId`)
   are used at boundary functions; raw `string` only inside untyped
-  internals. SDKP defines these in `sdk/src/extensions/ids.ts`.
+  internals. pumble-keys-sdk defines these in `sdk/src/extensions/ids.ts`.
 
 ### 2. Interface consistency
 
@@ -36,7 +36,7 @@ over time.
 
 ### 3. Generated / handwritten boundary
 
-For SDKP and any project that ships Speakeasy-generated code:
+For pumble-keys-sdk and any project that ships Speakeasy-generated code:
 
 - No hand edits in generated paths (the list lives in
   `.goals/manifest.yaml#guardrails.generated_paths`). A guard test
@@ -73,7 +73,7 @@ For SDKP and any project that ships Speakeasy-generated code:
 - Old package / bin / npm-scope names do not appear outside
   intentional historical contexts (CHANGELOG entries, attribution
   files, migration recipes).
-- A grep / guard test catches drift: e.g. for SDKP, no
+- A grep / guard test catches drift: e.g. for pumble-keys-sdk, no
   `pumble-sdk` references outside the `pumble-keys-sdk` boundary
   doc, the attribution context, the generated user-agent token, or
   the `PumbleSDKError` class name.
@@ -83,7 +83,7 @@ For SDKP and any project that ships Speakeasy-generated code:
 - Every project has a `.goals/manifest.yaml#guardrails.forbidden_phrases`
   list (or equivalent). The phrases capture identity claims the
   project does NOT make ("SDK generator platform", "Stainless
-  competitor", "production-grade", etc. for SDKP).
+  competitor", "production-grade", etc. for pumble-keys-sdk).
 - A guard test asserts the phrases appear ONLY inside an explicitly
   allow-listed boundary doc (and, where relevant, AGENTS.md /
   CLAUDE.md). A regression that smuggles marketing language into
@@ -104,7 +104,7 @@ For SDKP and any project that ships Speakeasy-generated code:
 Findings as `OK / GAP / FLAG` rows in a Markdown checklist with
 file:line evidence. GAPs get a TDD fix. FLAGs stop for input.
 
-Reference: SDKP at `/Users/15x/Downloads/WORKING/addons-me/SDKP` for
+Reference: pumble-keys-sdk at `https://github.com/apet97/psdk` for
 the canonical patterns - `.goals/manifest.yaml`, AGENTS.md sections 3
 and 10, the `sdk/tests/docs.test.ts` product-identity guard, and the
 `sdk/tests/goal-registry.test.ts` schema enforcement.

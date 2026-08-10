@@ -14,7 +14,7 @@ export default defineConfig({
       // curated MCP tool/resource/prompt registrations). Generated code
       // (src/funcs, src/sdk, src/models, src/lib, src/hooks, src/types,
       // src/index.ts, src/core.ts, src/mcp-server/tools) is intentionally
-      // excluded - Speakeasy unit-tests its emitted code, and SDKP
+      // excluded - Speakeasy unit-tests its emitted code, and this repo
       // exercises the generated layer at the integration/replay level
       // via the arazzo runner. Counting unhit generated branches against
       // the gate produces a noisy threshold that does not reflect the

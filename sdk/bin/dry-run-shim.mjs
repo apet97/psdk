@@ -1,5 +1,5 @@
 // Network-layer dry-run shim. Loaded into the MCP server via Node's
-// `--import` flag from sdk/bin/pumble-mcp.mjs when `--dry-run` is set.
+// `--import` flag from sdk/bin/pumble-keys-mcp.mjs when `--dry-run` is set.
 //
 // Purpose: let an agent exercise EVERY MCP tool — including mutating
 // ones — without touching the live workspace. The shim wraps

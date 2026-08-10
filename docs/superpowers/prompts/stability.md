@@ -1,7 +1,7 @@
 # Stability audit
 
 Use with Claude Code: enter plan mode, paste this prompt, then execute
-inside the repo you want to audit (defaults to SDKP itself; usable
+inside the repo you want to audit (defaults to pumble-keys-sdk itself; usable
 against any Pumble addon).
 
 ---
@@ -19,11 +19,11 @@ runtime survives the failure modes a busy Pumble workspace produces.
 - Pumble app handlers (slash, shortcut, view-submission) call
   `ctx.ack()` on every path including error paths. Missing acks
   trigger SDK retries, which compound the original failure.
-- For SDKP itself: façade handlers return value failures
+- For pumble-keys-sdk itself: façade handlers return value failures
   (`{ ok: false, summary, ... }`) rather than throwing. Raw SDK
   methods can throw - that's by design; façades wrap them.
 - Bot/user client null-checks before every Pumble API call
-  (`getUserClient()` can return undefined in OAuth-app flows; SDKP's
+  (`getUserClient()` can return undefined in OAuth-app flows; pumble-keys-sdk's
   resolver / facade helpers do their own existence checks).
 
 ### 2. Crash resilience
@@ -45,11 +45,12 @@ runtime survives the failure modes a busy Pumble workspace produces.
 - Non-idempotent writes (`sendMessage`, `editMessage`,
   `deleteMessage`, DM creators, channel creators, scheduled-message
   creators) MUST NOT auto-retry on 5xx unless the caller passed an
-  explicit idempotency key. See SDKP ADR-0006.
+  explicit idempotency key. See pumble-keys-sdk ADR-0006.
 - 429 responses honour `Retry-After` (seconds OR HTTP-date).
 - Generated SDK retry hook only runs on the operations marked
-  `*safeReadRetries` in `PumbleOpenApi.yaml`; mutating operations
-  use `*noWriteRetries`.
+  `*safeReadRetries` in `PumbleOpenApi.yaml`; non-idempotent writes are
+  tagged `x-sdk-no-write-retries: true` and have retry codes cleared by
+  the generated runtime patch.
 
 ### 4. Webhook handler durability
 
@@ -86,7 +87,7 @@ Findings as `OK / GAP / FLAG` rows in a Markdown checklist.
 - `FLAG` stops for input - typically when the fix needs a design
   decision or touches code outside this repo.
 
-Reference: SDKP at `/Users/15x/Downloads/WORKING/addons-me/SDKP` for
+Reference: pumble-keys-sdk at `https://github.com/apet97/psdk` for
 the canonical Pumble stability patterns (façade failure-value model,
 categorizeError taxonomy, with-retries shape, telemetry proxy
 behaviour, ADRs 0001-0007).

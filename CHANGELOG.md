@@ -12,6 +12,33 @@ of this package on npm; no earlier version was published under this
 name or under `pumble-sdk`. The sections below cover the development
 work accumulated before this first publish.
 
+### CI & tooling
+
+- Fixed public CI: the Speakeasy CLI installer now authenticates its GitHub API
+  "latest release" lookup with `GITHUB_TOKEN`, avoiding the unauthenticated
+  shared-runner rate-limit (HTTP 403) that was breaking every run.
+- Replaced the now lint-invalid `x-speakeasy-retries: { strategy: none }`
+  no-retry marker on non-idempotent writes with `x-sdk-no-write-retries: true`
+  (newer Speakeasy lint rejects `strategy: none`). Runtime behavior is
+  unchanged — the generated runtime patch still clears those operations' retry
+  codes (ADR-0006); the spec audit, its tests, and docs moved to the new marker.
+
+### Public release & hardening
+
+- Added a non-affiliation disclaimer to the repo and package READMEs: this is
+  an independent, personal open-source project, not affiliated with, endorsed
+  by, or sponsored by CAKE.com Inc. or Pumble.
+- Set the package `author` and the MIT `LICENSE` copyright holder to the
+  maintainer's personal identity (previously "Pumble SDK Team"); added a
+  repo-root `LICENSE` so the license is detected at the repository level.
+- `SECURITY.md` now points reporters at a concrete channel (GitHub private
+  vulnerability reporting) instead of an undefined "documented security channel".
+- Removed stale internal notes (`docs/site-plan.md` and a one-off review log)
+  and fixed a stale MCP entrypoint in the `Dockerfile` left by the bin rename.
+- Hardened the curated MCP knowledge resource guard to resolve symlinks
+  (path-traversal defense) and extended the fixture secret scan to `.json`
+  fixtures, not just `.jsonl`.
+
 ### Identity
 
 - Package renamed from `pumble-sdk` to `pumble-keys-sdk` to clear the npm

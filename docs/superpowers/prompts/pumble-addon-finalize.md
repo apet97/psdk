@@ -1,7 +1,7 @@
 # Adversarially review and finalize a Pumble addon
 
 Hand this prompt to Claude Code (or any capable coding agent) inside
-the addon's working tree. The agent reads the SDKP repo as its
+the addon's working tree. The agent reads the pumble-keys-sdk repo as its
 reference, runs an adversarial review, fixes what's safe, flags what
 needs decisions, and drives the addon to a ship-ready state.
 
@@ -49,7 +49,7 @@ If any of these are missing, stop and ask the user.
 ## Mission
 
 Take the addon at the path above from its current state to the
-defined "final" state via the same discipline the SDKP repo enforces
+defined "final" state via the same discipline the pumble-keys-sdk repo enforces
 on itself:
 
 1. Adversarial review against a Pumble-specific probe checklist.
@@ -73,16 +73,16 @@ Constraints throughout:
   cause.
 - One logical change per commit; conventional prefix; subject ≤72
   chars; body explains WHY.
-- Trust SDKP's conventions where they apply; don't reinvent them.
-  Do not lift code from SDKP into the addon; reference its docs and
+- Trust pumble-keys-sdk's conventions where they apply; don't reinvent them.
+  Do not lift code from pumble-keys-sdk into the addon; reference its docs and
   copy patterns (with attribution if the addon also serves as a
   knowledge source).
 
 ---
 
-## Reference material (SDKP repo)
+## Reference material (pumble-keys-sdk repo)
 
-Repo: `/Users/15x/Downloads/WORKING/addons-me/SDKP`
+Repo: pumble-keys-sdk
 Remote: <https://github.com/apet97/psdk>
 
 Open before touching the addon:
@@ -122,9 +122,8 @@ sandbox workspace. Never call destructive Pumble tools without
 explicit user confirmation; the curated MCP's preview/confirm
 contract is the model.
 
-`PUMBLE_API_KEY` is sourced from
-`/Users/15x/Downloads/WORKING/addons-me/pumble-mcp-pro/.env` via
-`~/.claude/mcp-launchers/pumble-keys-readwrite.sh`. Use this key
+`PUMBLE_API_KEY` is sourced from a local `.env` file via your MCP
+launcher. Use this key
 only against a sandbox workspace; never against a customer
 workspace.
 
@@ -166,7 +165,7 @@ adversarial review`. This is the baseline you measure against.
 ## Phase 2: Adversarial review (probe checklist)
 
 Run every probe below. Record findings as `OK`, `GAP`, or `FLAG`
-(matching SDKP's polish-followup review format) in
+(matching pumble-keys-sdk's polish-followup review format) in
 `docs/reviews/<DATE>-adversarial-review.md`. Commit as the next
 commit on the branch, before any fixes.
 
@@ -253,7 +252,7 @@ commit on the branch, before any fixes.
       (`sendMessage`, `editMessage`, `deleteMessage`,
       `dmUser`/`dmGroup`, `createChannel`, `createScheduledMessage`)
       MUST NOT auto-retry on 5xx unless the caller passed an
-      explicit idempotency key. This matches ADR-0006 in SDKP.
+      explicit idempotency key. This matches ADR-0006 in pumble-keys-sdk.
 - [ ] 429 responses respect `Retry-After` (seconds OR HTTP-date).
       Confirm with a probe.
 - [ ] No outbound HTTPS that targets `http://` instead of `https://`
@@ -284,7 +283,7 @@ commit on the branch, before any fixes.
 ### Error model
 
 - [ ] Errors at the API boundary are categorised (network vs
-      transport vs validation vs server vs auth). See SDKP's
+      transport vs validation vs server vs auth). See pumble-keys-sdk's
       `sdk/src/extensions/categorize-error.ts` for the canonical
       shape (`categorizeError`).
 - [ ] User-facing errors do not echo Pumble error messages
@@ -370,7 +369,7 @@ After all fixes land, sweep the addon's docs:
 - `.env.example`: every var the runtime reads is present.
 - CHANGELOG: a new entry summarising what shipped this branch,
   grouped by Identity / Security / Transport / Docs / etc. (the
-  SDKP CHANGELOG is the model).
+  pumble-keys-sdk CHANGELOG is the model).
 - Any internal runbook or operations checklist mentions the new
   gates so an operator can run them locally.
 

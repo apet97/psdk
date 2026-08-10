@@ -165,7 +165,7 @@ typescript:
     fixtures:minimize: node scripts/minimize-fixtures.mjs
     package-split:dry-run: node scripts/package-split-dry-run.mjs
   alwaysIncludeInboundAndOutbound: false
-  author: apet97
+  author: apet97 (https://github.com/apet97)
   baseErrorName: PumbleSDKError
   clientServerStatusCodesAsErrors: true
   constFieldsAlwaysOptional: false
