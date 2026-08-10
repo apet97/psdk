@@ -1,0 +1,35 @@
+id: G36
+title: Remove patches the generator now makes unnecessary
+priority: P1
+status: planned
+why: "A human-run regeneration shows which patches the generator has absorbed. Removable patches are deleted with evidence; kept patches get a probe date."
+scope:
+  allowed:
+    - sdk/scripts/patch-generated-runtime.mjs
+    - sdk/src/** (regenerated output and patch-script output only)
+    - sdk/.speakeasy/**
+    - sdk/docs/patch-burndown.md
+    - sdk/docs/PATCH-COUNT.txt
+    - sdk/docs/adr/0008-generated-runtime-patches.md
+    - sdk/tests/generated-runtime-patch.test.ts
+    - .goals/G36-regen-patch-burndown.yaml
+  forbidden:
+    - sdk/src/extensions/**
+    - sdk/src/mcp-server/curated/**
+acceptance:
+  - "Each probe-target patch is either removed with a passing gate or kept with a recorded probe result."
+  - "PATCH-COUNT.txt equals the registry length."
+  - "No regenerated diff touches sdk/src/extensions or sdk/src/mcp-server/curated."
+commands:
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Removing a patch while its guard test still needs it fails the suite."
+  - "A regenerated file under extensions or curated means the run is halted."
+links:
+  docs:
+    - sdk/docs/patch-burndown.md
+    - sdk/docs/adr/0008-generated-runtime-patches.md
+  tests:
+    - sdk/tests/generated-runtime-patch.test.ts
+    - sdk/tests/generated-request-validation.test.ts
+rollback: "git restore sdk/src and revert the bookkeeping commit."

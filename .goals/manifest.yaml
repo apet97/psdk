@@ -60,3 +60,7 @@ goals:
   - { id: G31, file: G31-mcp-knowledge-resources.yaml }
   - { id: G32, file: G32-mcp-knowledge-prompts.yaml }
   - { id: G33, file: G33-version-consistency.yaml }
+  - { id: G34, file: G34-patch-ledger-truth.yaml }
+  - { id: G35, file: G35-retry-coverage-alignment.yaml }
+  - { id: G36, file: G36-regen-patch-burndown.yaml }
+  - { id: G37, file: G37-internal-dead-code-sweep.yaml }

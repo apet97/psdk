@@ -1,0 +1,39 @@
+id: G34
+title: Truthful generated-runtime patch ledger
+priority: P1
+status: planned
+why: "The burndown ledger lists wrong target files for four of five patches. Registry, docs, and tests must derive from one data structure."
+scope:
+  allowed:
+    - sdk/scripts/patch-generated-runtime.mjs
+    - sdk/docs/patch-burndown.md
+    - sdk/docs/adr/0008-generated-runtime-patches.md
+    - sdk/tests/patch-burndown.test.ts
+    - .goals/G34-patch-ledger-truth.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "Each PATCH_REGISTRY entry declares a files array."
+  - "The patch script throws when registry files and replacement tables drift."
+  - "tests/patch-burndown.test.ts fails when a burndown File cell does not match the registry files array."
+commands:
+  - "cd sdk && npm test -- tests/patch-burndown.test.ts"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Editing a burndown File cell to a wrong path fails the test."
+  - "Removing a files array from a registry entry fails the test."
+links:
+  docs:
+    - sdk/docs/patch-burndown.md
+    - sdk/docs/adr/0008-generated-runtime-patches.md
+  tests:
+    - sdk/tests/patch-burndown.test.ts
+rollback: "Revert the commit; ledger content changes only."

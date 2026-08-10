@@ -1,0 +1,46 @@
+id: G35
+title: Align no-retry patch coverage with the duplicate-creating write set
+priority: P1
+status: planned
+why: "The spec tags 15 writes but the patch covers 5. The duplicate-creating set must be explicit, complete, and pinned by a test."
+scope:
+  allowed:
+    - sdk/scripts/patch-generated-runtime.mjs
+    - sdk/src/extensions/with-retries.ts
+    - sdk/src/extensions/rate-limiter.ts
+    - sdk/tests/generated-runtime-patch.test.ts
+    - sdk/tests/with-retries.test.ts
+    - sdk/docs/patch-burndown.md
+    - sdk/docs/adr/0008-generated-runtime-patches.md
+    - docs/adr/0006-non-idempotent-writes-do-not-retry.md
+    - .goals/G35-retry-coverage-alignment.yaml
+  forbidden:
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+    - sdk/src/core.ts
+    - sdk/src/index.ts
+acceptance:
+  - "The patch clears default retry codes on exactly sendMessage, sendReply, dmUser, dmGroup, createScheduledMessage, createChannel."
+  - "tests/generated-runtime-patch.test.ts pins the set in both directions."
+  - "ADR 0006 states the duplicate-creating decision rule."
+  - "The withRetries and rate-limiter doc examples wrap a read operation, not a write."
+  - "tests/with-retries.test.ts pins handwritten write paths free of withRetries."
+  - "Note: sdk/src/funcs/channels-create-channel.ts is committed as patch-script output, per the G02 precedent."
+commands:
+  - "cd sdk && npm test -- tests/generated-runtime-patch.test.ts"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Adding a seventh duplicate-creating spec operation without patching it fails the test."
+  - "Removing a file from the patch list fails the test."
+links:
+  docs:
+    - docs/adr/0006-non-idempotent-writes-do-not-retry.md
+    - sdk/docs/patch-burndown.md
+  tests:
+    - sdk/tests/generated-runtime-patch.test.ts
+    - sdk/tests/with-retries.test.ts
+rollback: "Revert the commit; the generated file returns to the committed state."

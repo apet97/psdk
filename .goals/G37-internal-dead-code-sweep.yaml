@@ -1,0 +1,42 @@
+id: G37
+title: Internal dead-code sweep
+priority: P2
+status: planned
+why: "Internal code with no importers is bloat. Public surface and sanctioned experimental helpers stay untouched."
+scope:
+  allowed:
+    - sdk/src/extensions/** (except app/ and testing/)
+    - sdk/src/mcp-server/curated/read-tools.ts
+    - sdk/src/mcp-server/curated/resources.ts
+    - sdk/src/mcp-server/curated/compact.ts
+    - sdk/scripts/**
+    - .goals/G37-internal-dead-code-sweep.yaml
+  forbidden:
+    - sdk/src/extensions/app/**
+    - sdk/src/extensions/testing/**
+    - sdk/src/index.ts
+    - sdk/src/extensions/index.ts
+    - sdk/src/funcs/**
+    - sdk/src/sdk/**
+    - sdk/src/models/**
+    - sdk/src/lib/**
+    - sdk/src/hooks/**
+    - sdk/src/types/**
+acceptance:
+  - "Every deleted symbol had zero importers outside its own file."
+  - "displayChannel and displayUser have exactly one definition, in sdk/src/extensions/display.ts."
+  - "compactThread, compactMessage, and compactThreadContextMessage have exactly one definition, in sdk/src/mcp-server/curated/compact.ts."
+  - "Build, lint, and tests pass after each single deletion."
+  - "Public-surface audit output is identical before and after."
+commands:
+  - "cd sdk && npm run verify:offline"
+  - "cd sdk && node scripts/public-surface-audit.mjs"
+adversarial_checks:
+  - "A deleted symbol that still has an importer fails the build."
+  - "Any public-surface change fails the diff check."
+links:
+  docs:
+    - sdk/docs/INDEX.md
+  tests:
+    - sdk/tests/goal-registry.test.ts
+rollback: "Restore the deleted files from the commit."
