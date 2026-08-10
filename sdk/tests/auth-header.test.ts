@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PumbleSDK } from "../src/index.js";
+import type { HTTPClient } from "../src/lib/http.js";
 
 const USER_BODY = JSON.stringify({
   id: "000000000000000000000001",
@@ -26,7 +27,7 @@ describe("auth header", () => {
       },
     };
 
-    const sdk = new PumbleSDK({ apiKeyAuth: key, httpClient });
+    const sdk = new PumbleSDK({ apiKeyAuth: key, httpClient: httpClient as unknown as HTTPClient });
     await sdk.users.myInfo({ retries: { strategy: "none" } });
 
     expect(captured).toBeDefined();

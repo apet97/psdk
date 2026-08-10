@@ -40,7 +40,7 @@ describe("withRetries — Retry-After honour", () => {
     await expect(p).resolves.toBe("ok");
     expect(attempts).toBe(2);
     expect(onRetry).toHaveBeenCalledTimes(1);
-    expect(onRetry.mock.calls[0][0]).toMatchObject({ attempt: 1, delayMs: 0 });
+    expect(onRetry.mock.calls[0]![0]).toMatchObject({ attempt: 1, delayMs: 0 });
   });
 
   it("Retry-After: 3 waits ~3 seconds before retrying", async () => {
@@ -63,7 +63,7 @@ describe("withRetries — Retry-After honour", () => {
     await vi.advanceTimersByTimeAsync(100);
     await expect(p).resolves.toBe("ok");
     expect(attempts).toBe(2);
-    expect(onRetry.mock.calls[0][0].delayMs).toBe(3_000);
+    expect(onRetry.mock.calls[0]![0].delayMs).toBe(3_000);
   });
 
   it("Retry-After is capped at maxDelayMs", async () => {
@@ -79,7 +79,7 @@ describe("withRetries — Retry-After honour", () => {
     expect(attempts).toBe(1);
     await vi.advanceTimersByTimeAsync(5_000);
     await expect(p).resolves.toBe("ok");
-    expect(onRetry.mock.calls[0][0].delayMs).toBe(5_000);
+    expect(onRetry.mock.calls[0]![0].delayMs).toBe(5_000);
   });
 
   it("ignores Retry-After when respectRetryAfter: false", async () => {
@@ -105,6 +105,6 @@ describe("withRetries — Retry-After honour", () => {
     await vi.advanceTimersByTimeAsync(1_000);
     await expect(p).resolves.toBe("ok");
     expect(attempts).toBe(2);
-    expect(onRetry.mock.calls[0][0].delayMs).toBeLessThanOrEqual(1_000);
+    expect(onRetry.mock.calls[0]![0].delayMs).toBeLessThanOrEqual(1_000);
   });
 });

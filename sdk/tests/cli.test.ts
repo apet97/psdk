@@ -196,7 +196,7 @@ describe("pumble CLI", () => {
     const { stdout } = await runCliDryRun(["send", "#general", "hello from cli"]);
     expect(stdout).toMatch(/^sent /);
 
-    expect(readRequests().map((r) => r.path)).toContain("/listChannels");
+    expect(readRequests().map((r) => r["path"])).toContain("/listChannels");
     const audit = readDryRunAudit().at(-1);
     expect(audit).toMatchObject({
       method: "POST",
@@ -210,7 +210,7 @@ describe("pumble CLI", () => {
 
   it("resolves user email before dry-run sending a DM", async () => {
     await runCliDryRun(["dm", "grace@example.com", "ship it"]);
-    expect(readRequests().map((r) => r.path)).toContain("/listUsers");
+    expect(readRequests().map((r) => r["path"])).toContain("/listUsers");
     expect(readDryRunAudit().at(-1)).toMatchObject({
       method: "POST",
       path: "/dmUser",
@@ -250,7 +250,7 @@ describe("pumble CLI", () => {
         status: "",
       },
     });
-    expect(audit.at(-1)?.requestBody.expiresAt).toBeLessThan(Date.now());
+    expect(audit.at(-1)?.["requestBody"].expiresAt).toBeLessThan(Date.now());
   });
 
   it("prints limited search results as JSON", async () => {
@@ -305,7 +305,7 @@ describe("pumble CLI", () => {
         text: "thread reply",
       }],
     });
-    expect(readRequests().map((r) => r.path)).toEqual(expect.arrayContaining([
+    expect(readRequests().map((r) => r["path"])).toEqual(expect.arrayContaining([
       "/listChannels",
       "/fetchMessage",
       "/fetchThreadReplies",

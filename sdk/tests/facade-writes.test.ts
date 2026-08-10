@@ -3,8 +3,10 @@ import type { SearchHit } from "../src/models/search-hit.js";
 import { createFacadeWrites } from "../src/extensions/facade-writes.js";
 import { PumbleSDKError } from "../src/models/errors/pumble-sdk-error.js";
 import type {
+  ChannelId,
   ChannelSummary,
   FacadeFailure,
+  UserId,
   UserSummary,
 } from "../src/extensions/index.js";
 import {
@@ -438,12 +440,12 @@ describe("createFacadeWrites", () => {
       resolveFacadeUser: vi.fn(),
     });
 
-    await expect(writes.sendFacadeMessage({ channelId: " ", text: "missing target" }))
+    await expect(writes.sendFacadeMessage({ channelId: " " as ChannelId, text: "missing target" }))
       .resolves.toMatchObject({ ok: false, reason: "invalid_request" });
-    await expect(writes.dmFacadeUser({ userId: " ", text: "missing target" }))
+    await expect(writes.dmFacadeUser({ userId: " " as UserId, text: "missing target" }))
       .resolves.toMatchObject({ ok: false, reason: "invalid_request" });
     await expect(writes.replyFacadeThread({
-      channelId: " ",
+      channelId: " " as ChannelId,
       messageId: ROOT_MESSAGE_ID,
       text: "missing target",
     })).resolves.toMatchObject({ ok: false, reason: "invalid_request" });

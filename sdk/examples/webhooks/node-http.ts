@@ -11,7 +11,7 @@ export function handler(req: IncomingMessage, res: ServerResponse, signingSecret
   const webhook = createWebhookHandler({
     signingSecret,
     handlers: {
-      NEW_MESSAGE: async (event) => {
+      onNewMessage: async (event) => {
         console.log("new message", event.workspaceId);
       },
     },

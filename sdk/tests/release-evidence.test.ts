@@ -50,8 +50,8 @@ describe("release evidence", () => {
     "%s pairs run-URL fields consistently (both real or both pending)",
     (file) => {
       const text = readFileSync(join(verifDir, file), "utf8");
-      const ci = text.match(/^CI run:\s+(.+)$/m)?.[1].trim();
-      const release = text.match(/^Release run:\s+(.+)$/m)?.[1].trim();
+      const ci = text.match(/^CI run:\s+(.+)$/m)?.[1]!.trim();
+      const release = text.match(/^Release run:\s+(.+)$/m)?.[1]!.trim();
       expect(ci, "CI run line").toBeDefined();
       expect(release, "Release run line").toBeDefined();
       if (ci === "pending" || release === "pending") {

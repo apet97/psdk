@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "types": ["node"],
+    "checkJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "pumble-keys-sdk": ["src/index.ts"],
+      "pumble-keys-sdk/*": ["src/*"]
+    }
+  },
+  "include": ["src", "tests"]
+}

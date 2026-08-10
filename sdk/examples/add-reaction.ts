@@ -4,15 +4,15 @@ import { PumbleSDK } from "pumble-keys-sdk";
 export interface AddReactionRequest {
   channelId: string;
   messageId: string;
-  code: string;
+  reaction: string;
 }
 
 export function buildAddReactionRequest(args: string[]): AddReactionRequest {
-  const [channelId, messageId, code = ":thumbsup:"] = args;
+  const [channelId, messageId, reaction = ":thumbsup:"] = args;
   if (!channelId || !messageId) {
     throw new Error("usage: add-reaction <channel-id> <message-id> [emoji-code]");
   }
-  return { channelId, messageId, code };
+  return { channelId, messageId, reaction };
 }
 
 export async function addReaction(

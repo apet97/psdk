@@ -34,7 +34,7 @@ describe("getThreadContext", () => {
       },
       attachments: [{ noisy: true }],
       files: [{ noisy: true }],
-      reactions: [{ name: "wave", count: 2, users: ["user-reply-a"] }],
+      reactions: [{ name: "wave", count: 2, users: ["user-reply-a"] }] as unknown as Message["reactions"],
     });
     const replyA = message({
       id: "reply-1",

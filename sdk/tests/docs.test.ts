@@ -225,12 +225,12 @@ function documentedImports(markdown: string): Array<{ clause: string; specifier:
   const imports: Array<{ clause: string; specifier: string }> = [];
   const codeFencePattern = /```(?:ts|typescript|js|javascript)\n([\s\S]*?)```/g;
   for (const fence of markdown.matchAll(codeFencePattern)) {
-    const code = fence[1];
+    const code = fence[1]!;
     const importPattern = /import\s+([\s\S]*?)\s+from\s+["'](pumble-keys-sdk[^"']*)["']/g;
     for (const importMatch of code.matchAll(importPattern)) {
       imports.push({
-        clause: importMatch[1].replace(/\s+/g, " ").trim(),
-        specifier: importMatch[2],
+        clause: importMatch[1]!.replace(/\s+/g, " ").trim(),
+        specifier: importMatch[2]!,
       });
     }
   }
@@ -241,7 +241,7 @@ function sdkReadmePackageDocLinks(): string[] {
   const links = new Set<string>();
   const linkPattern = /\[[^\]]+\]\((docs\/[^)#]+)(?:#[^)]+)?\)/g;
   for (const match of readme.matchAll(linkPattern)) {
-    links.add(match[1]);
+    links.add(match[1]!);
   }
   return [...links].sort();
 }
@@ -255,8 +255,8 @@ function exportTargetFor(specifier: string): string | undefined {
   for (const [pattern, entry] of Object.entries(packageJson.exports)) {
     if (!pattern.includes("*")) continue;
     const [prefix, suffix] = pattern.split("*");
-    if (!packageSubpath.startsWith(prefix) || !packageSubpath.endsWith(suffix)) continue;
-    const wildcard = packageSubpath.slice(prefix.length, packageSubpath.length - suffix.length);
+    if (!packageSubpath.startsWith(prefix!) || !packageSubpath.endsWith(suffix!)) continue;
+    const wildcard = packageSubpath.slice(prefix!.length, packageSubpath.length - suffix!.length);
     return targetPath(entry, wildcard);
   }
 
@@ -264,20 +264,20 @@ function exportTargetFor(specifier: string): string | undefined {
 }
 
 function targetPath(entry: string | Record<string, string>, wildcard: string): string {
-  const rawTarget = typeof entry === "string" ? entry : entry.source ?? entry.default;
-  return rawTarget.replace("*", wildcard);
+  const rawTarget = typeof entry === "string" ? entry : entry["source"] ?? entry["default"];
+  return rawTarget!.replace("*", wildcard);
 }
 
 function namedImports(clause: string): string[] {
   const named = clause.match(/^\{([\s\S]*)\}$/);
   if (!named) return [];
-  return named[1]
+  return named[1]!
     .split(",")
     .map((part) =>
       part
         .trim()
         .replace(/^type\s+/, "")
-        .split(/\s+as\s+/)[0]
+        .split(/\s+as\s+/)[0]!
         .trim(),
     )
     .filter(Boolean);
@@ -288,11 +288,11 @@ function extensionBarrelExports(): Set<string> {
   const exports = new Set<string>();
   const exportPattern = /export(?:\s+type)?\s+\{([\s\S]*?)\}\s+from/g;
   for (const exportMatch of source.matchAll(exportPattern)) {
-    for (const rawExport of exportMatch[1].split(",")) {
+    for (const rawExport of exportMatch[1]!.split(",")) {
       const name = rawExport
         .trim()
         .replace(/^type\s+/, "")
-        .split(/\s+as\s+/)[0]
+        .split(/\s+as\s+/)[0]!
         .trim();
       if (name) exports.add(name);
     }

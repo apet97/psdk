@@ -30,7 +30,7 @@ export function fastifyPumbleWebhook(
   app: FastifyLike,
   options: { signingSecret: string },
 ) {
-  const webhook = createWebhookHandler({ signingSecret: options.signingSecret });
+  const webhook = createWebhookHandler({ signingSecret: options.signingSecret, handlers: {} });
   app.post("/pumble", async (request, reply) => {
     await webhook(request.raw, reply.raw);
   });

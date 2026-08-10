@@ -55,7 +55,7 @@ describe("generated retry backoff", () => {
       attempts++;
       return new Response("", {
         status: attempts === 1 ? 429 : 200,
-        headers: attempts === 1 ? headers : undefined,
+        ...(attempts === 1 ? { headers } : {}),
       });
     });
 

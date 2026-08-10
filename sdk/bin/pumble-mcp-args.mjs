@@ -106,10 +106,27 @@ function envApiKey(env) {
   return env.PUMBLE_API_KEY ?? env.PUMBLESDK_API_KEY_AUTH ?? null;
 }
 
+/**
+ * @param {{
+ *   argv: string[],
+ *   env: Record<string, string | undefined>,
+ *   generatedMcp?: string,
+ *   curatedMcp?: string,
+ *   dryRunShimUrl?: string,
+ *   auditLogShimUrl?: string,
+ * }} options
+ */
 export function buildMcpInvocation({ argv, env, generatedMcp, curatedMcp, dryRunShimUrl, auditLogShimUrl }) {
   const parsed = parseWrapperArgs(argv);
   if (parsed.help) {
-    return { ...parsed, args: [], nodeArgs: [], childEnv: { ...env }, tools: [] };
+    return {
+      ...parsed,
+      effectiveProfile: null,
+      args: /** @type {string[]} */ ([]),
+      nodeArgs: /** @type {string[]} */ ([]),
+      childEnv: { ...env },
+      tools: /** @type {string[]} */ ([]),
+    };
   }
   if (parsed.dryRun && parsed.profile === "readonly") {
     throw new WrapperUsageError("pumble-mcp: --dry-run and --profile readonly are mutually exclusive — pick one.");

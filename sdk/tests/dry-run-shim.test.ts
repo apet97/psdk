@@ -23,7 +23,7 @@ describe("dry-run-shim", () => {
       new Response("sentinel upstream", {
         status: 299,
         headers: { "content-type": "text/plain" },
-      })) as typeof globalThis.fetch;
+      })) as unknown as typeof globalThis.fetch;
     // Re-import the shim per test by jiggling the cache key — bun
     // caches ESM imports per URL, so we'd have to use ?bust=... if we
     // ever needed to load fresh. For these tests one import is enough.

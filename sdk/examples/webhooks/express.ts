@@ -26,7 +26,7 @@ export function makeRouter(
   options: { signingSecret: string },
   router?: ExpressRouterLike,
 ) {
-  const webhook = createWebhookHandler({ signingSecret: options.signingSecret });
+  const webhook = createWebhookHandler({ signingSecret: options.signingSecret, handlers: {} });
   if (router) {
     router.post("/pumble", (req, res) => webhook(req, res));
     return router;

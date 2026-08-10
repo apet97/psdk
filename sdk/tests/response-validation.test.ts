@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PumbleSDK } from "../src/index.js";
+import type { HTTPClient } from "../src/lib/http.js";
 import { ResponseValidationError } from "../src/models/errors/response-validation-error.js";
 
 describe("response validation", () => {
@@ -12,7 +13,7 @@ describe("response validation", () => {
             status: 200,
             headers: { "content-type": "application/json" },
           }),
-      },
+      } as unknown as HTTPClient,
     });
 
     await expect(sdk.users.myInfo({ retries: { strategy: "none" } }))
@@ -28,7 +29,7 @@ describe("response validation", () => {
             status: 403,
             headers: { "content-type": "application/json" },
           }),
-      },
+      } as unknown as HTTPClient,
     });
 
     await expect(sdk.users.myInfo({ retries: { strategy: "none" } }))

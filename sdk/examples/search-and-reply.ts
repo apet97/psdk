@@ -1,4 +1,5 @@
 import { createPumbleClient } from "pumble-keys-sdk/extensions/index.js";
+import type { ChannelId, MessageId } from "pumble-keys-sdk/extensions/index.js";
 
 export const searchAndReplyRequiredEnv = ["PUMBLE_API_KEY"];
 
@@ -10,17 +11,19 @@ export interface SearchAndReplyConfig {
 
 export interface SearchAndReplyClient {
   search: {
-    recent(request: { query: string; limit: number }): Promise<{ ok: true; data: SearchHit[] }>;
+    recent(request: { query: string; limit: number }): Promise<
+      { ok: true; data: SearchHit[] } | { ok: false }
+    >;
   };
   threads: {
-    reply(request: { channelId: string; messageId: string; text: string }): Promise<unknown>;
+    reply(request: { channelId: ChannelId; messageId: MessageId; text: string }): Promise<unknown>;
   };
 }
 
 interface SearchHit {
   id: string;
   channelId: string;
-  threadReplyInfo?: { rootId?: string | undefined } | undefined;
+  threadReplyInfo?: { rootId?: string | undefined } | null | undefined;
 }
 
 export function readSearchAndReplyConfig(
@@ -40,13 +43,16 @@ export async function searchAndReply(
   config: Pick<SearchAndReplyConfig, "query" | "replyText">,
 ) {
   const search = await client.search.recent({ query: config.query, limit: 1 });
+  if (!search.ok) {
+    return { ok: false, summary: `Search failed for ${config.query}.`, search };
+  }
   const [hit] = search.data;
   if (!hit) {
     return { ok: false, summary: `No recent messages for ${config.query}.`, search };
   }
   const reply = await client.threads.reply({
-    channelId: hit.channelId,
-    messageId: hit.threadReplyInfo?.rootId ?? hit.id,
+    channelId: hit.channelId as ChannelId,
+    messageId: (hit.threadReplyInfo?.rootId ?? hit.id) as MessageId,
     text: config.replyText,
   });
   return { ok: true, search, reply };

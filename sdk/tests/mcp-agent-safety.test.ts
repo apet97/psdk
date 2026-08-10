@@ -30,7 +30,7 @@ function safetyClient() {
     messages: {
       sendMessage: vi.fn().mockResolvedValue({
         id: "sent-1",
-        channelId: fixture.sendRequest.channelId,
+        channelId: fixture.sendRequest["channelId"],
       }),
       sendReply: vi.fn(),
       addReaction: vi.fn().mockResolvedValue({ status: "ok" }),
@@ -77,7 +77,7 @@ describe("MCP agent safety evals", () => {
     expect(previewSend).toBeDefined();
     const preview = await harness.invoke("send_message_preview", {
       channel: "#support",
-      text: fixture.sendRequest.text,
+      text: fixture.sendRequest["text"],
     });
     expect(harness.json(preview)).toMatchObject({
       ok: false,

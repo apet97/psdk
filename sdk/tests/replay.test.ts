@@ -83,7 +83,7 @@ describe("record/replay fetch shims", () => {
     globalThis.fetch = (async () => {
       passThroughCalls++;
       throw new Error("replay should not hit live fetch");
-    }) as typeof globalThis.fetch;
+    }) as unknown as typeof globalThis.fetch;
 
     process.env["PUMBLE_REPLAY"] = "mini";
     await import(/* @vite-ignore */ `${replayerUrl}?test=${Date.now()}`);
@@ -105,7 +105,7 @@ describe("record/replay fetch shims", () => {
     globalThis.fetch = (async () => {
       passThroughCalls++;
       return new Response("live");
-    }) as typeof globalThis.fetch;
+    }) as unknown as typeof globalThis.fetch;
 
     process.env["PUMBLE_REPLAY"] = "empty";
     await import(/* @vite-ignore */ `${replayerUrl}?test=${Date.now()}`);
@@ -163,7 +163,7 @@ describe("record/replay fetch shims", () => {
           date: "Fri, 22 May 2026 00:00:00 GMT",
           "x-test": "kept",
         },
-      })) as typeof globalThis.fetch;
+      })) as unknown as typeof globalThis.fetch;
 
     process.env["PUMBLE_RECORD"] = "recorded";
     await import(/* @vite-ignore */ `${recorderUrl}?test=${Date.now()}`);

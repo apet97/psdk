@@ -124,9 +124,9 @@ describe("curated write workflow tools", () => {
     }));
 
     const result = await harness.invoke("send_message_confirmed", {
-      ...(payload.data as Record<string, unknown>),
+      ...(payload["data"] as Record<string, unknown>),
       preview: {
-        ...((payload.data as { preview: Record<string, unknown> }).preview),
+        ...((payload["data"] as { preview: Record<string, unknown> }).preview),
         targetId: "channel-2",
       },
     });
@@ -144,7 +144,7 @@ describe("curated write workflow tools", () => {
       text: `${sharedHead} original tail`,
     }));
 
-    const data = payload.data as { request: Record<string, unknown> } & Record<string, unknown>;
+    const data = payload["data"] as { request: Record<string, unknown> } & Record<string, unknown>;
     const result = await harness.invoke("send_message_confirmed", {
       ...data,
       request: { ...data.request, text: `${sharedHead} tampered tail` },
@@ -163,7 +163,7 @@ describe("curated write workflow tools", () => {
       asBot: true,
     }));
 
-    expect(harness.json(await harness.invoke("send_message_confirmed", payload.data))).toMatchObject({
+    expect(harness.json(await harness.invoke("send_message_confirmed", payload["data"] as Record<string, unknown>))).toMatchObject({
       ok: true,
       summary: "Sent message sent-1.",
       ids: { channelId: "channel-1", messageId: "sent-1" },
@@ -211,7 +211,7 @@ describe("curated write workflow tools", () => {
       },
     });
 
-    expect(harness.json(await harness.invoke("reply_to_thread_confirmed", payload.data))).toMatchObject({
+    expect(harness.json(await harness.invoke("reply_to_thread_confirmed", payload["data"] as Record<string, unknown>))).toMatchObject({
       ok: true,
       summary: "Sent reply reply-1.",
       ids: {

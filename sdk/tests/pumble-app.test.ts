@@ -49,7 +49,7 @@ function response(): CapturedResponse {
   captured.setHeader = ((name: string, value: number | string | readonly string[]) => {
     captured.headersSeen[name.toLowerCase()] = Array.isArray(value) ? value.join(", ") : String(value);
     return captured;
-  }) as ServerResponse["setHeader"];
+  }) as CapturedResponse["setHeader"];
   captured.end = ((chunk?: unknown, encodingOrCallback?: BufferEncoding | (() => void), callback?: () => void) => {
     if (chunk !== undefined) {
       captured.body += Buffer.isBuffer(chunk) ? chunk.toString("utf8") : String(chunk);
@@ -58,7 +58,7 @@ function response(): CapturedResponse {
     const cb = typeof encodingOrCallback === "function" ? encodingOrCallback : callback;
     cb?.();
     return captured;
-  }) as ServerResponse["end"];
+  }) as CapturedResponse["end"];
   return captured;
 }
 

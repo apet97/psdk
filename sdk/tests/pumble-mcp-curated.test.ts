@@ -11,19 +11,18 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 function spawnNode(args: string[]): Promise<{ status: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, args, {
-      encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
     let stderr = "";
-    child.stdout.on("data", (chunk) => {
+    child.stdout.on("data", (chunk: Buffer) => {
       stdout += chunk;
     });
-    child.stderr.on("data", (chunk) => {
+    child.stderr.on("data", (chunk: Buffer) => {
       stderr += chunk;
     });
     child.on("error", reject);
-    child.on("close", (status) => {
+    child.on("close", (status: number | null) => {
       resolve({ status, stdout, stderr });
     });
   });

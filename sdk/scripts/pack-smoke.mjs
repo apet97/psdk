@@ -17,7 +17,7 @@ function run(command, commandArgs, options = {}) {
   return new Promise((resolvePromise, reject) => {
     const child = spawn(command, commandArgs, {
       cwd: options.cwd ?? sdkRoot,
-      env: { ...process.env, ...(options.env ?? {}) },
+      env: { ...process.env, ...options.env },
       stdio: options.capture ? ["ignore", "pipe", "pipe"] : "inherit",
     });
     let stdout = "";

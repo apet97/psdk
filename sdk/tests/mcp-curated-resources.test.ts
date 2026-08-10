@@ -74,7 +74,7 @@ function message(overrides: Partial<Message> = {}): Message {
     timestamp: new Date("2026-05-22T10:00:00.000Z"),
     timestampMilli: 1779444000000,
     attachments: [{ noisy: true }],
-    reactions: [{ name: "eyes", count: 1, users: ["user-2"] }],
+    reactions: [{ name: "eyes", count: 1, users: ["user-2"] }] as unknown as Message["reactions"],
     ...overrides,
   };
 }
@@ -116,7 +116,7 @@ function jsonResource(result: ReadResourceResult): unknown {
   const [content] = result.contents;
   expect(content?.mimeType).toBe("application/json");
   expect("text" in (content ?? {})).toBe(true);
-  const text = "text" in (content ?? {}) ? content.text : "";
+  const text = content !== undefined && "text" in content ? content.text : "";
   expect(text).not.toContain("attachments");
   expect(text).not.toContain("reactions");
   expect(text).not.toContain("highlightedBlocks");

@@ -1,6 +1,7 @@
 import { inspect } from "node:util";
 import { describe, expect, it } from "vitest";
 import { PumbleSDK } from "../src/index.js";
+import type { HTTPClient } from "../src/lib/http.js";
 import {
   redactDebugHeaders,
   redactDebugValue,
@@ -49,7 +50,7 @@ describe("debug redaction", () => {
           headers: { "content-type": "application/json" },
         }),
     };
-    const sdk = new PumbleSDK({ apiKeyAuth: "pmb_live_secret", debugLogger, httpClient });
+    const sdk = new PumbleSDK({ apiKeyAuth: "pmb_live_secret", debugLogger, httpClient: httpClient as unknown as HTTPClient });
 
     await sdk.messages.sendMessage({ channelId: "1234567890abcdef12345678", text: "private body" }, {
       retries: { strategy: "none" },
@@ -70,7 +71,7 @@ describe("debug redaction", () => {
           headers: { "content-type": "application/json" },
         }),
     };
-    const sdk = new PumbleSDK({ apiKeyAuth: secret, httpClient });
+    const sdk = new PumbleSDK({ apiKeyAuth: secret, httpClient: httpClient as unknown as HTTPClient });
 
     let caught: unknown;
     try {

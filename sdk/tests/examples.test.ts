@@ -76,7 +76,7 @@ describe("examples", () => {
         },
       });
       const replyToThread = vi.fn().mockResolvedValue({ id: "reply-1", channelId: "channel-1" });
-      await expect(recipe.sendThreadReply({ threads: { replyToThread } }, {
+      await expect(recipe.sendThreadReply({ threads: { replyToThread } } as never, {
         channelId: "channel-1",
         messageId: "root-1",
         text: "Reply after review.",
@@ -176,7 +176,7 @@ describe("examples", () => {
       });
       const scheduled = { ok: true, ids: { scheduledMessageId: "s1" } };
       const create = vi.fn().mockResolvedValue(scheduled);
-      await expect(scheduleRecipe.scheduleMessage({ scheduled: { create } }, {
+      await expect(scheduleRecipe.scheduleMessage({ scheduled: { create } } as never, {
         channel: "#ops",
         text: "Deploy reminder.",
         sendAt: 1893456000000,
@@ -233,7 +233,7 @@ describe("examples", () => {
     ])).toEqual({
       channelId: "bbbbbbbbbbbbbbbbbbbb0001",
       messageId: "cccccccccccccccccccc0001",
-      code: ":white_check_mark:",
+      reaction: ":white_check_mark:",
     });
     expect(otel.openTelemetryExampleRequiredEnv).toEqual(["PUMBLE_API_KEY"]);
   });
@@ -248,7 +248,7 @@ describe("examples catalog", () => {
     for (const row of rows) {
       const match = row.match(/`([\w/.-]+)`/);
       if (!match) continue;
-      const rel = match[1];
+      const rel = match[1]!;
       expect(existsSync(join(examplesDir, rel)), rel).toBe(true);
     }
   });

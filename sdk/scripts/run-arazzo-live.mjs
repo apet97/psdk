@@ -156,7 +156,7 @@ function substitute(value, ctx, parentKey) {
     // workspace, so any literal example name gets suffixed per-run.
     // Without this the second createChannel workflow run returns 403
     // "This channel name is already taken".
-    if (parentKey === "name" && /^sdk-livetest/.test(value)) {
+    if (parentKey === "name" && value.startsWith("sdk-livetest")) {
       return `${value}-${ctx._runId}`;
     }
     return value;

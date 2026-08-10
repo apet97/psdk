@@ -14,7 +14,7 @@ type CapturedHandler = (
 export interface CapturedTool {
   readonly name: string;
   readonly description: string;
-  readonly schema?: z.ZodRawShape;
+  readonly schema?: z.ZodRawShape | undefined;
   readonly handler: CapturedHandler;
 }
 

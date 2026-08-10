@@ -18,7 +18,7 @@ function parseDocPatchIds(doc: string): string[] {
     const match = line.match(/^\|\s*([a-z0-9][a-z0-9-]+)\s*\|/);
     if (!match) continue;
     if (match[1] === "ID") continue;
-    ids.push(match[1]);
+    ids.push(match[1]!);
   }
   return ids;
 }

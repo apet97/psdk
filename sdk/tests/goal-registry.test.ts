@@ -44,19 +44,19 @@ describe("goal registry", () => {
 
   it.each(listGoalFiles())("validates shape of %s", (file) => {
     const doc = parseYaml(readFileSync(file, "utf8")) as Record<string, unknown>;
-    expect(typeof doc.id).toBe("string");
-    expect(doc.id).toMatch(/^G\d{2}$/);
-    expect(typeof doc.title).toBe("string");
-    expect(VALID_PRIORITY).toContain(doc.priority as string);
-    expect(VALID_STATUS).toContain(doc.status as string);
-    const scope = doc.scope as { allowed?: unknown; forbidden?: unknown } | undefined;
+    expect(typeof doc["id"]).toBe("string");
+    expect(doc["id"]).toMatch(/^G\d{2}$/);
+    expect(typeof doc["title"]).toBe("string");
+    expect(VALID_PRIORITY).toContain(doc["priority"] as string);
+    expect(VALID_STATUS).toContain(doc["status"] as string);
+    const scope = doc["scope"] as { allowed?: unknown; forbidden?: unknown } | undefined;
     expect(Array.isArray(scope?.allowed)).toBe(true);
     expect(Array.isArray(scope?.forbidden)).toBe(true);
-    expect(Array.isArray(doc.acceptance)).toBe(true);
-    expect((doc.acceptance as unknown[]).length).toBeGreaterThan(0);
-    expect(Array.isArray(doc.commands)).toBe(true);
-    expect(Array.isArray(doc.adversarial_checks)).toBe(true);
-    expect((doc.adversarial_checks as unknown[]).length).toBeGreaterThan(0);
+    expect(Array.isArray(doc["acceptance"])).toBe(true);
+    expect((doc["acceptance"] as unknown[]).length).toBeGreaterThan(0);
+    expect(Array.isArray(doc["commands"])).toBe(true);
+    expect(Array.isArray(doc["adversarial_checks"])).toBe(true);
+    expect((doc["adversarial_checks"] as unknown[]).length).toBeGreaterThan(0);
   });
 
   it.each(doneGoalLinks())(

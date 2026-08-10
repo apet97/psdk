@@ -183,7 +183,7 @@ describe("wrapClient", () => {
     });
     expect(await wrapped.loud()).toBe("noise");
     expect(await wrapped.quiet()).toBe("ok");
-    expect(events.map((e) => e.op)).toEqual(["loud"]);
+    expect(events.map((e) => e["op"])).toEqual(["loud"]);
   });
 
   it("uses the supplied recorder to emit start + end with status", async () => {

@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 const scrubbedEnv = () => {
   const env = { ...process.env };
-  delete env.PUMBLE_API_KEY;
+  delete env["PUMBLE_API_KEY"];
   return env;
 };
 
@@ -58,7 +58,7 @@ describe("verify-live script", () => {
         cwd: new URL("..", import.meta.url),
         env: {
           ...scrubbedEnv(),
-          PATH: `${temp}${delimiter}${process.env.PATH ?? ""}`,
+          PATH: `${temp}${delimiter}${process.env["PATH"] ?? ""}`,
           PUMBLE_LIVE_ENV_FILE: envFile,
         },
         encoding: "utf8",
