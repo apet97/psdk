@@ -60,7 +60,10 @@ live("searchAllMessages — live workspace", () => {
       if (yielded >= 6) break;
     }
 
-    if (total > limit) {
+    if (process.env["PUMBLE_REPLAY"]) {
+      // Replay fixtures are deterministic: 6 hits at 2 per page.
+      expect(pagesObserved).toBe(3);
+    } else if (total > limit) {
       expect(pagesObserved).toBeGreaterThan(1);
     } else {
       // Workspace too small — just confirm the helper terminated cleanly.
