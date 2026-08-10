@@ -39,6 +39,7 @@ typescript:
   additionalDependencies:
     dependencies: {}
     devDependencies:
+      '@opentelemetry/api': ^1.9.1
       vitest: ^2.1.9
       yaml: ^2.6.0
     peerDependencies:
