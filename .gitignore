@@ -2,7 +2,6 @@ node_modules/
 sdk/node_modules/
 sdk/examples/node_modules/
 .remember/
-IMPROVEMENTS.md
 
 .DS_Store
 .env
