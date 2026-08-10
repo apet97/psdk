@@ -1,21 +1,25 @@
 # Migrating pumble-keys-sdk
 
-## From `pumble-sdk@0.3.x` (this package's pre-rename name)
+## First published version: 0.4.0
 
-`0.3.21` was the last release published as `pumble-sdk`. Starting with
-`0.3.22`, the npm name is `pumble-keys-sdk` to clear the namespace
-collision with CAKE.com's official `pumble-sdk` (the OAuth-app SDK -
-see the product boundary in the README). All exported symbols, types,
-options, and behavior are unchanged; only the package coordinate and
-the bin names moved.
+`pumble-keys-sdk@0.4.0` is the first version of this package published
+to npm. There is no earlier published version to migrate from: the
+`0.3.x` versions in the CHANGELOG are development history, and none of
+them was published — neither under this name nor under the pre-rename
+working name `pumble-sdk`. (`pumble-sdk` on npm is CAKE.com's official
+OAuth-apps SDK, a different product surface — see the product boundary
+in the README.)
 
-```bash
-# Replace the dependency
-npm uninstall pumble-sdk
-npm install pumble-keys-sdk
-```
+If you start on `0.4.0`, there is nothing to migrate. The sections
+below apply only if you used this repository from source before the
+first publish.
 
-Then sweep your imports:
+## From a pre-rename source checkout
+
+Before the rename, the source tree used the working name `pumble-sdk`
+and the bins `pumble` / `pumble-mcp`. If you consumed the repo
+directly (for example with `file:` or `git` dependencies), sweep your
+imports:
 
 ```diff
 - import { PumbleSDK } from "pumble-sdk";
@@ -44,14 +48,7 @@ package name in the `--package` flag changes too:
 + npx -y --package pumble-keys-sdk -- pumble-keys-mcp start --transport stdio
 ```
 
-If you're not sure whether you're on the pre-rename or post-rename
-package, run:
-
-```bash
-node -e "console.log(require('./node_modules/pumble-keys-sdk/package.json').name + '@' + require('./node_modules/pumble-keys-sdk/package.json').version)"
-```
-
-## 0.3.x To Explicit Export Map
+## Explicit export map
 
 - Replace unsupported wildcard imports with documented public imports.
 - Use `pumble-keys-sdk/extensions/index.js` for facade helpers.
@@ -66,4 +63,4 @@ node -e "console.log(require('./node_modules/pumble-keys-sdk/package.json').name
 ## MCP Raw Writes
 
 - Curated MCP remains default.
-- Raw readwrite mode now requires `--allow-raw-writes --audit-log <path>`.
+- Raw readwrite mode requires `--allow-raw-writes --audit-log <path>`.

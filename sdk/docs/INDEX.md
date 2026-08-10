@@ -65,7 +65,7 @@ through the curated MCP server. See [MCP-SAFETY.md#knowledge-resources](MCP-SAFE
 
 - [Support](SUPPORT.md)
 - [Migrating](MIGRATING.md)
-- [Verification archive](verification/v0.3.21.md)
+- [Verification archive](verification/v0.4.0.md)
 - [CI gates](CI-GATES.md)
 - [Versioning](VERSIONING.md)
 - [Security checklist](SECURITY-CHECKLIST.md)

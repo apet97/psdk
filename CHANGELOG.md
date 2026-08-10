@@ -1,11 +1,16 @@
 # Changelog
 
-This project follows semver tags such as `v0.3.21`.
+This project follows semver tags such as `v0.4.0`.
 
 Release notes are generated on GitHub releases. Keep notable hand-written SDK,
 CLI, MCP, security, and docs changes summarized here when preparing a release.
 
-## Unreleased
+## 0.4.0
+
+First published release. `pumble-keys-sdk@0.4.0` is the first version
+of this package on npm; no earlier version was published under this
+name or under `pumble-sdk`. The sections below cover the development
+work accumulated before this first publish.
 
 ### Identity
 
@@ -123,6 +128,8 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
 
 ## 0.3.21
 
+Development history. This version was never published to npm.
+
 ### Generated API
 
 - Regenerated the TypeScript SDK from `PumbleOpenApi.yaml`.
@@ -135,7 +142,7 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
 
 ### CLI/MCP
 
-- Published `pumble` and `pumble-mcp` bins.
+- Added `pumble` and `pumble-mcp` bins.
 - Kept curated MCP as the default profile with preview/confirm write tools.
 
 ### Webhooks/App Helpers

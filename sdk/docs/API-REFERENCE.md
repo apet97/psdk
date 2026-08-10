@@ -4,7 +4,7 @@ Pumble TypeScript SDK / Developer Toolkit generated with Speakeasy for the Pumbl
 
 > **Scope note.** This reference documents the Pumble SDK only. It is not a manual for a general SDK generator — the product boundary is captured in [`docs/product/sdk-generator-product-boundary.md`](../../docs/product/sdk-generator-product-boundary.md).
 
-Redacted release proof for `0.3.21`: [`docs/verification/v0.3.21.md`](docs/verification/v0.3.21.md).
+Redacted release proof for `0.4.0`: [`docs/verification/v0.4.0.md`](docs/verification/v0.4.0.md).
 Migration notes: [`docs/MIGRATING.md`](docs/MIGRATING.md).
 
 ## Product boundary

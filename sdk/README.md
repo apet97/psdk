@@ -50,14 +50,14 @@ npm install pumble-keys-sdk
 The package is ESM-only and requires Node.js 20 or newer. CommonJS callers can
 load it with `await import("pumble-keys-sdk")`.
 
-Runtime support: Node.js 20+ ESM. Browser and edge runtimes are not supported in `0.3.x`.
+Runtime support: Node.js 20+ ESM. Browser and edge runtimes are not supported in `0.4.x`.
 
 Surface stability is listed in [`docs/STABILITY.md`](docs/STABILITY.md).
 Error handling is covered in [`docs/ERRORS.md`](docs/ERRORS.md).
 Support and API surfaces are listed in [`docs/SUPPORT.md`](docs/SUPPORT.md)
 and [`docs/API-REFERENCE.md`](docs/API-REFERENCE.md).
 Migration notes are in [`docs/MIGRATING.md`](docs/MIGRATING.md).
-Redacted release proof for `0.3.21`: [`docs/verification/v0.3.21.md`](docs/verification/v0.3.21.md).
+Redacted release proof for `0.4.0`: [`docs/verification/v0.4.0.md`](docs/verification/v0.4.0.md).
 
 ## First run
 

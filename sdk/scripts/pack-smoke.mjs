@@ -88,7 +88,7 @@ try {
     "docs/STABILITY.md",
     "docs/SUPPORT.md",
     "docs/MIGRATING.md",
-    "docs/verification/v0.3.21.md",
+    "docs/verification/v0.4.0.md",
     "bin/mcp-server.js",
     "bin/pumble-keys-cli.mjs",
     "bin/pumble-mcp-curated.js",

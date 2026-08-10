@@ -569,10 +569,10 @@ describe("docs", () => {
       "Facade operations return value failures for resolver failures and operation failures.",
     );
     expect(readme).toContain("Stable, Beta, Experimental");
-    expect(readme).toContain("docs/verification/v0.3.21.md");
-    expect(apiReference).toContain("docs/verification/v0.3.21.md");
-    expect(existsSync(resolve(sdkRoot, "docs/verification/v0.3.21.md"))).toBe(true);
-    expect(packageJson.files).toContain("docs/verification/v0.3.21.md");
+    expect(readme).toContain("docs/verification/v0.4.0.md");
+    expect(apiReference).toContain("docs/verification/v0.4.0.md");
+    expect(existsSync(resolve(sdkRoot, "docs/verification/v0.4.0.md"))).toBe(true);
+    expect(packageJson.files).toContain("docs/verification/v0.4.0.md");
     expect(readme).toContain("docs/MIGRATING.md");
     expect(apiReference).toContain("docs/MIGRATING.md");
   });
@@ -672,7 +672,7 @@ describe("docs", () => {
     expect(apiReference).toContain("npm provenance");
     expect(apiReference).toContain("Live verification result with redacted output");
     expect(support).toContain("Support Matrix");
-    expect(support).toContain("| Browser/edge runtime | Not supported in `0.3.x` |");
+    expect(support).toContain("| Browser/edge runtime | Not supported in `0.4.x` |");
     expect(support).toContain("For organization deployments:");
   });
 });
@@ -758,7 +758,7 @@ describe("docs IA", () => {
     "STABILITY.md",
     "SUPPORT.md",
     "MIGRATING.md",
-    "verification/v0.3.21.md",
+    "verification/v0.4.0.md",
     "OBSERVABILITY.md",
     "RETRIES-TIMEOUTS-RATE-LIMITS.md",
     "SECURITY-CHECKLIST.md",
