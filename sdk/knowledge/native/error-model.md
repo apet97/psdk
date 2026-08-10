@@ -22,8 +22,8 @@ summary; the long-form is [`docs/ERRORS.md`](../../docs/ERRORS.md).
   for callers that prefer throws.
 - **CLI** (`pumble-keys ...`) — exit code 0 on success, 2 on usage
   errors (missing args, unknown command), 1 on operation failure.
-  Mutating commands are quiet on success unless `--verbose` or
-  `--json` is passed; failures print a one-line summary to stderr
+  Mutating commands print a one-line success message by default
+  (`--quiet` suppresses it); failures print a one-line summary to stderr
   plus a "Run \`pumble-keys --help\` for usage." hint on usage
   errors.
 - **Curated MCP** (`pumble-keys-mcp` with default profile) — every
@@ -64,6 +64,6 @@ The exact union is defined by `ErrorCategory` in
 - Long-form taxonomy: [`docs/ERRORS.md`](../../docs/ERRORS.md).
 - Per-class details: [`docs/ERRORS.md`](../../docs/ERRORS.md).
 - Why facade failures are values:
-  [`docs/adr/0002-facade-failures-are-values.md`](../../docs/adr/0002-facade-failures-are-values.md).
+  `docs/adr/0002-facade-failures-are-values.md` (repo root).
 - Why non-idempotent writes do not retry:
-  [`docs/adr/0006-non-idempotent-writes-do-not-retry.md`](../../docs/adr/0006-non-idempotent-writes-do-not-retry.md).
+  `docs/adr/0006-non-idempotent-writes-do-not-retry.md` (repo root).

@@ -34,7 +34,7 @@ work accumulated before this first publish.
 - `SECURITY.md` now points reporters at a concrete channel (GitHub private
   vulnerability reporting) instead of an undefined "documented security channel".
 - Removed stale internal notes (`docs/site-plan.md` and a one-off review log)
-  and fixed a stale MCP entrypoint in the `Dockerfile` left by the bin rename.
+  and deleted the pre-rename Docker files (`Dockerfile`, `docker-compose.yml`); their entrypoint pointed at a bin removed in the rename.
 - Hardened the curated MCP knowledge resource guard to resolve symlinks
   (path-traversal defense) and extended the fixture secret scan to `.json`
   fixtures, not just `.jsonl`.
@@ -117,7 +117,7 @@ work accumulated before this first publish.
 ### Docs
 
 - New documentation index ([`sdk/docs/INDEX.md`](sdk/docs/INDEX.md)) groups every doc by job.
-- New docs: `CI-GATES.md`, `MCP-SAFETY.md`, `ERROR-MODEL.md`, `RESOLVERS.md`, `CLI-REFERENCE.md`, `TESTING.md`, `EXPERIMENTAL.md`, `SECURITY-CHECKLIST.md`, `OBSERVABILITY.md`, `VERSIONING.md`, `OPERATIONS-CHECKLIST.md`, `REALTIME.md`, `RETRIES-TIMEOUTS-RATE-LIMITS.md`, `SPEC-CONTRACT.md`, `patch-burndown.md`, `PATCH-COUNT.txt`.
+- New docs: `CI-GATES.md`, `MCP-SAFETY.md`, `ERRORS.md` (long-form error model), `RESOLVERS.md`, `CLI-REFERENCE.md`, `TESTING.md`, `EXPERIMENTAL.md`, `SECURITY-CHECKLIST.md`, `OBSERVABILITY.md`, `VERSIONING.md`, `OPERATIONS-CHECKLIST.md`, `REALTIME.md`, `RETRIES-TIMEOUTS-RATE-LIMITS.md`, `SPEC-CONTRACT.md`, `patch-burndown.md`, `PATCH-COUNT.txt`.
 - README leads with `createPumbleClient` (façade-first).
 - Quickstart adds a "Which API should I use?" decision table.
 - Examples catalog (`sdk/examples/INDEX.md`) carries safety labels.

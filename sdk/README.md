@@ -250,8 +250,8 @@ pumble-keys thread <message-id> --channel '#general' --json
 ```
 
 Text output is the default for read commands. Pass `--json` on commands that
-support it for scripting. Mutating commands are quiet on success unless you pass
-`-v`, `--verbose`, or `--json`.
+support it for scripting. Mutating commands print a one-line success message
+by default; pass `--quiet` to suppress it or `--json` for the full receipt.
 Prefer `PUMBLE_API_KEY`, `--api-key-file`, or `--api-key-stdin` over command-line keys. Legacy direct key flags can leak through shell history, process listings, CI logs, and terminal recordings.
 
 ## MCP Server
