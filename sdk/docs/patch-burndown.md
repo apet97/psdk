@@ -12,6 +12,9 @@ Patches are applied to generated SDK code by `scripts/patch-generated-runtime.mj
 
 ## Rules
 
-- Adding a new patch requires updating `PATCH-COUNT.txt`, this table, and ADR 0008.
-- Removing a patch requires confirmation that the protecting test still passes without it (`npm run build && npm test`).
+- Adding a new patch requires updating `PATCH-COUNT.txt`, this table, ADR 0008,
+  and `tests/generated-runtime-patch.test.ts` (see ADR 0008's Test Requirement).
+- Removing a patch follows ADR 0008's Exit Condition: the same behavior must
+  come from generator support, Speakeasy configuration, templates, or the
+  OpenAPI source, with the guard test updated in the same change.
 - See `docs/SPEC-CONTRACT.md` for which constraints belong in `PumbleOpenApi.yaml` instead of patches.

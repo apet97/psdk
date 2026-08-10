@@ -10,6 +10,12 @@ const countPath = resolve(__dirname, "..", "docs", "PATCH-COUNT.txt");
 type PatchEntry = { id: string };
 const registryIds = (PATCH_REGISTRY as PatchEntry[]).map((p) => p.id);
 
+function findRow(doc: string, id: string): string | undefined {
+  return doc
+    .split("\n")
+    .find((line) => line.startsWith(`| ${id} `) || line.startsWith(`| ${id}|`));
+}
+
 function parseDocPatchIds(doc: string): string[] {
   // The burndown doc renders one markdown table row per registered patch.
   // The first column is the patch id. Skip the header and separator rows.
@@ -41,9 +47,7 @@ describe("patch burndown", () => {
   });
 
   it.each(registryIds)("patch '%s' has a removal-condition column", (id) => {
-    const row = doc
-      .split("\n")
-      .find((line) => line.startsWith(`| ${id} `) || line.startsWith(`| ${id}|`));
+    const row = findRow(doc, id);
     expect(row, `missing row for ${id}`).toBeDefined();
     expect(row).toMatch(/\|[^|]+\|[^|]+\|[^|]+\|[^|]+\|[^|]+\|/);
   });
@@ -55,11 +59,7 @@ describe("patch burndown", () => {
         Array.isArray(entry.files),
         `patch '${entry.id}' must declare a files array`,
       ).toBe(true);
-      const row = doc
-        .split("\n")
-        .find((line) =>
-          line.startsWith(`| ${entry.id} `) || line.startsWith(`| ${entry.id}|`)
-        );
+      const row = findRow(doc, entry.id);
       expect(row, `missing burndown row for ${entry.id}`).toBeDefined();
       const fileCell = row!.split("|")[2] ?? "";
       const listed = fileCell
