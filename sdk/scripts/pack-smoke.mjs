@@ -95,6 +95,7 @@ try {
     "bin/pumble-keys-mcp.mjs",
     "esm/index.js",
     "src/index.ts",
+    "knowledge/native/glossary.md",
   ]) {
     assertTarEntry(tarFiles, path);
   }
@@ -140,6 +141,33 @@ for (const [specifier, exportName] of checks) {
 console.log("documented exports ok");
 `);
   await run("node", [smokeModule], { cwd: consumer });
+
+  // A consumer .ts compile catches a broken d.ts layout that runtime
+  // import checks cannot see.
+  await writeFile(join(consumer, "smoke-types.ts"), `
+import { PumbleSDK } from "pumble-keys-sdk";
+import { createPumbleClient } from "pumble-keys-sdk/extensions/index.js";
+import type { HTTPClient } from "pumble-keys-sdk/lib/http";
+
+const sdk: PumbleSDK = new PumbleSDK({ apiKeyAuth: "smoke" });
+const client = createPumbleClient({ apiKeyAuth: "smoke" });
+export { sdk, client };
+export type { HTTPClient };
+`);
+  await writeFile(join(consumer, "tsconfig.json"), JSON.stringify({
+    compilerOptions: {
+      module: "NodeNext",
+      moduleResolution: "NodeNext",
+      target: "ES2022",
+      strict: true,
+      noEmit: true,
+      skipLibCheck: true,
+      types: [],
+    },
+    files: ["smoke-types.ts"],
+  }, null, 2));
+  await run(join(sdkRoot, "node_modules", ".bin", "tsc"), ["-p", "."], { cwd: consumer });
+  console.log("consumer types ok");
 
   const pumbleHelp = await run(binPath(consumer, "pumble-keys"), ["--help"], { cwd: consumer, capture: true });
   if (!/Usage:/i.test(pumbleHelp.stdout)) throw new Error("pumble-keys --help did not print usage");
