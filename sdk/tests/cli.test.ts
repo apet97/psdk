@@ -94,6 +94,20 @@ describe("pumble CLI", () => {
     expect(readRequests().at(-1)).toMatchObject({ method: "GET", path: "/myInfo" });
   });
 
+  it("prefers an explicit --api-key-auth flag over ambient env keys", async () => {
+    const { stdout } = await execFile(
+      "node",
+      [cliPath, "--api-key-auth", "flag-key", "whoami", "--json"],
+      {
+        cwd: sdkRoot,
+        env: { ...cliEnvNoApiKey(), PUMBLE_API_KEY: "env-key" },
+      },
+    );
+
+    expect(JSON.parse(stdout)).toMatchObject({ id: "aaaaaaaaaaaaaaaaaaaa0001" });
+    expect(readRequests().at(-1)).toMatchObject({ path: "/myInfo", apiKey: "flag-key" });
+  });
+
   it("documents safer API key sources in help", async () => {
     const { stdout } = await execFile("node", [cliPath, "--help"], {
       cwd: sdkRoot,
@@ -423,7 +437,7 @@ globalThis.fetch = async function pumbleCliMockFetch(input, init) {
   const path = url.pathname;
   const body = await readBody(req);
   const query = Object.fromEntries(url.searchParams.entries());
-  appendFileSync(logPath, JSON.stringify({ method, path, query, body }) + "\\n");
+  appendFileSync(logPath, JSON.stringify({ method, path, query, body, apiKey: req.headers.get("ApiKey") }) + "\\n");
 
   if (method === "GET" && path === "/myInfo") return json(selfUser);
   if (method === "GET" && path === "/listUsers") return json([selfUser, graceUser]);

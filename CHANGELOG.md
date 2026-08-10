@@ -100,6 +100,11 @@ CLI, MCP, security, and docs changes summarized here when preparing a release.
 
 ### CLI
 
+- **Behavior change:** an explicit `--api-key-auth` / `--api-key` flag now
+  beats `PUMBLE_API_KEY` / `PUMBLESDK_API_KEY_AUTH` env vars. Before, the
+  env vars silently overrode the flag. `--api-key-file` and
+  `--api-key-stdin` still rank highest. The MCP wrapper already resolved
+  flag over env; both surfaces now agree.
 - `pumble doctor` runs offline; redacts the API key.
 - `pumble --version` prints the package version.
 - Writes print a one-line success message by default; `--quiet` suppresses.

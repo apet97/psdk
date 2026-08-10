@@ -185,9 +185,9 @@ function readStdin() {
 function resolveApiKey(globals) {
   if (globals.apiKeyFile) return readFileSync(globals.apiKeyFile, "utf8").trim();
   if (globals.apiKeyStdin) return readStdin();
-  return process.env.PUMBLE_API_KEY
+  return globals.apiKey
+    ?? process.env.PUMBLE_API_KEY
     ?? process.env.PUMBLESDK_API_KEY_AUTH
-    ?? globals.apiKey
     ?? "";
 }
 
