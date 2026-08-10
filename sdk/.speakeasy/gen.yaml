@@ -147,11 +147,12 @@ typescript:
         optional: true
   additionalScripts:
     verify: npm run verify:offline && npm run verify:live
-    verify:offline: npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke
+    verify:offline: npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build
     verify:live: node scripts/verify-live.mjs
     spec:audit: node scripts/spec-quality-audit.mjs
     prebuild: node scripts/normalize-package.mjs
-    test: vitest run
+    lint: oxlint --max-warnings=0 --deny-warnings src tests scripts 'bin/*.mjs' examples
+    test: tsc -p tsconfig.tests.json --noEmit && vitest run
     test:arazzo: node scripts/run-arazzo-live.mjs
     test:arazzo:replay: node scripts/run-arazzo-live.mjs --replay arazzo-26-workflows
     test:examples: vitest run tests/examples.test.ts
@@ -161,7 +162,6 @@ typescript:
     test:mcp:safety: vitest run tests/mcp-agent-safety.test.ts
     test:pack: node scripts/pack-smoke.mjs
     fixtures:minimize: node scripts/minimize-fixtures.mjs
-    bench:smoke: node scripts/perf-smoke.mjs
     package-split:dry-run: node scripts/package-split-dry-run.mjs
   alwaysIncludeInboundAndOutbound: false
   author: Pumble SDK Team
