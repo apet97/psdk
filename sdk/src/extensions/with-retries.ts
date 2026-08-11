@@ -8,6 +8,10 @@
 // promise-returning function): it retries on transient errors with
 // configurable jittered backoff, and re-throws permanent errors
 // untouched.
+//
+// Do not wrap duplicate-creating writes (sendMessage, sendReply, dmUser,
+// dmGroup, createScheduledMessage, createChannel) — see ADR 0006. A retry
+// after a lost response can create a second user-visible object.
 
 import { categorizeError } from "./categorize-error.js";
 import { PumbleSDKError } from "../models/errors/pumble-sdk-error.js";

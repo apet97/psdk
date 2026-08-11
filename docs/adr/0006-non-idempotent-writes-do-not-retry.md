@@ -29,3 +29,11 @@ default retry codes after regeneration. Safe read operations carry explicit
 Facade, CLI, MCP, and raw SDK writes prefer a single attempt by default.
 Callers may still opt into request-level retries explicitly, but the SDK does
 not hide duplicate-write risk behind defaults.
+
+The patch clears default **status-code** retries only. A caller who sets
+`retryConnectionErrors: true` on a global `retryConfig` still gets a backoff
+retry on a dropped connection or timeout for these six writes — the same
+lost-response duplicate-create risk this ADR exists to prevent. That knob is
+an explicit opt-in outside the default posture, not a gap in the patch, but
+callers relying on this ADR's guarantee must leave `retryConnectionErrors`
+unset (or `false`) for duplicate-creating writes.

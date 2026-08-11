@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const sdkRoot = resolve(__dirname, "..");
 
+// `before` bakes in the generator's current default retry-code list. If
+// Speakeasy ever changes that default, this is the first patch to break —
+// intentionally: `patchFile` throws instead of silently applying nothing.
 const NO_DEFAULT_RETRY_CODES = {
   before:
     'retryCodes: options?.retryCodes || ["429", "500", "502", "503", "504"],',
