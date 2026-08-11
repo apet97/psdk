@@ -63,5 +63,5 @@ export const SDK_METADATA = {
   openapiDocVersion: "1.1.0",
   sdkVersion: "0.3.21",
   genVersion: "2.884.13",
-  userAgent: "speakeasy-sdk/typescript 0.3.21 2.884.13 1.1.0 pumble-sdk",
+  userAgent: "speakeasy-sdk/typescript 0.3.21 2.884.13 1.1.0 pumble-keys-sdk",
 } as const;
