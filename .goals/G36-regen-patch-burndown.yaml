@@ -1,8 +1,8 @@
 id: G36
 title: Remove patches the generator now makes unnecessary
 priority: P1
-status: planned
-why: "A human-run regeneration shows which patches the generator has absorbed. Removable patches are deleted with evidence; kept patches get a probe date."
+status: blocked
+why: "A human-run regeneration shows which patches the generator has absorbed. Removable patches are deleted with evidence; kept patches get a probe date. BLOCKED 2026-08-11: the maintainer ran 'cd sdk && speakeasy run' (auto-upgraded to Speakeasy CLI 1.793.0, not the 1.763.6 the plan's evidence base assumed). It failed: 'could not apply persistent edits for typescript: merge conflicts detected in 2 file(s)' (package.json, examples/README.md). The generated side of the package.json conflict was missing most of the repo's custom npm scripts (verify:offline pipeline, goals:check, test:guards, test:docs, test:mcp) and several extensions/* export map entries, so auto-resolution was unsafe. sdk/src/extensions/** and sdk/src/mcp-server/curated/** were untouched by the regen (the one hard guardrail held). The maintainer decided to drop the Speakeasy regen requirement for this pass rather than hand-resolve the conflict live; the working tree was reverted to the pre-regen commit (b5a29e0) with 'git restore --source=HEAD --staged --worktree'. PATCH-COUNT.txt stays at 5 with no probe evidence, which the plan's Section 2 calls an acceptable end state on its own (just without the ideal probe date). Unblock in a dedicated follow-up session: first reconcile package.json's drift from Speakeasy's template (likely needs matching Speakeasy's persistent-edits regions), then rerun the regen."
 scope:
   allowed:
     - sdk/scripts/patch-generated-runtime.mjs
