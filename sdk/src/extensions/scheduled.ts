@@ -14,6 +14,7 @@ import {
   asChannelId,
   asScheduledMessageId,
 } from "./branded-ids.js";
+import { displayChannel } from "./display.js";
 import type {
   ChannelSummary,
   FacadeFailure,
@@ -60,14 +61,10 @@ interface ScheduledRawClient {
   };
 }
 
-export interface CreateScheduledFacadeOptions {
+interface CreateScheduledFacadeOptions {
   raw: ScheduledRawClient;
   resolveFacadeChannel(input: string): Promise<FacadeFindChannelResult>;
   now?: () => number;
-}
-
-function displayChannel(channel: ChannelSummary): string {
-  return channel.name.startsWith("#") ? channel.name : `#${channel.name}`;
 }
 
 function invalidSendAt(sendAt: number, now: number): FacadeFailure<never> | undefined {

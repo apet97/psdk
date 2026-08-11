@@ -35,6 +35,7 @@ import {
   asMessageId,
   asUserId,
 } from "./branded-ids.js";
+import { displayChannel, displayUser } from "./display.js";
 
 interface FacadeWriteRawClient {
   messages: {
@@ -48,7 +49,7 @@ interface FacadeWriteRawClient {
   };
 }
 
-export interface CreateFacadeWritesOptions {
+interface CreateFacadeWritesOptions {
   raw: FacadeWriteRawClient;
   resolveFacadeChannel(
     input: string,
@@ -56,14 +57,6 @@ export interface CreateFacadeWritesOptions {
   resolveFacadeUser(
     input: string,
   ): Promise<FacadeFindUserResult>;
-}
-
-function displayChannel(channel: ChannelSummary): string {
-  return channel.name.startsWith("#") ? channel.name : `#${channel.name}`;
-}
-
-function displayUser(user: UserSummary): string {
-  return user.name.trim().length > 0 ? user.name : user.email;
 }
 
 export function createFacadeWrites({

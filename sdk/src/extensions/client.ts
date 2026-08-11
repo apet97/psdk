@@ -17,6 +17,7 @@ import type { Channels } from "../sdk/channels.js";
 import type { Messages } from "../sdk/messages.js";
 import { PumbleSDK } from "../sdk/sdk.js";
 import type { Users } from "../sdk/users.js";
+import { displayChannel, displayUser } from "./display.js";
 import {
   createFacadeFailure,
   type FacadeFailure,
@@ -268,14 +269,6 @@ function userSummary(user: User): UserSummary {
     email: user.email,
     name: user.name,
   };
-}
-
-function displayChannel(channel: ChannelSummary): string {
-  return channel.name.startsWith("#") ? channel.name : `#${channel.name}`;
-}
-
-function displayUser(user: UserSummary): string {
-  return user.name.trim().length > 0 ? user.name : user.email;
 }
 
 export function createPumbleClient(options: CreatePumbleClientOptions = {}) {
