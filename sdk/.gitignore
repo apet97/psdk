@@ -27,9 +27,8 @@
 .DS_Store
 **/.speakeasy/temp/
 **/.speakeasy/logs/
-.DS_Store
 /.speakeasy/reports
 /.speakeasy/out.openapi.yaml
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.template

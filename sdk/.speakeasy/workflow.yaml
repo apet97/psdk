@@ -1,4 +1,8 @@
 workflowVersion: 1.0.0
+# Pinned 2026-08-11: "latest" silently upgraded to 1.793.0 mid-run and
+# deleted two generated files as collateral. Keep pinned to the version
+# that produced the currently-committed generated tree, or a regen diff
+# gets polluted with unrelated generator-version noise.
 speakeasyVersion: 1.763.6
 sources:
     Pumble API Addon documentation:

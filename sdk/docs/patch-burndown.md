@@ -12,6 +12,14 @@ Patches are applied to generated SDK code by `scripts/patch-generated-runtime.mj
 
 ## 2026-08-11 regen probe: inconclusive
 
+Three patches were probe targets: `outbound-write-validation`,
+`malformed-json-response`, `retry-backoff-first-delay` (their rows above
+carry this note). `non-idempotent-write-retries` and `debug-redaction`
+were never probe targets — they carry no probe date because facts 5 and 6
+in the plan's evidence base already showed the generator cannot express
+their behavior today (no operation-level no-retry config; no safe debug
+logger hook), so probing them would not have told us anything new.
+
 A regen with Speakeasy 1.763.6 succeeded (after prior attempts failed on
 unrelated `package.json`/config drift, since fixed). The plan's probe
 method reads each candidate file's pristine (unpatched) content before the

@@ -28,6 +28,11 @@ generation:
     allOfMergeStrategy: shallowMerge
   requestBodyFieldName: body
   versioningStrategy: automatic
+  # Merges sdk/scripts/patch-generated-runtime.mjs's prior diffs back into
+  # freshly generated files during this step's own "Merging custom edits"
+  # phase, before the executor sees any output. Consequence: the patch
+  # script's grep-based removal probes (see docs/patch-burndown.md) can
+  # never observe pristine generator output while this is enabled.
   persistentEdits:
     enabled: "true"
   tests:
@@ -35,7 +40,7 @@ generation:
     generateNewTests: true
     skipResponseBodyAssertions: false
 typescript:
-  version: 0.3.21
+  version: 0.4.0
   acceptHeaderEnum: false
   additionalDependencies:
     dependencies: {}

@@ -2,7 +2,28 @@ id: G36
 title: Remove patches the generator now makes unnecessary
 priority: P1
 status: done
-why: "A human-run regeneration shows which patches the generator has absorbed. Removable patches are deleted with evidence; kept patches get a probe date. HISTORY 2026-08-11: attempt 1 failed on speakeasyVersion: latest silently upgrading 1.763.6->1.793.0 and a package.json/examples merge conflict from gen.yaml's additionalScripts declaring only 17 of 29 real scripts. Fixed both (workflow.yaml pinned to 1.763.6; gen.yaml additionalScripts synced, verified zero missing/extra vs package.json). Attempt 2 succeeded end-to-end with 3 small, individually-understood conflicts (config.ts's stale pre-rename package name in the userAgent string -- took Speakeasy's fix; retries.ts and package.json resolved to Current, confirmed byte-identical after resolution) plus 4 unwanted Speakeasy defaults rejected (package-lock.json dependency-stripping from an internal pre-merge npm install, README.md's ~600-line boilerplate append with a broken <UNSET> placeholder, .gitignore's /bin addition, an auto-generated example file despite generateExamples: false). Commit 51ba14a. PROBE OUTCOME: inconclusive, not 'not emitted' -- Speakeasy's persistentEdits merges the patch script's prior diffs back into fresh generation output during its own 'Merging custom edits' step, before the executor ever sees pristine (unpatched) content, so the plan's grep-based probe (12.4) had nothing to check against. Recorded honestly in patch-burndown.md rather than forcing a 'not emitted' claim with no evidence behind it. PATCH-COUNT.txt stays at 5, no patch removed -- Section 2 accepts this as a valid end state. Marking done because the actual G36 blocker (a regen that couldn't complete) is resolved and the regen now runs cleanly; the removal-probe question itself would need a different method (inspecting Speakeasy's pre-merge snapshot, or a one-off run with persistentEdits disabled) to ever produce real evidence -- a candidate for a future goal, not a rerun of this one."
+why: |
+  A human-run regeneration shows which patches the generator has absorbed.
+  Removable patches are deleted with evidence; kept patches get a probe date.
+
+  OUTCOME (2026-08-11): the regen now runs end-to-end (two config bugs fixed
+  along the way: a silent CLI auto-upgrade, and gen.yaml/package.json script
+  drift). The removal probe itself came back inconclusive, not "not
+  emitted" -- persistentEdits merges the patch script's prior diffs back
+  into fresh output before the executor ever sees pristine content, so
+  there was nothing to grep against. No patch removed; PATCH-COUNT.txt
+  stays at 5, which plan section 2 accepts as a valid end state on its own.
+
+  Marked done because the actual blocker -- a regen that couldn't complete
+  -- is resolved. The removal-probe question needs a different method
+  (inspect Speakeasy's pre-merge snapshot, or a one-off run with
+  persistentEdits disabled) to ever produce real evidence; that's a
+  candidate for a future goal, not a rerun of this one.
+
+  Full history (both failed attempts, every conflict resolved and why,
+  every Speakeasy default rejected and why): sdk/docs/patch-burndown.md's
+  "2026-08-11 regen probe" section. Commits: 8f42d0f (config fix),
+  51ba14a (successful regen), ba5bd79 (probe outcome recorded).
 scope:
   allowed:
     - sdk/scripts/patch-generated-runtime.mjs
