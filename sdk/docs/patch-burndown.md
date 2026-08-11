@@ -6,9 +6,27 @@ Patches are applied to generated SDK code by `scripts/patch-generated-runtime.mj
 | --- | --- | --- | --- | --- |
 | non-idempotent-write-retries | `src/funcs/messages-send-message.ts`, `src/funcs/messages-send-reply.ts`, `src/funcs/messages-dm-user.ts`, `src/funcs/messages-dm-group.ts`, `src/funcs/scheduled-messages-create-scheduled-message.ts`, `src/funcs/channels-create-channel.ts` | Clears default retry status codes on the six duplicate-creating writes when a user sets a global retryConfig | `tests/retries.test.ts`, `tests/with-retries.test.ts`, `tests/generated-runtime-patch.test.ts` | Speakeasy config/templates support operation-level no-retry generation for these writes. |
 | debug-redaction | `src/lib/sdks.ts` | Redacts headers/bodies in generated debug output | `tests/debug-redaction.test.ts` | Generator emits a logger hook we can plug into. |
-| malformed-json-response | `src/lib/matchers.ts` | Wraps JSON parse failures as `ResponseValidationError` | `tests/response-validation.test.ts` | Generator wraps JSON parse failures. |
-| outbound-write-validation | `src/models/operations/send-message.ts`, `src/models/operations/send-reply.ts`, `src/models/operations/dm-user.ts`, `src/models/operations/dm-group.ts`, `src/models/operations/create-scheduled-message.ts` | Validates request bodies before sending | `tests/generated-request-validation.test.ts` | OpenAPI/schema generation emits the current outbound constraints unaided. |
-| retry-backoff-first-delay | `src/lib/retries.ts` | Honors initial-interval on non-Retry-After backoff | `tests/retries.test.ts` | Generator backoff respects initial interval. |
+| malformed-json-response | `src/lib/matchers.ts` | Wraps JSON parse failures as `ResponseValidationError` | `tests/response-validation.test.ts` | Generator wraps JSON parse failures. Regenerated with Speakeasy 1.763.6 on 2026-08-11: inconclusive, see note below. |
+| outbound-write-validation | `src/models/operations/send-message.ts`, `src/models/operations/send-reply.ts`, `src/models/operations/dm-user.ts`, `src/models/operations/dm-group.ts`, `src/models/operations/create-scheduled-message.ts` | Validates request bodies before sending | `tests/generated-request-validation.test.ts` | OpenAPI/schema generation emits the current outbound constraints unaided. Regenerated with Speakeasy 1.763.6 on 2026-08-11: inconclusive, see note below. |
+| retry-backoff-first-delay | `src/lib/retries.ts` | Honors initial-interval on non-Retry-After backoff | `tests/retries.test.ts` | Generator backoff respects initial interval. Regenerated with Speakeasy 1.763.6 on 2026-08-11: inconclusive, see note below. |
+
+## 2026-08-11 regen probe: inconclusive
+
+A regen with Speakeasy 1.763.6 succeeded (after prior attempts failed on
+unrelated `package.json`/config drift, since fixed). The plan's probe
+method reads each candidate file's pristine (unpatched) content before the
+patch script runs, to check whether the generator now emits the constraint
+unaided. That pristine content was never visible this run: Speakeasy's own
+`persistentEdits` mechanism merges the patch script's prior diffs back into
+the freshly generated files *during generation itself* (its "Merging custom
+edits" step), before the executor sees any output. All three probe-target
+files came out of the regen already in their patched state, byte-identical
+to what was already committed — evidence that `persistentEdits` is carrying
+the patches forward, not evidence about what the generator emits unaided.
+No patch was removed. A real probe would need to either inspect Speakeasy's
+pre-merge snapshot directly (not currently exposed to the executor) or
+temporarily disable `persistentEdits` for one run — out of scope to improvise
+here.
 
 ## Rules
 
