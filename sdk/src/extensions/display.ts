@@ -2,10 +2,12 @@
 
 import type { ChannelSummary, UserSummary } from "./client.js";
 
+/** Channel name for a receipt summary. Adds a leading `#` if the name lacks one. */
 export function displayChannel(channel: ChannelSummary): string {
   return channel.name.startsWith("#") ? channel.name : `#${channel.name}`;
 }
 
+/** User label for a receipt summary. Prefers the display name; falls back to email when the name is blank. */
 export function displayUser(user: UserSummary): string {
   return user.name.trim().length > 0 ? user.name : user.email;
 }
