@@ -31,7 +31,7 @@ export function redactDebugValue(value: unknown, key = ""): unknown {
   return value;
 }
 
-export function redactDebugString(value: string): string {
+function redactDebugString(value: string): string {
   return value
     .replace(EMAIL_PATTERN, "<redacted>")
     .replace(HEX_ID_PATTERN, "<redacted>");

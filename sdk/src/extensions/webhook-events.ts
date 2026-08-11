@@ -7,7 +7,7 @@ export type PumbleWebhookEventType =
   | "APP_UNAUTHORIZED"
   | "WORKSPACE_USER_JOINED";
 
-export interface PumbleNotificationBase {
+interface PumbleNotificationBase {
   /** Workspace id. */
   wId?: string;
   /** Event type discriminator from Pumble notification bodies. */

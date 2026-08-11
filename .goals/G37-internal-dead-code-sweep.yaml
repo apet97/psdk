@@ -1,7 +1,7 @@
 id: G37
 title: Internal dead-code sweep
 priority: P2
-status: planned
+status: done
 why: "Internal code with no importers is bloat. Public surface and sanctioned experimental helpers stay untouched."
 scope:
   allowed:

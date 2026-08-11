@@ -9,7 +9,7 @@ export interface ResolverCacheInfo {
   users: ResolverCacheState;
 }
 
-export interface ResolverCacheMetrics {
+interface ResolverCacheMetrics {
   hits: number;
   misses: number;
   evictions: number;
@@ -17,7 +17,7 @@ export interface ResolverCacheMetrics {
 
 type ResolverSource = ResolveChannelClient & ResolveUserClient;
 
-export interface ResolverCacheConfig {
+interface ResolverCacheConfig {
   ttlMs?: number | undefined;
   refreshOnMiss?: boolean | undefined;
 }
