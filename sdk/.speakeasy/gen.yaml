@@ -183,7 +183,7 @@ typescript:
     test:unit: vitest run tests/categorize-error.test.ts tests/resolve.test.ts tests/with-retries.test.ts tests/rate-limiter.test.ts tests/retries.test.ts tests/extensions.test.ts tests/facade-internals.test.ts tests/facade-writes.test.ts tests/client-facade.test.ts tests/client-resolver-cache.test.ts tests/thread-context.test.ts tests/webhooks.test.ts tests/socket-mode.test.ts tests/pumble-app.test.ts tests/telemetry.test.ts tests/testing-helpers.test.ts tests/write-plan.test.ts
     verify: npm run verify:offline && npm run verify:live
     verify:live: node scripts/verify-live.mjs
-    verify:offline: npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build
+    verify:offline: npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && node scripts/gen-config-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build
   alwaysIncludeInboundAndOutbound: false
   author: apet97 (https://github.com/apet97)
   baseErrorName: PumbleSDKError

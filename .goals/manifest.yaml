@@ -64,3 +64,4 @@ goals:
   - { id: G35, file: G35-retry-coverage-alignment.yaml }
   - { id: G36, file: G36-regen-patch-burndown.yaml }
   - { id: G37, file: G37-internal-dead-code-sweep.yaml }
+  - { id: G38, file: G38-gen-config-consistency-guard.yaml }

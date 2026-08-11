@@ -1,0 +1,47 @@
+id: G38
+title: Guard against gen.yaml <-> package.json drift
+priority: P2
+status: done
+why: |
+  The 2026-08-11 regen (G36) broke twice on the same bug class: gen.yaml's
+  typescript.additionalScripts had 17 of package.json's 29 real scripts, and
+  separately typescript.version trailed package.json#version by one release.
+  Both were caught by hand during that session's adversarial review, not by
+  any gate. A small script comparing the two files closes the gap so this
+  can't silently recur.
+
+  Deliberately narrow: compares gen.yaml against package.json only. It does
+  not check generated files (e.g. src/lib/config.ts), which only pick up a
+  gen.yaml change after a human runs `speakeasy run` -- checking against
+  those would make the gate red for a reason nobody can fix without a regen.
+scope:
+  allowed:
+    - sdk/scripts/gen-config-consistency.mjs
+    - sdk/tests/gen-config-consistency.test.ts
+    - sdk/package.json (scripts.verify:offline only)
+    - sdk/.speakeasy/gen.yaml (typescript.additionalScripts.verify:offline only)
+    - sdk/docs/patch-burndown.md
+    - sdk/tests/goal-registry.test.ts
+    - .goals/G38-gen-config-consistency-guard.yaml
+    - .goals/manifest.yaml
+  forbidden:
+    - sdk/src/**
+    - sdk/.speakeasy/gen.yaml (any field other than the verify:offline script line)
+acceptance:
+  - "checkGenConfigConsistency flags a version mismatch between gen.yaml and package.json."
+  - "checkGenConfigConsistency flags an additionalScripts key missing, or its value differing, on either side."
+  - "checkGenConfigConsistency flags an additionalPackageJSON.files entry missing on either side."
+  - "The check runs as part of verify:offline, before build."
+commands:
+  - "cd sdk && npx vitest run tests/gen-config-consistency.test.ts"
+  - "cd sdk && node scripts/gen-config-consistency.mjs"
+  - "cd sdk && npm run verify:offline"
+adversarial_checks:
+  - "Adding a script to package.json without adding it to gen.yaml fails the check."
+  - "Bumping package.json#version without bumping gen.yaml's typescript.version fails the check."
+links:
+  docs:
+    - sdk/docs/patch-burndown.md
+  tests:
+    - sdk/tests/gen-config-consistency.test.ts
+rollback: "Revert the commit; verify:offline loses one check, no other behavior changes."

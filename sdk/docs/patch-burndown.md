@@ -36,6 +36,12 @@ pre-merge snapshot directly (not currently exposed to the executor) or
 temporarily disable `persistentEdits` for one run — out of scope to improvise
 here.
 
+The regen also broke twice on `gen.yaml`/`package.json` drift (missing
+`additionalScripts` entries, then a `typescript.version` trailing
+package.json's by one release) before it ran cleanly — both caught by hand,
+not by any gate. `scripts/gen-config-consistency.mjs` (G38) now checks that
+drift on every `verify:offline` run.
+
 ## Rules
 
 - Adding a new patch requires updating `PATCH-COUNT.txt`, this table, ADR 0008,
