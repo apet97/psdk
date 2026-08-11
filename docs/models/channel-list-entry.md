@@ -7,7 +7,7 @@ plus its pinned messages and member-ID list.
 ## Example Usage
 
 ```typescript
-import { ChannelListEntry } from "pumble-sdk/models";
+import { ChannelListEntry } from "pumble-keys-sdk/models";
 
 let value: ChannelListEntry = {
   channel: {

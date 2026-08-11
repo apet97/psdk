@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { DmUserRequest } from "pumble-sdk/models/operations";
+import { DmUserRequest } from "pumble-keys-sdk/models/operations";
 
 let value: DmUserRequest = {
   userId: "<id>",

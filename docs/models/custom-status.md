@@ -5,7 +5,7 @@ A user's custom status (the value, not the update payload).
 ## Example Usage
 
 ```typescript
-import { CustomStatus } from "pumble-sdk/models";
+import { CustomStatus } from "pumble-keys-sdk/models";
 
 let value: CustomStatus = {
   code: ":beach_with_umbrella:",

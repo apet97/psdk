@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { PostingPermissionsGroup } from "pumble-sdk/models";
+import { PostingPermissionsGroup } from "pumble-keys-sdk/models";
 
 let value: PostingPermissionsGroup = "EVERYONE";
 

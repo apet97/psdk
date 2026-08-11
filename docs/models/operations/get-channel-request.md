@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { GetChannelRequest } from "pumble-sdk/models/operations";
+import { GetChannelRequest } from "pumble-keys-sdk/models/operations";
 
 let value: GetChannelRequest = {
   channelId: "bbbbbbbbbbbbbbbbbbbb0001",

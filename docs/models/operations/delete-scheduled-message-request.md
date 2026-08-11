@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { DeleteScheduledMessageRequest } from "pumble-sdk/models/operations";
+import { DeleteScheduledMessageRequest } from "pumble-keys-sdk/models/operations";
 
 let value: DeleteScheduledMessageRequest = {
   scheduledMessageId: "bbbbbbbbbbbbbbbbbbbb0001",

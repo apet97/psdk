@@ -7,7 +7,7 @@ server returns the most-recent page regardless of `strategy`.
 ## Example Usage
 
 ```typescript
-import { ListMessagesStrategy } from "pumble-sdk/models";
+import { ListMessagesStrategy } from "pumble-keys-sdk/models";
 
 let value: ListMessagesStrategy = "BEFORE";
 ```

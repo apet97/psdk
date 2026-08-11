@@ -1,39 +1,18 @@
 {
-  "name": "pumble-sdk",
-  "version": "0.3.21",
-  "author": "Pumble SDK Team",
+  "name": "pumble-keys-sdk",
+  "version": "0.4.0",
+  "author": "apet97 (https://github.com/apet97)",
   "bin": {
-    "pumble": "./bin/pumble-cli.mjs",
-    "pumble-mcp": "./bin/pumble-mcp.mjs",
-    "mcp": "bin/mcp-server.js"
+    "pumble-keys": "./bin/pumble-keys-cli.mjs",
+    "pumble-keys-mcp": "./bin/pumble-keys-mcp.mjs"
   },
-  "description": "TypeScript SDK and MCP server for the Pumble API-Keys add-on",
+  "bugs": {
+    "url": "https://github.com/apet97/psdk/issues"
+  },
+  "description": "Unofficial TypeScript SDK and MCP server for the Pumble API-Keys add-on",
   "engines": {
     "node": ">=20"
   },
-  "files": [
-    "bin/audit-log-shim.mjs",
-    "bin/dry-run-shim.mjs",
-    "bin/mcp-server.js",
-    "bin/pumble-cli.mjs",
-    "bin/pumble-mcp-args.mjs",
-    "bin/pumble-mcp-curated.js",
-    "bin/pumble-mcp.mjs",
-    "docs/INTEGRATION-USAGE.md",
-    "docs/PACKAGE-SPLIT.md",
-    "docs/QUICKSTART.md",
-    "docs/llms.txt",
-    "esm",
-    "src"
-  ],
-  "license": "MIT",
-  "peerDependenciesMeta": {
-    "@opentelemetry/api": {
-      "optional": true
-    }
-  },
-  "type": "module",
-  "main": "./esm/index.js",
   "exports": {
     ".": {
       "source": "./src/index.ts",
@@ -41,65 +20,142 @@
       "default": "./esm/index.js"
     },
     "./package.json": "./package.json",
+    "./core.js": {
+      "source": "./src/core.ts",
+      "types": "./esm/core.d.ts",
+      "default": "./esm/core.js"
+    },
     "./types": {
       "source": "./src/types/index.ts",
       "types": "./esm/types/index.d.ts",
       "default": "./esm/types/index.js"
-    },
-    "./models/errors": {
-      "source": "./src/models/errors/index.ts",
-      "types": "./esm/models/errors/index.d.ts",
-      "default": "./esm/models/errors/index.js"
     },
     "./models": {
       "source": "./src/models/index.ts",
       "types": "./esm/models/index.d.ts",
       "default": "./esm/models/index.js"
     },
+    "./models/errors": {
+      "source": "./src/models/errors/index.ts",
+      "types": "./esm/models/errors/index.d.ts",
+      "default": "./esm/models/errors/index.js"
+    },
     "./models/operations": {
       "source": "./src/models/operations/index.ts",
       "types": "./esm/models/operations/index.d.ts",
       "default": "./esm/models/operations/index.js"
     },
-    "./*.js": {
-      "source": "./src/*.ts",
-      "types": "./esm/*.d.ts",
-      "default": "./esm/*.js"
+    "./extensions/index.js": {
+      "source": "./src/extensions/index.ts",
+      "types": "./esm/extensions/index.d.ts",
+      "default": "./esm/extensions/index.js"
     },
-    "./*": {
-      "source": "./src/*.ts",
-      "types": "./esm/*.d.ts",
-      "default": "./esm/*.js"
+    "./extensions/webhooks.js": {
+      "source": "./src/extensions/webhooks.ts",
+      "types": "./esm/extensions/webhooks.d.ts",
+      "default": "./esm/extensions/webhooks.js"
+    },
+    "./extensions/telemetry.js": {
+      "source": "./src/extensions/telemetry.ts",
+      "types": "./esm/extensions/telemetry.d.ts",
+      "default": "./esm/extensions/telemetry.js"
+    },
+    "./extensions/testing/index.js": {
+      "source": "./src/extensions/testing/index.ts",
+      "types": "./esm/extensions/testing/index.d.ts",
+      "default": "./esm/extensions/testing/index.js"
+    },
+    "./extensions/app/index.js": {
+      "source": "./src/extensions/app/index.ts",
+      "types": "./esm/extensions/app/index.d.ts",
+      "default": "./esm/extensions/app/index.js"
+    },
+    "./extensions/app/socket-mode.js": {
+      "source": "./src/extensions/app/socket-mode.ts",
+      "types": "./esm/extensions/app/socket-mode.d.ts",
+      "default": "./esm/extensions/app/socket-mode.js"
+    },
+    "./lib/http": {
+      "source": "./src/lib/http.ts",
+      "types": "./esm/lib/http.d.ts",
+      "default": "./esm/lib/http.js"
     }
   },
+  "files": [
+    "bin/audit-log-shim.mjs",
+    "bin/dry-run-shim.mjs",
+    "bin/mcp-server.js",
+    "bin/pumble-keys-cli.mjs",
+    "bin/pumble-mcp-args.mjs",
+    "bin/pumble-mcp-curated.js",
+    "bin/pumble-keys-mcp.mjs",
+    "docs/API-REFERENCE.md",
+    "docs/ERRORS.md",
+    "docs/INTEGRATION-USAGE.md",
+    "docs/MCP-SAFETY.md",
+    "docs/PACKAGE-SPLIT.md",
+    "docs/QUICKSTART.md",
+    "docs/STABILITY.md",
+    "docs/SUPPORT.md",
+    "docs/MIGRATING.md",
+    "docs/verification/v0.4.0.md",
+    "esm",
+    "knowledge",
+    "src",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "homepage": "https://github.com/apet97/psdk#readme",
+  "keywords": [
+    "pumble",
+    "sdk",
+    "unofficial",
+    "typescript",
+    "api-client",
+    "mcp",
+    "cli",
+    "webhooks"
+  ],
+  "license": "MIT",
+  "peerDependenciesMeta": {
+    "@opentelemetry/api": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apet97/psdk.git",
+    "directory": "sdk"
+  },
+  "type": "module",
+  "main": "./esm/index.js",
   "sideEffects": false,
   "scripts": {
-    "lint": "oxlint --max-warnings=0 --deny-warnings src/**/*.ts src/**/*.tsx",
+    "lint": "oxlint --max-warnings=0 --deny-warnings src tests scripts 'bin/*.mjs' examples",
     "build:mcp": "bun src/mcp-server/build.mts",
     "build": "npm run build:mcp && tsgo",
     "prepublishOnly": "npm run build",
-    "verify": "npm run verify:offline && npm run verify:live",
-    "prebuild": "node scripts/normalize-package.mjs",
-    "test": "vitest run",
-    "test:arazzo:replay": "node scripts/run-arazzo-live.mjs --replay arazzo-26-workflows",
+    "verify:offline": "npm run goals:check && node scripts/attribution-audit.mjs && node scripts/version-consistency.mjs && npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build",
+    "package-split:dry-run": "node scripts/package-split-dry-run.mjs",
+    "test:arazzo": "node scripts/run-arazzo-live.mjs",
+    "test:fixtures:scan": "node scripts/scan-fixtures.mjs",
     "test:live:replay": "PUMBLE_REPLAY=search-all-live NODE_OPTIONS=\"--import ./scripts/replayer.mjs\" vitest run tests/search-all.test.ts",
-    "test:mcp:safety": "vitest run tests/mcp-agent-safety.test.ts",
     "fixtures:minimize": "node scripts/minimize-fixtures.mjs",
-    "bench:smoke": "node scripts/perf-smoke.mjs",
-    "verify:offline": "npm run spec:audit && npm run build && npm run lint && npm test && npm run test:arazzo:replay && npm run test:live:replay && npm run test:fixtures:scan && npm run test:pack -- --skip-build && npm run bench:smoke",
+    "prebuild": "node scripts/normalize-package.mjs",
+    "test": "tsc -p tsconfig.tests.json --noEmit && vitest run",
+    "test:arazzo:replay": "node scripts/run-arazzo-live.mjs --replay arazzo-26-workflows",
+    "test:live": "vitest run tests/search-all.test.ts",
+    "test:mcp:safety": "vitest run tests/mcp-agent-safety.test.ts",
+    "verify": "npm run verify:offline && npm run verify:live",
     "spec:audit": "node scripts/spec-quality-audit.mjs",
     "test:examples": "vitest run tests/examples.test.ts",
-    "test:fixtures:scan": "node scripts/scan-fixtures.mjs",
-    "test:live": "vitest run tests/search-all.test.ts",
-    "package-split:dry-run": "node scripts/package-split-dry-run.mjs",
-    "verify:live": "node scripts/verify-live.mjs",
-    "test:arazzo": "node scripts/run-arazzo-live.mjs",
-    "test:pack": "node scripts/pack-smoke.mjs"
+    "test:pack": "node scripts/pack-smoke.mjs",
+    "verify:live": "node scripts/verify-live.mjs"
   },
   "peerDependencies": {
     "@opentelemetry/api": "^1.9.0"
   },
   "devDependencies": {
+    "@opentelemetry/api": "^1.9.1",
     "@stricli/core": "^1.1.1",
     "@types/express": "^4.17.21",
     "@typescript/native-preview": "7.0.0-dev.20260302.1",

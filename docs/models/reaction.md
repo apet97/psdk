@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { Reaction } from "pumble-sdk/models";
+import { Reaction } from "pumble-keys-sdk/models";
 
 let value: Reaction = {
   user: "aaaaaaaaaaaaaaaaaaaa0001",

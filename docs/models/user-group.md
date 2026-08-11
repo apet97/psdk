@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { UserGroup } from "pumble-sdk/models";
+import { UserGroup } from "pumble-keys-sdk/models";
 
 let value: UserGroup = {
   id: "eeeeeeeeeeeeeeeeeeee0001",

@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { FetchScheduledMessagesResponse } from "pumble-sdk/models/operations";
+import { FetchScheduledMessagesResponse } from "pumble-keys-sdk/models/operations";
 
 let value: FetchScheduledMessagesResponse = {
   result: {

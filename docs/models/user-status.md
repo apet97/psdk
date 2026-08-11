@@ -5,7 +5,7 @@ Lifecycle state of a workspace user.
 ## Example Usage
 
 ```typescript
-import { UserStatus } from "pumble-sdk/models";
+import { UserStatus } from "pumble-keys-sdk/models";
 
 let value: UserStatus = "ACTIVATED";
 

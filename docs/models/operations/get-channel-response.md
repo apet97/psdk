@@ -5,7 +5,7 @@ Channel details.
 ## Example Usage
 
 ```typescript
-import { GetChannelResponse } from "pumble-sdk/models/operations";
+import { GetChannelResponse } from "pumble-keys-sdk/models/operations";
 
 let value: GetChannelResponse = {
   channel: {

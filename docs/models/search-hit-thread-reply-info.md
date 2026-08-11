@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { SearchHitThreadReplyInfo } from "pumble-sdk/models";
+import { SearchHitThreadReplyInfo } from "pumble-keys-sdk/models";
 
 let value: SearchHitThreadReplyInfo = {
   rootId: "cccccccccccccccccccc0001",

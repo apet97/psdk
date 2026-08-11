@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { EditMessageRequest } from "pumble-sdk/models/operations";
+import { EditMessageRequest } from "pumble-keys-sdk/models/operations";
 
 let value: EditMessageRequest = {
   messageId: "<id>",

@@ -5,7 +5,7 @@ Lightweight reference returned by `createChannel`.
 ## Example Usage
 
 ```typescript
-import { ChannelRef } from "pumble-sdk/models";
+import { ChannelRef } from "pumble-keys-sdk/models";
 
 let value: ChannelRef = {
   id: "bbbbbbbbbbbbbbbbbbbb0002",

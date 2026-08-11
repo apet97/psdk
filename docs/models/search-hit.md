@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { SearchHit } from "pumble-sdk/models";
+import { SearchHit } from "pumble-keys-sdk/models";
 
 let value: SearchHit = {
   id: "cccccccccccccccccccc0001",

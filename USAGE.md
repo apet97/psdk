@@ -1,6 +1,6 @@
 <!-- Start SDK Example Usage [usage] -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",

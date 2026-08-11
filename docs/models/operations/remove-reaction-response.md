@@ -5,7 +5,7 @@ Reaction removed.
 ## Example Usage
 
 ```typescript
-import { RemoveReactionResponse } from "pumble-sdk/models/operations";
+import { RemoveReactionResponse } from "pumble-keys-sdk/models/operations";
 
 let value: RemoveReactionResponse = {
   status: "ok",

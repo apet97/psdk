@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { RemoveReactionRequest } from "pumble-sdk/models/operations";
+import { RemoveReactionRequest } from "pumble-keys-sdk/models/operations";
 
 let value: RemoveReactionRequest = {
   messageId: "bbbbbbbbbbbbbbbbbbbb0001",

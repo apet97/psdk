@@ -5,7 +5,7 @@ Reaction added.
 ## Example Usage
 
 ```typescript
-import { AddReactionResponse } from "pumble-sdk/models/operations";
+import { AddReactionResponse } from "pumble-keys-sdk/models/operations";
 
 let value: AddReactionResponse = {
   status: "ok",

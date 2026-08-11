@@ -5,7 +5,7 @@ Workspace role.
 ## Example Usage
 
 ```typescript
-import { UserRole } from "pumble-sdk/models";
+import { UserRole } from "pumble-keys-sdk/models";
 
 let value: UserRole = "MEMBER";
 

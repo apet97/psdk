@@ -5,7 +5,7 @@ Lightweight reference returned by `createScheduledMessage`.
 ## Example Usage
 
 ```typescript
-import { ScheduledMessageRef } from "pumble-sdk/models";
+import { ScheduledMessageRef } from "pumble-keys-sdk/models";
 
 let value: ScheduledMessageRef = {
   id: "dddddddddddddddddddd0001",

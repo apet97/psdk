@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { Security } from "pumble-sdk/models";
+import { Security } from "pumble-keys-sdk/models";
 
 let value: Security = {};
 ```

@@ -7,7 +7,7 @@ large (Slack-like); only top-level fields are typed here.
 ## Example Usage
 
 ```typescript
-import { RichTextElement } from "pumble-sdk/models";
+import { RichTextElement } from "pumble-keys-sdk/models";
 
 let value: RichTextElement = {
   type: "text",

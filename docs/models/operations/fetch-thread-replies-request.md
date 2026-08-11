@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { FetchThreadRepliesRequest } from "pumble-sdk/models/operations";
+import { FetchThreadRepliesRequest } from "pumble-keys-sdk/models/operations";
 
 let value: FetchThreadRepliesRequest = {
   rootMessageId: "cccccccccccccccccccc0001",

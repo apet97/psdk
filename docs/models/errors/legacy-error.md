@@ -5,7 +5,7 @@ Free-form error message from the request handler layer.
 ## Example Usage
 
 ```typescript
-import { LegacyError } from "pumble-sdk/models/errors";
+import { LegacyError } from "pumble-keys-sdk/models/errors";
 
 // No examples available for this model
 ```

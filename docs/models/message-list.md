@@ -8,7 +8,7 @@ the server returns `null` for the side that's irrelevant to the chosen
 ## Example Usage
 
 ```typescript
-import { MessageList } from "pumble-sdk/models";
+import { MessageList } from "pumble-keys-sdk/models";
 
 let value: MessageList = {
   messages: [],

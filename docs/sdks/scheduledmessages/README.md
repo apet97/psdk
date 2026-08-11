@@ -20,7 +20,7 @@ Create a scheduled (future) message
 
 <!-- UsageSnippet language="typescript" operationID="createScheduledMessage" method="post" path="/createScheduledMessage" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -47,8 +47,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { scheduledMessagesCreateScheduledMessage } from "pumble-sdk/funcs/scheduled-messages-create-scheduled-message.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { scheduledMessagesCreateScheduledMessage } from "pumble-keys-sdk/funcs/scheduled-messages-create-scheduled-message.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -108,7 +108,7 @@ message's `id`.
 
 <!-- UsageSnippet language="typescript" operationID="fetchScheduledMessages" method="get" path="/fetchScheduledMessages" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -133,8 +133,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { scheduledMessagesFetchScheduledMessages } from "pumble-sdk/funcs/scheduled-messages-fetch-scheduled-messages.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { scheduledMessagesFetchScheduledMessages } from "pumble-keys-sdk/funcs/scheduled-messages-fetch-scheduled-messages.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -189,7 +189,7 @@ Fetch a single scheduled message by ID
 
 <!-- UsageSnippet language="typescript" operationID="fetchScheduledMessage" method="get" path="/fetchScheduledMessage" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -211,8 +211,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { scheduledMessagesFetchScheduledMessage } from "pumble-sdk/funcs/scheduled-messages-fetch-scheduled-message.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { scheduledMessagesFetchScheduledMessage } from "pumble-keys-sdk/funcs/scheduled-messages-fetch-scheduled-message.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -268,7 +268,7 @@ any of them returns 403 with `[must not be null]`. Pass the existing
 
 <!-- UsageSnippet language="typescript" operationID="editScheduledMessage" method="post" path="/editScheduledMessage" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -293,8 +293,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { scheduledMessagesEditScheduledMessage } from "pumble-sdk/funcs/scheduled-messages-edit-scheduled-message.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { scheduledMessagesEditScheduledMessage } from "pumble-keys-sdk/funcs/scheduled-messages-edit-scheduled-message.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -349,7 +349,7 @@ Delete a scheduled message
 
 <!-- UsageSnippet language="typescript" operationID="deleteScheduledMessage" method="delete" path="/deleteScheduledMessage" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -371,8 +371,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { scheduledMessagesDeleteScheduledMessage } from "pumble-sdk/funcs/scheduled-messages-delete-scheduled-message.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { scheduledMessagesDeleteScheduledMessage } from "pumble-keys-sdk/funcs/scheduled-messages-delete-scheduled-message.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.

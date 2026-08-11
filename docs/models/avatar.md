@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { Avatar } from "pumble-sdk/models";
+import { Avatar } from "pumble-keys-sdk/models";
 
 let value: Avatar = {
   fullPath: "https://avatar.example.com/defaults/avatar.jpg",

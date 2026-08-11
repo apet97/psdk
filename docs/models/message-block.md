@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { MessageBlock } from "pumble-sdk/models";
+import { MessageBlock } from "pumble-keys-sdk/models";
 
 let value: MessageBlock = {
   type: "rich_text",

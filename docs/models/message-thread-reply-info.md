@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { MessageThreadReplyInfo } from "pumble-sdk/models";
+import { MessageThreadReplyInfo } from "pumble-keys-sdk/models";
 
 let value: MessageThreadReplyInfo = {
   rootId: "cccccccccccccccccccc0001",

@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { Message } from "pumble-sdk/models";
+import { Message } from "pumble-keys-sdk/models";
 
 let value: Message = {
   id: "cccccccccccccccccccc0001",

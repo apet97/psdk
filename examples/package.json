@@ -1,5 +1,5 @@
 {
-  "name": "pumble-sdk-examples",
+  "name": "pumble-keys-sdk-examples",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -13,6 +13,6 @@
     "tsx": "^4.19.2"
   },
   "dependencies": {
-    "pumble-sdk": "file:.."
+    "pumble-keys-sdk": "file:.."
   }
 }

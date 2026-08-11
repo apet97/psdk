@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { CustomStatusRequest } from "pumble-sdk/models/operations";
+import { CustomStatusRequest } from "pumble-keys-sdk/models/operations";
 
 let value: CustomStatusRequest = {
   code: ":beach_with_umbrella:",

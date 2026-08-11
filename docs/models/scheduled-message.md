@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { ScheduledMessage } from "pumble-sdk/models";
+import { ScheduledMessage } from "pumble-keys-sdk/models";
 
 let value: ScheduledMessage = {
   id: "dddddddddddddddddddd0001",

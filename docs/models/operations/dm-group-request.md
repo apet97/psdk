@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { DmGroupRequest } from "pumble-sdk/models/operations";
+import { DmGroupRequest } from "pumble-keys-sdk/models/operations";
 
 let value: DmGroupRequest = {
   userIds: [],

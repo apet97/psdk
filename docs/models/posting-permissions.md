@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { PostingPermissions } from "pumble-sdk/models";
+import { PostingPermissions } from "pumble-keys-sdk/models";
 
 let value: PostingPermissions = {
   allowThreads: true,

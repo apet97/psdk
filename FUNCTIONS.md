@@ -19,8 +19,8 @@ specific category of applications.
 ## Example
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { channelsListChannels } from "pumble-sdk/funcs/channels-list-channels.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { channelsListChannels } from "pumble-keys-sdk/funcs/channels-list-channels.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.

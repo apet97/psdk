@@ -5,7 +5,7 @@ Structured validation error from the framework layer.
 ## Example Usage
 
 ```typescript
-import { StructuredError } from "pumble-sdk/models/errors";
+import { StructuredError } from "pumble-keys-sdk/models/errors";
 
 // No examples available for this model
 ```

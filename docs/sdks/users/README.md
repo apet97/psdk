@@ -19,7 +19,7 @@ Returns every user in the workspace as a flat array.
 
 <!-- UsageSnippet language="typescript" operationID="listUsers" method="get" path="/listUsers" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -39,8 +39,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { usersListUsers } from "pumble-sdk/funcs/users-list-users.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { usersListUsers } from "pumble-keys-sdk/funcs/users-list-users.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -89,7 +89,7 @@ List workspace user groups
 
 <!-- UsageSnippet language="typescript" operationID="listUserGroups" method="get" path="/listUserGroups" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -109,8 +109,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { usersListUserGroups } from "pumble-sdk/funcs/users-list-user-groups.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { usersListUserGroups } from "pumble-keys-sdk/funcs/users-list-user-groups.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -159,7 +159,7 @@ Returns the user record for whichever account owns the API key.
 
 <!-- UsageSnippet language="typescript" operationID="myInfo" method="get" path="/myInfo" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -179,8 +179,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { usersMyInfo } from "pumble-sdk/funcs/users-my-info.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { usersMyInfo } from "pumble-keys-sdk/funcs/users-my-info.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -233,7 +233,7 @@ immediately clear.
 
 <!-- UsageSnippet language="typescript" operationID="customStatus" method="post" path="/customStatus" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -257,8 +257,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { usersCustomStatus } from "pumble-sdk/funcs/users-custom-status.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { usersCustomStatus } from "pumble-keys-sdk/funcs/users-custom-status.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.

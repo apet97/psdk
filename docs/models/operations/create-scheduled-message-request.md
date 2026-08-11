@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { CreateScheduledMessageRequest } from "pumble-sdk/models/operations";
+import { CreateScheduledMessageRequest } from "pumble-keys-sdk/models/operations";
 
 let value: CreateScheduledMessageRequest = {
   channelId: "<id>",

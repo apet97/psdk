@@ -20,7 +20,7 @@ Returns every channel visible to the API key.
 
 <!-- UsageSnippet language="typescript" operationID="listChannels" method="get" path="/listChannels" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -40,8 +40,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { channelsListChannels } from "pumble-sdk/funcs/channels-list-channels.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { channelsListChannels } from "pumble-keys-sdk/funcs/channels-list-channels.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -93,7 +93,7 @@ The response wraps the channel in `{ channel: ... }` (mirroring
 
 <!-- UsageSnippet language="typescript" operationID="getChannel" method="get" path="/getChannel" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -116,8 +116,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { channelsGetChannel } from "pumble-sdk/funcs/channels-get-channel.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { channelsGetChannel } from "pumble-keys-sdk/funcs/channels-get-channel.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -172,7 +172,7 @@ channel creator and is added as a member.
 
 <!-- UsageSnippet language="typescript" operationID="createChannel" method="post" path="/createChannel" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -196,8 +196,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { channelsCreateChannel } from "pumble-sdk/funcs/channels-create-channel.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { channelsCreateChannel } from "pumble-keys-sdk/funcs/channels-create-channel.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -251,7 +251,7 @@ Add users to a channel
 
 <!-- UsageSnippet language="typescript" operationID="addUsersToChannel" method="post" path="/addUsersToChannel" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -276,8 +276,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { channelsAddUsersToChannel } from "pumble-sdk/funcs/channels-add-users-to-channel.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { channelsAddUsersToChannel } from "pumble-keys-sdk/funcs/channels-add-users-to-channel.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -332,7 +332,7 @@ Remove a user from a channel
 
 <!-- UsageSnippet language="typescript" operationID="removeUserFromChannel" method="post" path="/removeUserFromChannel" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -355,8 +355,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { channelsRemoveUserFromChannel } from "pumble-sdk/funcs/channels-remove-user-from-channel.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { channelsRemoveUserFromChannel } from "pumble-keys-sdk/funcs/channels-remove-user-from-channel.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.

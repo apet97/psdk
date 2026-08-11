@@ -5,7 +5,7 @@ Lightweight reference returned by write operations.
 ## Example Usage
 
 ```typescript
-import { MessageRef } from "pumble-sdk/models";
+import { MessageRef } from "pumble-keys-sdk/models";
 
 let value: MessageRef = {
   id: "cccccccccccccccccccc0001",

@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { SearchHitThreadRootInfo } from "pumble-sdk/models";
+import { SearchHitThreadRootInfo } from "pumble-keys-sdk/models";
 
 let value: SearchHitThreadRootInfo = {
   replyCount: 3,

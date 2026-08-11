@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { RemoveUserFromChannelRequest } from "pumble-sdk/models/operations";
+import { RemoveUserFromChannelRequest } from "pumble-keys-sdk/models/operations";
 
 let value: RemoveUserFromChannelRequest = {
   channelId: "<id>",

@@ -1,6 +1,6 @@
-# pumble-sdk Examples
+# pumble-keys-sdk Examples
 
-This directory contains example scripts demonstrating how to use the pumble-sdk SDK.
+This directory contains example scripts demonstrating how to use the pumble-keys-sdk SDK.
 
 ## Prerequisites
 

@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { ScheduledMessageRecurrence } from "pumble-sdk/models";
+import { ScheduledMessageRecurrence } from "pumble-keys-sdk/models";
 
 let value: ScheduledMessageRecurrence = {
   recurrenceType: "WEEKLY",

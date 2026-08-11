@@ -31,7 +31,7 @@ message is posted as a reply in that thread (equivalent to
 
 <!-- UsageSnippet language="typescript" operationID="sendMessage" method="post" path="/sendMessage" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -54,8 +54,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesSendMessage } from "pumble-sdk/funcs/messages-send-message.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesSendMessage } from "pumble-keys-sdk/funcs/messages-send-message.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -110,7 +110,7 @@ Posts `text` as a reply in the thread rooted at `messageId`. Provide
 
 <!-- UsageSnippet language="typescript" operationID="sendReply" method="post" path="/sendReply" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -134,8 +134,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesSendReply } from "pumble-sdk/funcs/messages-send-reply.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesSendReply } from "pumble-keys-sdk/funcs/messages-send-reply.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -192,7 +192,7 @@ operations.
 
 <!-- UsageSnippet language="typescript" operationID="dmUser" method="post" path="/dmUser" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -215,8 +215,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesDmUser } from "pumble-sdk/funcs/messages-dm-user.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesDmUser } from "pumble-keys-sdk/funcs/messages-dm-user.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -269,7 +269,7 @@ Opens (or reuses) a multi-party DM channel and posts a message.
 
 <!-- UsageSnippet language="typescript" operationID="dmGroup" method="post" path="/dmGroup" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -295,8 +295,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesDmGroup } from "pumble-sdk/funcs/messages-dm-group.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesDmGroup } from "pumble-keys-sdk/funcs/messages-dm-group.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -352,7 +352,7 @@ Fetch a single message by ID
 
 <!-- UsageSnippet language="typescript" operationID="fetchMessage" method="get" path="/fetchMessage" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -376,8 +376,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesFetchMessage } from "pumble-sdk/funcs/messages-fetch-message.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesFetchMessage } from "pumble-keys-sdk/funcs/messages-fetch-message.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -433,7 +433,7 @@ as a flat array. Supports cursor pagination via the last reply's `id`.
 
 <!-- UsageSnippet language="typescript" operationID="fetchThreadReplies" method="get" path="/fetchThreadReplies" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -460,8 +460,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesFetchThreadReplies } from "pumble-sdk/funcs/messages-fetch-thread-replies.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesFetchThreadReplies } from "pumble-keys-sdk/funcs/messages-fetch-thread-replies.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -529,7 +529,7 @@ observed; for high-volume bursts use a smaller search window via
 
 <!-- UsageSnippet language="typescript" operationID="searchMessages" method="post" path="/searchMessages" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -553,8 +553,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesSearchMessages } from "pumble-sdk/funcs/messages-search-messages.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesSearchMessages } from "pumble-keys-sdk/funcs/messages-search-messages.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -608,7 +608,7 @@ Delete a message by ID
 
 <!-- UsageSnippet language="typescript" operationID="deleteMessage" method="delete" path="/deleteMessage" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -632,8 +632,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesDeleteMessage } from "pumble-sdk/funcs/messages-delete-message.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesDeleteMessage } from "pumble-keys-sdk/funcs/messages-delete-message.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -691,7 +691,7 @@ still has messages relative to the cursor.
 
 <!-- UsageSnippet language="typescript" operationID="listMessages" method="get" path="/listMessages" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -718,8 +718,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesListMessages } from "pumble-sdk/funcs/messages-list-messages.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesListMessages } from "pumble-keys-sdk/funcs/messages-list-messages.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -778,7 +778,7 @@ colon-wrapped form server-side; bare names (e.g. `+1`) return 403.
 
 <!-- UsageSnippet language="typescript" operationID="addReaction" method="post" path="/addReaction" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -802,8 +802,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesAddReaction } from "pumble-sdk/funcs/messages-add-reaction.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesAddReaction } from "pumble-keys-sdk/funcs/messages-add-reaction.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -857,7 +857,7 @@ Remove a reaction from a message
 
 <!-- UsageSnippet language="typescript" operationID="removeReaction" method="delete" path="/removeReaction" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -881,8 +881,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesRemoveReaction } from "pumble-sdk/funcs/messages-remove-reaction.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesRemoveReaction } from "pumble-keys-sdk/funcs/messages-remove-reaction.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
@@ -936,7 +936,7 @@ Edit a message
 
 <!-- UsageSnippet language="typescript" operationID="editMessage" method="post" path="/editMessage" -->
 ```typescript
-import { PumbleSDK } from "pumble-sdk";
+import { PumbleSDK } from "pumble-keys-sdk";
 
 const pumbleSDK = new PumbleSDK({
   apiKeyAuth: process.env["PUMBLESDK_API_KEY_AUTH"] ?? "",
@@ -960,8 +960,8 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { PumbleSDKCore } from "pumble-sdk/core.js";
-import { messagesEditMessage } from "pumble-sdk/funcs/messages-edit-message.js";
+import { PumbleSDKCore } from "pumble-keys-sdk/core.js";
+import { messagesEditMessage } from "pumble-keys-sdk/funcs/messages-edit-message.js";
 
 // Use `PumbleSDKCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
